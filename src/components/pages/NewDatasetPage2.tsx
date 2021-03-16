@@ -3,7 +3,6 @@ import * as ODDataset from "ufdl-js-client/functional/object_detection/dataset";
 import React, {useContext} from "react";
 import {UFDL_SERVER_REACT_CONTEXT} from "../../server/UFDLServerContextProvider";
 import {useInterlockedState} from "../../util/react/hooks/useInterlockedState";
-import {lazyUndefined} from "../../util/typescript/lazyUndefined";
 import {constantInitialiser} from "../../util/typescript/initialisers";
 import useDerivedState from "../../util/react/hooks/useDerivedState";
 import {exactFilter} from "../../server/util/exactFilter";
@@ -48,10 +47,10 @@ export default function NewDatasetPage2(props: NewDatasetPage2Props) {
 
     const ufdlServerContext = useContext(UFDL_SERVER_REACT_CONTEXT);
 
-    const [domain, setDomain, domainLocked] = useInterlockedState<Domain | undefined>(props.domain, lazyUndefined);
-    const [teamPK, setTeamPK, teamPKLocked] = useInterlockedState<TeamPK | undefined>(getTeamPK(props.lockedPK), lazyUndefined);
-    const [projectPK, setProjectPK, projectPKLocked] = useInterlockedState<ProjectPK | undefined>(getProjectPK(props.lockedPK), lazyUndefined);
-    const [licencePK, setLicencePK, licencePKLocked] = useInterlockedState<number | undefined>(props.licence_pk, lazyUndefined);
+    const [domain, setDomain, domainLocked] = useInterlockedState<Domain | undefined>(props.domain, constantInitialiser(undefined));
+    const [teamPK, setTeamPK, teamPKLocked] = useInterlockedState<TeamPK | undefined>(getTeamPK(props.lockedPK), constantInitialiser(undefined));
+    const [projectPK, setProjectPK, projectPKLocked] = useInterlockedState<ProjectPK | undefined>(getProjectPK(props.lockedPK), constantInitialiser(undefined));
+    const [licencePK, setLicencePK, licencePKLocked] = useInterlockedState<number | undefined>(props.licence_pk, constantInitialiser(undefined));
     const [isPublic, setIsPublic, isPublicLocked] = useInterlockedState<boolean>(props.is_public, constantInitialiser(false));
 
     const [name, setName] = useStateSafe<string>(constantInitialiser(""));

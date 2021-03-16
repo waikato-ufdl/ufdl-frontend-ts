@@ -2,7 +2,6 @@ import React, {ReactElement, useContext} from "react";
 import {JSXFunctionElementConstructor} from "../../util/react/jsx/JSXFunctionElementConstructor";
 import {UFDL_SERVER_REACT_CONTEXT} from "../../server/UFDLServerContextProvider";
 import {useInterlockedState} from "../../util/react/hooks/useInterlockedState";
-import {lazyUndefined} from "../../util/typescript/lazyUndefined";
 import Page from "./Page";
 import {BackButton} from "../BackButton";
 import {Form} from "../Form";
@@ -13,6 +12,7 @@ import useStateSafe from "../../util/react/hooks/useStateSafe";
 import {RawJSONObject} from "ufdl-js-client/types";
 import useDerivedState from "../../util/react/hooks/useDerivedState";
 import {DEFAULT_HANDLED_ERROR_RESPONSE, withErrorResponseHandler} from "../../server/util/responseError";
+import {constantInitialiser} from "../../util/typescript/initialisers";
 
 export type NewProjectPageProps = {
     team_pk?: number
@@ -28,7 +28,10 @@ export default function NewProjectPage2(
 
     const ufdlServerContext = useContext(UFDL_SERVER_REACT_CONTEXT);
 
-    const [teamPK, setTeamPk, teamPKLocked] = useInterlockedState<number | undefined>(props.team_pk, lazyUndefined);
+    const [teamPK, setTeamPk, teamPKLocked] = useInterlockedState<number | undefined>(
+        props.team_pk,
+        constantInitialiser(undefined)
+    );
 
     const [name, setName] = useStateSafe(() => "");
 
