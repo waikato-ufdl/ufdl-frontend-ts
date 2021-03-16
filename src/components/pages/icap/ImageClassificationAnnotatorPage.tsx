@@ -12,7 +12,7 @@ import {DataImage} from "../../../image/DataImage";
 import {BehaviorSubject} from "rxjs";
 import useLabelColours from "./labels/useLabelColours";
 import useStateSafe from "../../../util/react/hooks/useStateSafe";
-import NewDatasetPage2 from "../NewDatasetPage2";
+import NewDatasetPage from "../NewDatasetPage";
 import "./ImageClassificationAnnotatorPage.css";
 import {DatasetPK, getDatasetPK, getProjectPK, getTeamPK, ProjectPK, TeamPK} from "../../../server/pk";
 import useDerivedReducer from "../../../util/react/hooks/useDerivedReducer";
@@ -56,7 +56,7 @@ export default function ImageClassificationAnnotatorPage(
     const [showLargeImageOverlay, setShowLargeImageOverlay] = useStateSafe<BehaviorSubject<Blob> | undefined>(() => undefined);
 
     if (showNewDatasetPage) {
-        return <NewDatasetPage2
+        return <NewDatasetPage
             domain={"ic"}
             lockedPK={props.lockedPK instanceof DatasetPK ? undefined : props.lockedPK}
             onCreate={(pk) => {setSelectedPK(pk); setShowNewDatasetPage(false)}}

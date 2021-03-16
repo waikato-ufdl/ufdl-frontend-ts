@@ -5,7 +5,7 @@ import {Optional} from "ufdl-js-client/util";
 import {useInterlockedState} from "../../util/react/hooks/useInterlockedState";
 import Page from "./Page";
 import SelectProjectPage from "./SelectProjectPage";
-import NewDatasetPage2 from "./NewDatasetPage2";
+import NewDatasetPage from "./NewDatasetPage";
 import * as ICDataset from "ufdl-js-client/functional/image_classification/dataset";
 import {ListSelect} from "../ListSelect";
 import React from "react";
@@ -45,7 +45,7 @@ export default function SelectDatasetPage(
             onSelected={(pk) => setProject(pk)}
             onBack={props.onBack}
         />
-        <NewDatasetPage2
+        <NewDatasetPage
             domain={"ic"}
             lockedPK={project}
             onCreate={(pk) => {props.onSelected(pk); setShowNewDatasetPage(false)} }

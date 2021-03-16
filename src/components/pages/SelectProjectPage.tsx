@@ -6,7 +6,7 @@ import {useInterlockedState} from "../../util/react/hooks/useInterlockedState";
 import Page from "./Page";
 import SelectTeamPage from "./SelectTeamPage";
 import {ProjectSelect} from "../ProjectSelect";
-import NewProjectPage2 from "./NewProjectPage2";
+import NewProjectPage from "./NewProjectPage";
 import {BackButton} from "../BackButton";
 import React from "react";
 import RenderSelectedChildren from "../../util/react/component/RenderSelectedChildren";
@@ -36,7 +36,7 @@ export default function SelectProjectPage(
             onSelected={(pk) => setTeam(pk)}
             onBack={props.onBack}
         />
-        <NewProjectPage2
+        <NewProjectPage
             team_pk={team?.asNumber}
             onCreate={(pk) => {
                 if (team !== undefined) props.onSelected(team.project(pk));

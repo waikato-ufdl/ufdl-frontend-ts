@@ -34,7 +34,7 @@ const createFunctions: {[key in Domain]: WithErrorResponseHandler<Parameters<Cre
     "od": withErrorResponseHandler(ODDataset.create)
 } as const;
 
-export type NewDatasetPage2Props = {
+export type NewDatasetPageProps = {
     domain?: Domain
     lockedPK?: TeamPK | ProjectPK
     licence_pk?: number
@@ -43,7 +43,7 @@ export type NewDatasetPage2Props = {
     onBack?: () => void
 }
 
-export default function NewDatasetPage2(props: NewDatasetPage2Props) {
+export default function NewDatasetPage(props: NewDatasetPageProps) {
 
     const ufdlServerContext = useContext(UFDL_SERVER_REACT_CONTEXT);
 

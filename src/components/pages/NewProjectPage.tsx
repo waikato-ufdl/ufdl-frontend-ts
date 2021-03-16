@@ -22,7 +22,7 @@ export type NewProjectPageProps = {
 
 const createProject = withErrorResponseHandler(Project.create);
 
-export default function NewProjectPage2(
+export default function NewProjectPage(
     props: NewProjectPageProps
 ): ReactElement<NewProjectPageProps, JSXFunctionElementConstructor<NewProjectPageProps>> {
 

@@ -4,13 +4,13 @@ import Page from "./Page";
 import {BackButton} from "../BackButton";
 import {PingButton} from "../PingButton";
 
-export type DummyPage2Props = {
+export type DummyPageProps = {
     pings: number
     onBack?: () => void
 }
 
-export default function DummyPage2(
-    props: DummyPage2Props
+export default function DummyPage(
+    props: DummyPageProps
 ): ReactElement | null {
 
     const [pings, incrementPings] = useReducer(
