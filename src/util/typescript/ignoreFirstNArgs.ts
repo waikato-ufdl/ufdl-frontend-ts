@@ -1,20 +1,23 @@
-import {IsTuple, LastN, NTuple} from "./types/tuple";
-import {Subtract} from "./types/numeric/Subtract";
+import {NTuple} from "./types/tuple";
 import {If} from "./types/conditional/If";
-import {And} from "./types/conditional/And";
 import {IsNumeric} from "./types/numeric/IsNumeric";
 
+/**
+ * Returns a version of the given function which can take an additional n
+ * arguments of any type before its own arguments.
+ *
+ * @param n
+ *          The number of additional preceding arguments to consume/ignore.
+ * @param func
+ *          The base function.
+ * @return
+ *          The modified function.
+ */
 export default function ignoreFirstNArgs<F extends (...args: any) => any, N extends number>(
     n: N,
-    f: F
-): If<And<IsNumeric<N>, IsTuple<Parameters<F>>>, (...args: [...NTuple<any, N>, ...Parameters<F>]) => ReturnType<F>> {
-    return ((...args: any) => f(...args.slice(n) as any)) as any;
+    func: F
+): If<IsNumeric<N>, (...args: [...NTuple<any, N>, ...Parameters<F>]) => ReturnType<F>> {
+    return (
+        (...args: any) => func(...args.slice(n) as any)
+    ) as any;
 }
-
-type PS<F extends (...args: any) => any> = F extends (...args: infer P) => any ? P : never;
-
-function test(a?: string, b?: number) : boolean {
-    return a !== undefined && b !== undefined && a.length + b < 45;
-}
-
-//const y: PS<typeof test> = [1,2]
