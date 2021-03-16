@@ -1,0 +1,23 @@
+.AddImagesButton {
+    width: 80%;
+    height: 80%;
+    position: relative;
+}
+
+.AddFilesButton {
+    width: 50%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    position: absolute;
+    border-radius: 6px 0 0 6px;
+}
+
+.AddFoldersButton {
+    width: 50%;
+    height: 100%;
+    top: 0;
+    right: 0;
+    position: absolute;
+    border-radius: 0 6px 6px 0;
+}

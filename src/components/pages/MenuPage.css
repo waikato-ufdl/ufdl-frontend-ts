@@ -1,0 +1,11 @@
+.MenuPage {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+}
+
+.MenuPage > button {
+    flex-grow: 1;
+    flex-shrink: 1;
+    font-size: 8vw;
+}

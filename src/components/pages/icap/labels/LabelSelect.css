@@ -1,0 +1,17 @@
+.LabelSelect {
+    margin: 0;
+    border: 0;
+    padding: 0;
+}
+
+.LabelSelect > .LabelSelectInput {
+    position: absolute;
+    top: 0;
+    right: 0;
+    font-family: monospace;
+    border-top-width: 0;
+    border-right-width: 0;
+    padding-top: 4px;
+    padding-right: 5px;
+    outline: none;
+}
