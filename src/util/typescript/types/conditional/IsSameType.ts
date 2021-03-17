@@ -1,5 +1,10 @@
-import {Extends} from "./Extends";
-import {And} from "./And";
-import {If} from "./If";
-
-export type IsSameType<A, B> = If<And<Extends<A, B>, Extends<B, A>>, A & B>
+/**
+ * Type which evaluates to the true type if A and B are the same type,
+ * and the false type if not.
+ */
+export type IsSameType<A, B>
+    = Exclude<A, B> extends never
+    ? Exclude<B, A> extends never
+        ? true
+        : false
+    : false

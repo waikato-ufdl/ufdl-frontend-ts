@@ -1,4 +1,4 @@
-import {NTuple} from "./types/tuple";
+import {NTuple} from "./types/array/NTuple";
 import {If} from "./types/conditional/If";
 import {IsNumeric} from "./types/numeric/IsNumeric";
 
@@ -16,7 +16,11 @@ import {IsNumeric} from "./types/numeric/IsNumeric";
 export default function ignoreFirstNArgs<F extends (...args: any) => any, N extends number>(
     n: N,
     func: F
-): If<IsNumeric<N>, (...args: [...NTuple<any, N>, ...Parameters<F>]) => ReturnType<F>> {
+): If<
+    IsNumeric<N>,
+    (...args: [...NTuple<any, N>, ...Parameters<F>]) => ReturnType<F>,
+    never
+> {
     return (
         (...args: any) => func(...args.slice(n) as any)
     ) as any;

@@ -1,1 +1,11 @@
-export type Or<bA, bB> = bA extends never ? bB extends never ? never : true : true
+/**
+ * The logical or type of A and B.
+ */
+export type Or<A extends boolean, B extends boolean>
+    = boolean extends A
+    ? B extends true
+        ? true
+        : boolean
+    : A extends true
+        ? true
+        : B

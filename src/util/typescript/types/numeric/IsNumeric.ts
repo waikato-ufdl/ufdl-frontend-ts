@@ -1,10 +1,10 @@
 /**
- * Conditional type that resolves to never if N is not a numeric type
+ * Conditional type that resolves to false if N is not a numeric type
  * (a non-negative integer).
  */
 export type IsNumeric<N extends number>
     = number extends N
-    ? never
+    ? false
     : [][N] extends never
-        ? never
-        : N
+        ? false
+        : true
