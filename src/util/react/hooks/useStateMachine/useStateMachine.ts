@@ -21,8 +21,6 @@ export default function useStateMachine<
 
     const [transitions] = useStateSafe(transitionsInit);
 
-    console.log(transitions);
-
     const reducerStateAndDispatch
         = useReducer<any, any>(
             stateMachineReducer,
@@ -30,15 +28,11 @@ export default function useStateMachine<
             init
         ) as any;
 
-    console.log(reducerStateAndDispatch);
-
     const currentState = reducerStateAndDispatch[0][0] as keyof States;
     const currentData = reducerStateAndDispatch[0][1] as States[keyof States];
     const internalDispatch = reducerStateAndDispatch[1] as StateMachineReducerDispatch<States>;
 
     const transitionsForCurrentState = transitions[currentState] as any;
-
-    console.log(transitionsForCurrentState);
 
     const externalDispatch = useDerivedState(
         (
