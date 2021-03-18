@@ -4,11 +4,9 @@ import {IndexType} from "./types/array/IndexType";
 import {If} from "./types/conditional/If";
 
 /*
- * Module for handling default values to functions.
+ * Module for handling default values to React component props.
  *
- * (and React component props).
- *
- * TODO: WIP.
+ * TODO: Added default handling to functions as well.
  */
 
 /** Unique symbol indicating a parameter should take its default value. */
@@ -26,6 +24,10 @@ export type HasDefault<T> = typeof DEFAULT extends T ? true : false
 /** The type of a function which handles generating the default value for a parameter. */
 export type DefaultHandler<T> = () => WithoutDefault<T>
 
+/**
+ * The type of a set of default handlers for a function with parameters P.
+ * TODO: WIP.
+ */
 export type FunctionDefaultHandlers<P extends readonly any[]>
     = OmitNever<{ [index in IndexType<P>]: If<HasDefault<P[index]>, DefaultHandler<P[index]>, never>}>
 
@@ -34,6 +36,7 @@ export type PropsDefaultHandlers<P extends {}> = OmitNever<{
     [K in keyof P]: typeof DEFAULT extends P[K] ? DefaultHandler<P[K]> : never
 }>
 
+/** The type of the props with all default arguments applied their default values. */
 export type DefaultHandled<P extends {}> = {
     [K in keyof P]: WithoutDefault<P[K]>
 }
@@ -52,13 +55,32 @@ export function isDefault<T>(
     return value === DEFAULT;
 }
 
+/**
+ * Whether the given property has a default handler.
+ *
+ * @param handlers
+ *          The set of default handlers.
+ * @param property
+ *          The property to check for default handling.
+ */
 export function hasHandler<P extends {}>(
     handlers: PropsDefaultHandlers<P>,
-    key: keyof P
-): key is keyof PropsDefaultHandlers<P> {
-    return (handlers as any)[key] !== undefined
+    property: keyof P
+): property is keyof PropsDefaultHandlers<P> {
+    return (handlers as any)[property] !== undefined
 }
 
+/**
+ * Handles the properties of props that should take their default
+ * value.
+ *
+ * @param props
+ *          The props.
+ * @param handlers
+ *          The default handlers for props.
+ * @return
+ *          Props with all default values handled.
+ */
 export function handleDefaults<P extends {}>(
     props: P,
     handlers: PropsDefaultHandlers<P>
