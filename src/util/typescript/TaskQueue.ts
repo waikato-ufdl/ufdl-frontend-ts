@@ -1,4 +1,4 @@
-import {discard} from "../discard";
+import {discard} from "./discard";
 
 export default class TaskQueue {
     private _queue: Promise<void> = Promise.resolve();

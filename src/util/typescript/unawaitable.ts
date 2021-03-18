@@ -1,4 +1,4 @@
-import {discard} from "../discard";
+import {discard} from "./discard";
 
 /**
  * Ensures that an async routine cannot be awaited (returns immediately

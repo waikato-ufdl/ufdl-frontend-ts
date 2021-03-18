@@ -1,7 +1,7 @@
 import {useNonUpdatingReducer} from "./useNonUpdatingReducer";
 import useUpdateTrigger from "./useUpdateTrigger";
 import useDerivedState from "./useDerivedState";
-import {discard} from "../../discard";
+import {discard} from "../../typescript/discard";
 
 type TaskWatcherAction = {
     add: boolean

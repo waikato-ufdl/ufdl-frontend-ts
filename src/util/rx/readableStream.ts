@@ -1,5 +1,5 @@
 import {Observable, PartialObserver} from "rxjs";
-import {discard} from "../discard";
+import {discard} from "../typescript/discard";
 
 /**
  * Creates an Observable which observes values from a ReadableStream.
