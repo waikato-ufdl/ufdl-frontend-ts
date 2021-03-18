@@ -5,12 +5,15 @@ import useStateSafe from "../../../util/react/hooks/useStateSafe";
 import {constantInitialiser} from "../../../util/typescript/initialisers";
 import PickLabelModal from "./labels/PickLabelModal";
 import {LabelColours} from "./labels/LabelColours";
+import {SORT_ORDERS, SortOrder} from "./sorting";
+import asChangeEventHandler from "../../../util/react/asChangeEventHandler";
 
 export type ICAPBottomMenuProps = {
     onDeleteSelect: (() => void) | undefined
     onSelectAll: ((select: boolean) => void) | undefined
     onRelabelSelected: ((label: Optional<string>) => void) | undefined
     onRequestLabelColourPickerOverlay: (() => void) | undefined
+    onSortChanged: (order: SortOrder) => void
     labelColours: LabelColours
 }
 
@@ -64,6 +67,21 @@ export default function ICAPBottomMenu(props: ICAPBottomMenuProps) {
         >
             Labels...
         </button>
+
+        <select
+            onChange={asChangeEventHandler((order) => props.onSortChanged(order as SortOrder))}
+        >
+            {SORT_ORDERS.map(
+                (order) => {
+                    return <option
+                        value={order}
+                    >
+                        {order}
+                    </option>
+                }
+            )}
+
+        </select>
     </div>
 
 }

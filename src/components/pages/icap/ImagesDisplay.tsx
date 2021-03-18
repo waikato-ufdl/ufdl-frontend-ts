@@ -9,6 +9,9 @@ import {
 } from "../../../server/hooks/useImageClassificationDataset/ImageClassificationDataset";
 import FlexContainer from "../../../util/react/component/flex/FlexContainer";
 import {FlexItemProps} from "../../../util/react/component/flex/FlexItem";
+import {argsAsArray} from "../../../util/typescript/functions/argsAsArray";
+import {handleDefaults, PropsDefaultHandlers, WithDefault} from "../../../util/typescript/default";
+import {SortFunction} from "./sorting";
 
 export type ImagesDisplayProps = {
     dataset: ImageClassificationDataset | undefined
@@ -17,9 +20,17 @@ export type ImagesDisplayProps = {
     onFileClicked: (filename: string, file: ImageClassificationDatasetItem) => void
     onAddFiles: (files: ReadonlyMap<string, ImageClassificationDatasetItem>) => void
     labelColours: LabelColours
+    sortFunction: WithDefault<SortFunction>
 }
 
-export default function ImagesDisplay(props: ImagesDisplayProps) {
+const IMAGES_DISPLAY_DEFAULT_HANDLERS: PropsDefaultHandlers<ImagesDisplayProps> = {
+    sortFunction: () => (a, b) => a[0].localeCompare(b[0])
+};
+
+export default function ImagesDisplay(
+    props: ImagesDisplayProps
+) {
+    const defaultHandledProps = handleDefaults(props, IMAGES_DISPLAY_DEFAULT_HANDLERS);
 
     const itemStyle: FlexItemProps["style"] = {
         margin: "1.25%",
@@ -30,6 +41,30 @@ export default function ImagesDisplay(props: ImagesDisplayProps) {
         flexGrow: 0,
         width: "22.5%"
     };
+
+    // Extract the dataset items, if any
+    const items: [string, ImageClassificationDatasetItem][]
+        = props.dataset === undefined ? [] : mapToArray(props.dataset, argsAsArray);
+
+    // Sort them according to the given sort function
+    items.sort(defaultHandledProps.sortFunction);
+
+    // Create a display item for each dataset item
+    const icDatasetItems = items.map(
+        ([filename, file]) => {
+            return <ICDatasetItem
+                key={filename}
+                filename={filename}
+                imageData={file.data}
+                label={file.annotations}
+                onRelabelled={(oldLabel, newLabel) => props.onLabelChanged(filename, oldLabel, newLabel)}
+                selected={file.selected}
+                onSelect={() => props.onFileSelected(filename)}
+                onImageClick={() => props.onFileClicked(filename, file)}
+                labelColours={props.labelColours}
+            />
+        }
+    );
 
     return <FlexContainer
         id={"images"}
@@ -47,24 +82,7 @@ export default function ImagesDisplay(props: ImagesDisplayProps) {
             onSelected={props.onAddFiles}
             labelColours={props.labelColours}
         />
-        {
-            props.dataset !== undefined && mapToArray(
-                props.dataset,
-                (filename, file) => {
-                    return <ICDatasetItem
-                        key={filename}
-                        filename={filename}
-                        imageData={file.data}
-                        label={file.annotations}
-                        onRelabelled={(oldLabel, newLabel) => props.onLabelChanged(filename, oldLabel, newLabel)}
-                        selected={file.selected}
-                        onSelect={() => props.onFileSelected(filename)}
-                        onImageClick={() => props.onFileClicked(filename, file)}
-                        labelColours={props.labelColours}
-                    />
-                }
-            )
-        }
+        {icDatasetItems}
     </FlexContainer>
 
 }

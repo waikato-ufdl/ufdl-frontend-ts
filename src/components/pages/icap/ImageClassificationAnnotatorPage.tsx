@@ -18,6 +18,8 @@ import {DatasetPK, getDatasetPK, getProjectPK, getTeamPK, ProjectPK, TeamPK} fro
 import useDerivedReducer from "../../../util/react/hooks/useDerivedReducer";
 import {createSimpleStateReducer} from "../../../util/react/hooks/SimpleStateReducer";
 import {Optional} from "ufdl-js-client/util";
+import {constantInitialiser} from "../../../util/typescript/initialisers";
+import {SORT_FUNCTIONS, SortOrder} from "./sorting";
 
 type AnyPK = DatasetPK | ProjectPK | TeamPK | undefined
 
@@ -49,6 +51,8 @@ export default function ImageClassificationAnnotatorPage(
     const dataset = useImageClassificationDataset(ufdlServerContext, getDatasetPK(selectedPK));
 
     const labelColoursDispatch = useLabelColours(dataset?.state, props.initialLabelColours);
+
+    const [sortOrder, setSortOrder] = useStateSafe<SortOrder>(constantInitialiser("filename"));
 
     // Sub-page displays
     const [showNewDatasetPage, setShowNewDatasetPage] = useStateSafe<boolean>(() => false);
@@ -141,6 +145,7 @@ export default function ImageClassificationAnnotatorPage(
             onFileClicked={(_, file) => setShowLargeImageOverlay(file.data)}
             onAddFiles={(files) => {if (dataset !== undefined) dataset.addFiles(files)}}
             labelColours={labelColoursDispatch.state}
+            sortFunction={SORT_FUNCTIONS[sortOrder]}
         />
 
         <ICAPBottomMenu
@@ -148,6 +153,7 @@ export default function ImageClassificationAnnotatorPage(
             onSelectAll={dataset === undefined ? undefined : dataset.select.bind(dataset)}
             onRequestLabelColourPickerOverlay={() => setShowLabelColourPickerPage(true)}
             onRelabelSelected={dataset !== undefined ? dataset.relabelSelectedFiles.bind(dataset) : undefined}
+            onSortChanged={setSortOrder}
             labelColours={labelColoursDispatch.state}
         />
     </Page>
