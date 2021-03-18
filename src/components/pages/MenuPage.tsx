@@ -2,7 +2,7 @@ import React, {cloneElement, Dispatch, PropsWithChildren, ReactNode} from "react
 import RenderSelectedChildren from "../../util/react/component/RenderSelectedChildren";
 import Page from "./Page";
 import useDerivedState from "../../util/react/hooks/useDerivedState";
-import {isArrayTyped} from "../../util/array";
+import {isArray} from "../../util/typescript/arrays/isArray";
 import {nodeIsElement} from "../../util/react/node/nodeIsElement";
 import useStateSafe from "../../util/react/hooks/useStateSafe";
 import "./MenuPage.css";
@@ -29,7 +29,7 @@ export default function MenuPage(
             React.Children.map(
                 props.children,
                 (child, index) => {
-                    const title = isArrayTyped(props.titleGenerator) ?
+                    const title = isArray(props.titleGenerator) ?
                         props.titleGenerator[index] :
                         props.titleGenerator(child);
                     return <MenuButton

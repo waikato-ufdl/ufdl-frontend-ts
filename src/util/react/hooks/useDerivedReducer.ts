@@ -1,6 +1,6 @@
 import {Dispatch, Reducer} from "react";
 import useNonUpdatingState from "./useNonUpdatingState";
-import {arrayShallowEqual} from "../../array";
+import {arrayEqual} from "../../typescript/arrays/arrayEqual";
 import useControlledUpdateReducer from "./useControlledUpdateReducer";
 import useDerivedState from "./useDerivedState";
 import useStateSafe from "./useStateSafe";
@@ -82,7 +82,7 @@ export default function useDerivedReducer<S, A, D extends readonly any[]>(
 
     // If the dependencies have changed, re-initialise
     let derivedState: S;
-    if (!arrayShallowEqual(lastDependencies, dependencies)) {
+    if (!arrayEqual(lastDependencies, dependencies)) {
         derivedState = initialiser(dependencies, reducerState);
         dispatch(new ReInitAction(derivedState), false);
         setLastDependencies(dependencies);

@@ -1,5 +1,5 @@
 import useNonUpdatingState from "./useNonUpdatingState";
-import {arrayShallowEqual} from "../../array";
+import {arrayEqual} from "../../typescript/arrays/arrayEqual";
 
 /**
  * State which updates whenever it's list of dependencies changes.
@@ -48,8 +48,8 @@ export default function useDerivedState<S, DD extends readonly any[]>(
     let derivedState: S = lastDerivedState;
 
     if (
-        !arrayShallowEqual(lastDependencies, dependencies) ||
-        !arrayShallowEqual(lastNonDerivationDependencies, nonDerivationDependencies)
+        !arrayEqual(lastDependencies, dependencies) ||
+        !arrayEqual(lastNonDerivationDependencies, nonDerivationDependencies)
     ) {
         derivedState = deriveState(dependencies);
 
