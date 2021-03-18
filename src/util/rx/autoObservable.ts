@@ -1,7 +1,8 @@
 import {Observable, TeardownLogic} from "rxjs";
 
 /**
- * Automatically handles calling error/complete for an observable.
+ * Automatically handles calling error/complete for an observable
+ * function when it throws/returns normally.
  *
  * @param subscribe
  *          The body of the observable.
