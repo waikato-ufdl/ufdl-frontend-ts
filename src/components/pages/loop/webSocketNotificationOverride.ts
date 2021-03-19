@@ -13,6 +13,7 @@ export default function webSocketNotificationOverride(
             on_release: [{}],
             on_reset: [{}],
             on_start: [{}],
+            on_cancel: [{}]
         }
     }
 }
