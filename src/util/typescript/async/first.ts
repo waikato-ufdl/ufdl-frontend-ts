@@ -11,7 +11,7 @@
 import {rendezvous} from "./rendezvous";
 
 export default async function first<T>(
-    ...promises: Promise<T>[]
+    ...promises: readonly Promise<T>[]
 ): Promise<T> {
     // Create a rendezvous promise for the result
     const [result, resolve, reject] = rendezvous<T>();
