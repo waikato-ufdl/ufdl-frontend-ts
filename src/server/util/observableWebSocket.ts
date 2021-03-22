@@ -17,6 +17,7 @@ export default function observableWebSocket(
                 on_start(json) {subscriber.next(json)},
                 on_finish(json) {subscriber.next(json); subscriber.complete()},
                 on_error(json) {subscriber.next(json)},
+                on_cancel(json) {subscriber.next(json); subscriber.complete()}
             };
 
             createWebSocket(jobPK, handlers);
