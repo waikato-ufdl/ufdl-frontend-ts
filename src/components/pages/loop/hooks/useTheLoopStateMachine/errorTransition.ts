@@ -1,15 +1,19 @@
 import {createNewLoopState} from "./createNewLoopState";
-import {formatResponseError} from "../../../../../server/util/responseError";
-import {StateDataPairs} from "../../../../../util/react/hooks/useStateMachine/types";
+import {formatResponseError, handleErrorResponse} from "../../../../../server/util/responseError";
+import {StateAndData} from "../../../../../util/react/hooks/useStateMachine/types";
 import {LoopStates} from "./LoopStates";
 import UFDLServerContext from "ufdl-js-client/UFDLServerContext";
+import {LoopStateAndData, LoopStateTransition} from "./types";
+import {Dispatch} from "react";
 
-export type ErrorStateDataPair = StateDataPairs<LoopStates, "Error">
+export type ErrorStateAndData = StateAndData<LoopStates, "Error">
+
+export const HANDLED_ERROR_RESPONSE = Symbol("The expected value cannot be returned because a response error occurred");
 
 export function createErrorState(
     context: UFDLServerContext,
     reason: any
-): ErrorStateDataPair {
+): ErrorStateAndData {
     return createNewLoopState(
         "Error",
         {
@@ -19,14 +23,42 @@ export function createErrorState(
     );
 }
 
-export function errorTransition(
+export function tryTransitionToErrorState(
+    current: LoopStateAndData,
+    changeState: Dispatch<LoopStateTransition>,
     reason: any
-): (_state: keyof LoopStates, data: {context: UFDLServerContext}) => ErrorStateDataPair {
-    return (_state: keyof LoopStates, data: {context: UFDLServerContext}) => createErrorState(data.context, reason);
+): void {
+    changeState(
+        (newCurrent) => {
+            if (newCurrent === current) {
+                return createErrorState(current.data.context, reason);
+            } else {
+                console.log("Encountered error response in state transition", reason);
+                return undefined;
+            }
+        }
+    );
 }
 
 export function errorResponseTransition(
-    context: UFDLServerContext
-): (response: Response) => Promise<ErrorStateDataPair> {
-    return async (response) => createErrorState(context, await formatResponseError(response));
+    current: LoopStateAndData,
+    changeState: Dispatch<LoopStateTransition>,
+): (response: Response) => Promise<typeof HANDLED_ERROR_RESPONSE> {
+    return async (response) => {
+        const reason = await formatResponseError(response);
+        tryTransitionToErrorState(current, changeState, reason);
+        return HANDLED_ERROR_RESPONSE;
+    };
+}
+
+export function createErrorResponseTransitionHandler(
+    current: LoopStateAndData,
+    changeState: Dispatch<LoopStateTransition>
+): <T>(promise: Promise<T>) => Promise<T | typeof HANDLED_ERROR_RESPONSE> {
+    return (promise) => {
+        return handleErrorResponse(
+            promise,
+            errorResponseTransition(current, changeState)
+        )
+    }
 }

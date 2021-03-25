@@ -1,102 +1,97 @@
-import {useEffect, useReducer} from "react";
+import {Dispatch, useEffect, useReducer} from "react";
 import useStateSafe from "../useStateSafe";
 import {
     StateMachineDispatch,
-    StateDataPairs,
+    StateAndData,
     StatesBase,
     StatesTransitionsBase,
-    StateMachineReducerDispatch
+    StatesTransitionsDispatch, StateTransition, StateMachineReducer, StateMachineReducerState
 } from "./types";
-import stateMachineReducer from "./stateMachineReducer";
 import useDerivedState from "../useDerivedState";
 import {AUTOMATIC} from "./AUTOMATIC";
+import extractAutomaticTransitions from "./extractAutomaticTransitions";
+import doAsync from "../../../typescript/async/doAsync";
+import stateMachineReducer from "./stateMachineReducer";
 
 export default function useStateMachine<
     States extends StatesBase,
     StatesTransitions extends StatesTransitionsBase<States>
 >(
     transitionsInit: () => StatesTransitions,
-    init: () => StateDataPairs<States>
+    init: () => StateAndData<States>
 ): StateMachineDispatch<States, StatesTransitions> {
-
+    // Save the transitions
     const [transitions] = useStateSafe(transitionsInit);
 
-    const reducerStateAndDispatch
-        = useReducer<any, any>(
-            stateMachineReducer,
-            undefined,
-            init
-        ) as any;
+    let state: StateMachineReducerState<States, StatesTransitions>;
+    let dispatch: Dispatch<StateTransition<States>>;
 
-    const currentState = reducerStateAndDispatch[0][0] as keyof States;
-    const currentData = reducerStateAndDispatch[0][1] as States[keyof States];
-    const internalDispatch = reducerStateAndDispatch[1] as StateMachineReducerDispatch<States>;
+    const dispatchClosed: Dispatch<StateTransition<States>> = (transition) => {
+        dispatch(transition);
+    };
 
-    const transitionsForCurrentState = transitions[currentState] as any;
+    [state, dispatch] = useReducer<StateMachineReducer<States, StatesTransitions>, undefined>(
+        stateMachineReducer,
+        undefined,
+        () => {
+            return {
+                state: init(),
+                [AUTOMATIC]: extractAutomaticTransitions(transitions),
+                dispatch: dispatchClosed
+            }
+        }
+    );
 
+    // Get the transitions that apply to the current state of the state machine
+    const transitionsForCurrentState = transitions[state.state.state as keyof States];
+
+    // Create an object which can be used to trigger any of the manual
+    // transitions of the state machine
     const externalDispatch = useDerivedState(
-        (
-            [
-                transitionsForCurrentState,
-                currentState,
-                currentData
-            ]
-        ) => {
-            if (AUTOMATIC in transitionsForCurrentState) return {};
-
+        () => {
             return new Proxy(
                 transitionsForCurrentState,
                 {
-                    get(target: any, p: string): any {
-                        return (...args: any): void => {
-                            const transitionFunction = target[p];
-                            const action = transitionFunction(...args) as any;
-                            internalDispatch(
-                                {
-                                    transition: action,
-                                    expectedStateMachineState: currentState,
-                                    expectedStateMachineData: currentData
-                                }
-                            );
-                        }
+                    get(
+                        target: StatesTransitions[keyof States],
+                        p: keyof StatesTransitions[keyof States]
+                    ): any {
+                        // The automatic transition is not available on the external dispatch
+                        if (p === AUTOMATIC) return undefined;
+
+                        return (...args: any) => dispatch(target[p](...args))
                     }
                 }
-            )
+            ) as StatesTransitionsDispatch<States, StatesTransitions>[keyof States]
         },
-        [transitionsForCurrentState, currentState, currentData] as const
+        [state] as const
     );
 
+    // Automatic transitions won't be triggered on initialisation, so do that here
     useEffect(
         () => {
-            if (AUTOMATIC in transitionsForCurrentState) {
-                const action = transitionsForCurrentState[AUTOMATIC];
+            // Try to get the automatic transition for the initial state
+            const automaticTransition = state[AUTOMATIC][state.state.state as any];
 
-                const promiseOfFutureState = action(currentState, currentData) as Promise<StateDataPairs<States>>;
+            // Nothing to do if there is no automatic transition
+            if (automaticTransition === undefined) return;
 
-                promiseOfFutureState.then(
-                    (newStateAndData) => {
-                        internalDispatch(
-                            {
-                                transition: () => newStateAndData,
-                                expectedStateMachineState: currentState,
-                                expectedStateMachineData: currentData
-                            }
-                        );
-                    }
-                );
-            }
+            doAsync(() => automaticTransition(state.state as any, state.dispatch));
         },
-        [transitionsForCurrentState, currentState, currentData, internalDispatch]
+        [dispatch] as const
     );
 
     return useDerivedState(
-        ([currentState, currentData, externalDispatch]) => {
+        ([
+            state,
+             externalDispatch
+         ]) => {
             return {
-                state: currentState,
-                data: currentData,
+                state: state.state.state,
+                data: state.state.data,
                 transitions: externalDispatch
             }
         },
-        [currentState, currentData, externalDispatch] as const
+        [state, externalDispatch] as const
     );
 }

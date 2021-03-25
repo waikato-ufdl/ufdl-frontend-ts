@@ -1,235 +1,378 @@
 import {DatasetPK} from "../../../../../server/pk";
-import {LoopStates} from "./LoopStates";
 import {createNewLoopState} from "./createNewLoopState";
-import {errorResponseTransition} from "./errorTransition";
+import {
+    createErrorResponseTransitionHandler,
+    HANDLED_ERROR_RESPONSE,
+    tryTransitionToErrorState
+} from "./errorTransition";
 import evaluate from "../../jobs/evaluate";
 import {AUTOMATIC} from "../../../../../util/react/hooks/useStateMachine/AUTOMATIC";
 import train from "../../jobs/train";
 import copyDataset from "../../jobs/copyDataset";
 import merge from "../../jobs/merge";
-import {handleErrorResponse} from "../../../../../server/util/responseError";
+import getModelOutputPK from "../../jobs/getModelOutputPK";
+import downloadModel from "../../jobs/downloadModel";
+import {LoopStateAndData, LoopStateTransition} from "./types";
+import {Dispatch} from "react";
+import hasStateChanged from "../../../../../util/react/hooks/useStateMachine/hasStateChanged";
+import {silentlyCancelJob} from "./silentlyCancelJob";
+import cancelJobTransition from "./cancelJobTransition";
 import completionPromise from "../../../../../util/rx/completionPromise";
+import {CANCELLED} from "../../../../../server/util/observableWebSocket";
 
 export const LOOP_TRANSITIONS = {
     "Selecting Primary Dataset": {
         primaryDatasetSelected(dataset: DatasetPK) {
-            return (_state: "Selecting Primary Dataset", data: LoopStates["Selecting Primary Dataset"]) => {
+            return (current: LoopStateAndData) => {
+                if (current.state !== "Selecting Primary Dataset") return;
+
                 return createNewLoopState(
                     "Selecting Images",
                     {
-                        context: data.context,
+                        context: current.data.context,
                         primaryDataset: dataset,
                         targetDataset: dataset,
                         modelOutputPK: undefined
                     }
                 );
-            }
+            };
         }
     },
     "Selecting Images": {
         finishedSelectingImages() {
-            return (_state: "Selecting Images", data: LoopStates["Selecting Images"]) => {
-                if (data.modelOutputPK === undefined) {
+            return (current: LoopStateAndData) => {
+                if (current.state !== "Selecting Images") return;
+
+                if (current.data.modelOutputPK === undefined) {
+                    const [pk, progress] = train(
+                        current.data.context,
+                        current.data.primaryDataset
+                    );
+
                     return createNewLoopState(
-                        "Create Train Job",
+                        "Training",
                         {
-                            context: data.context,
-                            primaryDataset: data.primaryDataset
+                            context: current.data.context,
+                            primaryDataset: current.data.primaryDataset,
+                            jobPK: pk,
+                            progress: progress
                         }
                     );
                 } else {
+                    const [pk, progress] = evaluate(
+                        current.data.context,
+                        current.data.targetDataset,
+                        current.data.modelOutputPK
+                    );
+
                     return createNewLoopState(
-                        "Pre-labelling Images",
+                        "Prelabel",
                         {
-                            context: data.context,
-                            primaryDataset: data.primaryDataset,
-                            modelOutputPK: data.modelOutputPK,
-                            additionDataset: data.targetDataset,
-                            progress: evaluate(data.context, data.primaryDataset, data.modelOutputPK)
+                            context: current.data.context,
+                            primaryDataset: current.data.primaryDataset,
+                            modelOutputPK: current.data.modelOutputPK,
+                            additionDataset: current.data.targetDataset,
+                            jobPK: pk,
+                            progress: progress
                         }
                     );
                 }
-            }
-        }
-    },
-    "Create Train Job": {
-        async [AUTOMATIC](_state: "Create Train Job", data: LoopStates["Create Train Job"]) {
-            const [pk, progress] = train(data.context, data.primaryDataset);
-            const evaluationDataset = copyDataset(data.context, data.primaryDataset, false);
-            return createNewLoopState(
-                "Training",
-                {
-                    context: data.context,
-                    primaryDataset: data.primaryDataset,
-                    modelOutputPK: pk,
-                    progress: progress,
-                    evaluationDatasetPK: evaluationDataset
-                }
-            );
+            };
         }
     },
     "Training": {
-        async [AUTOMATIC](_state: "Training", data: LoopStates["Training"]) {
-            return handleErrorResponse(
-                data.modelOutputPK.then(
-                    async (pk) => {
-                        const evaluationDatasetPK = await data.evaluationDatasetPK;
+        async [AUTOMATIC](
+            current: LoopStateAndData<"Training">,
+            changeState: Dispatch<LoopStateTransition>
+        ) {
+            const handleErrorResponse = createErrorResponseTransitionHandler(current, changeState);
 
-                        return createNewLoopState(
-                            "Evaluating",
-                            {
-                                context: data.context,
-                                primaryDataset: data.primaryDataset,
-                                evaluationDataset: evaluationDatasetPK,
-                                modelOutputPK: pk,
-                                progress: evaluate(data.context, evaluationDatasetPK, pk)
-                            }
-                        )
-                    }
-                ),
-                errorResponseTransition(data.context)
+            // Make sure the job starts properly before doing anything else
+            if (await handleErrorResponse(current.data.jobPK) === HANDLED_ERROR_RESPONSE) return;
+
+            if (await hasStateChanged(current, changeState)) return;
+
+            // Start creating the evaluation dataset
+            const evaluationDataset = await handleErrorResponse(
+                copyDataset(current.data.context, current.data.primaryDataset, false)
             );
-        }
+
+            if (evaluationDataset === HANDLED_ERROR_RESPONSE) {
+                silentlyCancelJob(current.data.context, current.data.jobPK);
+                return
+            }
+
+            if (await hasStateChanged(current, changeState)) return;
+
+            // Wait for the training to complete successfully
+            try {
+                await completionPromise(current.data.progress);
+            } catch (e) {
+                if (e === CANCELLED) return;
+                return tryTransitionToErrorState(current, changeState, e);
+            }
+
+            // Get the model created by the training job
+            const modelOutputPK = await handleErrorResponse(
+                getModelOutputPK(
+                    current.data.context,
+                    await current.data.jobPK
+                )
+            );
+
+            if (modelOutputPK === HANDLED_ERROR_RESPONSE) return;
+
+            if (await hasStateChanged(current, changeState)) return;
+
+            // Create the evaluation job
+            const [jobPK, progress] = evaluate(
+                current.data.context,
+                evaluationDataset,
+                modelOutputPK
+            );
+
+            changeState(
+                (newCurrent) => {
+                    if (newCurrent !== current) {
+                        silentlyCancelJob(current.data.context, jobPK);
+                        return;
+                    }
+
+                    return createNewLoopState(
+                        "Evaluating",
+                        {
+                            context: current.data.context,
+                            primaryDataset: current.data.primaryDataset,
+                            evaluationDataset: evaluationDataset,
+                            modelOutputPK: modelOutputPK,
+                            progress: progress,
+                            jobPK: jobPK
+                        }
+                    );
+                }
+            );
+        },
+        cancel: cancelJobTransition
     },
     "Evaluating": {
-        async [AUTOMATIC](_state: "Evaluating", data: LoopStates["Evaluating"]) {
-            return handleErrorResponse(
-                completionPromise(data.progress).then(
-                    () => {
-                        return createNewLoopState(
-                            "Checking",
-                            {
-                                context: data.context,
-                                primaryDataset: data.primaryDataset,
-                                evaluationDataset: data.evaluationDataset,
-                                modelOutputPK: data.modelOutputPK
-                            }
-                        );
-                    }
-                ),
-                errorResponseTransition(data.context)
+        async [AUTOMATIC](
+            current: LoopStateAndData<"Evaluating">,
+            changeState: Dispatch<LoopStateTransition>
+        ) {
+            const handleErrorResponse = createErrorResponseTransitionHandler(current, changeState);
+
+            // Make sure the job starts properly before doing anything else
+            if (await handleErrorResponse(current.data.jobPK) === HANDLED_ERROR_RESPONSE) return;
+
+            // Wait for the training to complete successfully
+            try {
+                await completionPromise(current.data.progress);
+            } catch (e) {
+                if (e === CANCELLED) return;
+                return tryTransitionToErrorState(current, changeState, e);
+            }
+
+            changeState(
+                (newCurrent) => {
+                    if (newCurrent !== current) return;
+
+                    return createNewLoopState(
+                        "Checking",
+                        {
+                            context: current.data.context,
+                            primaryDataset: current.data.primaryDataset,
+                            evaluationDataset: current.data.evaluationDataset,
+                            modelOutputPK: current.data.modelOutputPK
+                        }
+                    );
+                }
             );
-        }
+        },
+        cancel: cancelJobTransition
     },
     "Checking": {
         goodEnough(isGoodEnough: boolean) {
-            return (_state: "Checking", data: LoopStates["Checking"]) => {
+            return (current: LoopStateAndData) => {
+                if (current.state !== "Checking") return;
                 if (isGoodEnough) {
                     return createNewLoopState(
                         "Finished",
-                        undefined
+                        {
+                            context: current.data.context,
+                            modelOutputPK: current.data.modelOutputPK
+                        }
                     )
                 } else {
                     return createNewLoopState(
                         "Creating Addition Dataset",
                         {
-                            context: data.context,
-                            primaryDataset: data.primaryDataset,
+                            context: current.data.context,
+                            primaryDataset: current.data.primaryDataset,
                             additionDataset: copyDataset(
-                                data.context,
-                                data.primaryDataset,
+                                current.data.context,
+                                current.data.primaryDataset,
                                 true
                             ),
-                            modelOutputPK: data.modelOutputPK
+                            modelOutputPK: current.data.modelOutputPK
                         }
                     )
                 }
-            }
+            };
+        },
+        back() {
+            return (current: LoopStateAndData) => {
+                if (current.state !== "Checking") return;
+                return createNewLoopState(
+                    "Selecting Images",
+                    {
+                        context: current.data.context,
+                        primaryDataset: current.data.primaryDataset,
+                        modelOutputPK: undefined,
+                        targetDataset: current.data.primaryDataset
+                    }
+                )
+            };
         }
     },
     "Creating Addition Dataset": {
-        async [AUTOMATIC](_state: "Creating Addition Dataset", data: LoopStates["Creating Addition Dataset"]) {
-            return handleErrorResponse(
-                data.additionDataset.then(
-                    (pk) => {
-                        return createNewLoopState(
-                            "Selecting Images",
-                            {
-                                context: data.context,
-                                primaryDataset: data.primaryDataset,
-                                modelOutputPK: data.modelOutputPK,
-                                targetDataset: pk
-                            }
-                        )
-                    }
-                ),
-                errorResponseTransition(data.context)
+        async [AUTOMATIC](
+            current: LoopStateAndData<"Creating Addition Dataset">,
+            changeState: Dispatch<LoopStateTransition>
+        ) {
+            const handleErrorResponse = createErrorResponseTransitionHandler(current, changeState);
+
+            const targetDataset = await handleErrorResponse(current.data.additionDataset);
+
+            if (targetDataset === HANDLED_ERROR_RESPONSE) return;
+
+            changeState(
+                (newCurrent) => {
+                    if (newCurrent !== current) return;
+
+                    return createNewLoopState(
+                        "Selecting Images",
+                        {
+                            context: current.data.context,
+                            primaryDataset: current.data.primaryDataset,
+                            modelOutputPK: current.data.modelOutputPK,
+                            targetDataset: targetDataset
+                        }
+                    )
+                }
             );
         }
     },
-    "Pre-labelling Images": {
-        async [AUTOMATIC](_state: "Pre-labelling Images", data: LoopStates["Pre-labelling Images"]) {
-            return handleErrorResponse(
-                completionPromise(data.progress).then(
-                    () => {
-                        return createNewLoopState(
-                            "User Fixing Categories",
-                            {
-                                context: data.context,
-                                primaryDataset: data.primaryDataset,
-                                modelOutputPK: data.modelOutputPK,
-                                additionDataset: data.additionDataset
-                            }
-                        )
-                    }
-                ),
-                errorResponseTransition(data.context)
+    "Prelabel": {
+        async [AUTOMATIC](
+            current: LoopStateAndData<"Prelabel">,
+            changeState: Dispatch<LoopStateTransition>
+        ) {
+            // Wait for the evaluation to complete successfully
+            try {
+                await completionPromise(current.data.progress);
+            } catch (e) {
+                if (e === CANCELLED) return;
+                return tryTransitionToErrorState(current, changeState, e);
+            }
+
+            changeState(
+                (newCurrent) => {
+                    if (newCurrent !== current) return;
+
+                    return createNewLoopState(
+                        "User Fixing Categories",
+                        {
+                            context: current.data.context,
+                            primaryDataset: current.data.primaryDataset,
+                            modelOutputPK: current.data.modelOutputPK,
+                            additionDataset: current.data.additionDataset
+                        }
+                    );
+                }
             );
-        }
+        },
+        cancel: cancelJobTransition
     },
     "User Fixing Categories": {
         finishedFixing() {
-            return (_state: "User Fixing Categories", data: LoopStates["User Fixing Categories"]) => {
+            return (current: LoopStateAndData) => {
+                if (current.state !== "User Fixing Categories") return;
+
                 return createNewLoopState(
                     "Merging Additional Images",
                     {
-                        context: data.context,
-                        primaryDataset: data.primaryDataset,
-                        modelOutputPK: data.modelOutputPK,
+                        context: current.data.context,
+                        primaryDataset: current.data.primaryDataset,
+                        modelOutputPK: current.data.modelOutputPK,
                         mergeJobPK: merge(
-                            data.context,
-                            data.primaryDataset,
-                            data.additionDataset
+                            current.data.context,
+                            current.data.primaryDataset,
+                            current.data.additionDataset
                         )
                     }
                 )
-            }
+            };
         }
     },
     "Merging Additional Images": {
-        async [AUTOMATIC](_state: "Merging Additional Images", data: LoopStates["Merging Additional Images"]) {
-            return handleErrorResponse(
-                async () => {
-                    await data.mergeJobPK;
+        async [AUTOMATIC](
+            current: LoopStateAndData<"Merging Additional Images">,
+            changeState: Dispatch<LoopStateTransition>
+        ) {
+            const handleErrorResponse = createErrorResponseTransitionHandler(current, changeState);
 
-                    const [pk, progress] = train(data.context, data.primaryDataset);
+            if (await handleErrorResponse(current.data.mergeJobPK) === HANDLED_ERROR_RESPONSE) return;
 
-                    const evaluationDataset = copyDataset(data.context, data.primaryDataset, false);
+            if (await hasStateChanged(current, changeState)) return;
+
+            const [pk, progress] = train(
+                current.data.context,
+                current.data.primaryDataset
+            );
+
+            changeState(
+                (newCurrent) => {
+                    if (newCurrent !== current) {
+                        silentlyCancelJob(current.data.context, pk);
+                        return;
+                    }
 
                     return createNewLoopState(
                         "Training",
                         {
-                            context: data.context,
-                            primaryDataset: data.primaryDataset,
-                            modelOutputPK: pk,
-                            progress: progress,
-                            evaluationDatasetPK: evaluationDataset
+                            context: current.data.context,
+                            primaryDataset: current.data.primaryDataset,
+                            jobPK: pk,
+                            progress: progress
                         }
                     );
-                },
-            errorResponseTransition(data.context)
-            )
-        }
-    },
-    "Finished": {},
-    "Error": {
-        reset() {
-            return (_state: "Error", data: LoopStates["Error"]) => createNewLoopState(
-                "Selecting Primary Dataset",
-                {
-                    context: data.context
                 }
             );
+        },
+        cancel: cancelJobTransition
+    },
+    "Finished": {
+        download() {
+            return (current: LoopStateAndData) => {
+                if (current.state === "Finished") {
+                    downloadModel(
+                        current.data.context,
+                        current.data.modelOutputPK
+                    );
+                }
+            };
+        }
+    },
+    "Error": {
+        reset() {
+            return (current: LoopStateAndData) => {
+                return createNewLoopState(
+                    "Selecting Primary Dataset",
+                    {
+                        context: current.data.context
+                    }
+                );
+            };
         }
     }
 } as const;

@@ -12,23 +12,19 @@ export type LoopStates = {
         modelOutputPK: number | undefined
         targetDataset: DatasetPK
     }
-    "Create Train Job": {
-        context: UFDLServerContext
-        primaryDataset: DatasetPK
-    }
     "Training": {
         context: UFDLServerContext
         primaryDataset: DatasetPK
-        modelOutputPK: Promise<number>
+        jobPK: Promise<number>
         progress: BehaviorSubject<number>
-        evaluationDatasetPK: Promise<DatasetPK>
     }
     "Evaluating": {
         context: UFDLServerContext
         primaryDataset: DatasetPK
+        jobPK: Promise<number>
+        progress: BehaviorSubject<number>
         evaluationDataset: DatasetPK
         modelOutputPK: number
-        progress: BehaviorSubject<number>
     }
     "Checking": {
         context: UFDLServerContext
@@ -42,11 +38,12 @@ export type LoopStates = {
         additionDataset: Promise<DatasetPK>
         modelOutputPK: number
     }
-    "Pre-labelling Images": {
+    "Prelabel": {
         context: UFDLServerContext
         primaryDataset: DatasetPK
         modelOutputPK: number
         additionDataset: DatasetPK
+        jobPK: Promise<number>
         progress: BehaviorSubject<number>
     }
     "User Fixing Categories": {
@@ -61,7 +58,10 @@ export type LoopStates = {
         modelOutputPK: number
         mergeJobPK: Promise<void>
     }
-    "Finished": undefined
+    "Finished": {
+        context: UFDLServerContext
+        modelOutputPK: number
+    }
     "Error": {
         context: UFDLServerContext
         reason: any

@@ -10,7 +10,7 @@ export default function evaluate(
     context: UFDLServerContext,
     datasetPK: DatasetPK,
     modelOutputPK: number
-): BehaviorSubject<number> {
+): [Promise<number>, BehaviorSubject<number>] {
     const createJobSpec: CreateJobSpec = {
         description: `Evaluate-job created for dataset ${datasetPK.asNumber}`,
         input_values: {
@@ -31,5 +31,7 @@ export default function evaluate(
         notification_override: webSocketNotificationOverride()
     };
 
-    return jobProgressSubject(createJob(context, 2, createJobSpec)[1]);
+    const [pk, subject] = createJob(context, 2, createJobSpec);
+
+    return [pk, jobProgressSubject(subject)];
 }

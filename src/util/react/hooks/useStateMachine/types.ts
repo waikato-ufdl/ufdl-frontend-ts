@@ -1,54 +1,86 @@
-import {Dispatch} from "react";
 import {AUTOMATIC} from "./AUTOMATIC";
+import {Dispatch, Reducer} from "react";
 
 export type StatesBase = { readonly [state in PropertyKey]: any }
 
-export type StateDataPairs<
+export type StateAndData<
     States extends StatesBase,
     SelectedStates extends keyof States = keyof States
 > = SelectedStates extends SelectedStates ?
-    readonly [SelectedStates, States[SelectedStates]] :
+    {
+        readonly state: SelectedStates
+        readonly data: States[SelectedStates]
+    } :
     never;
+
+export type StateTransition<
+    States extends StatesBase
+> = (current: StateAndData<States>) => (StateAndData<States> | void)
+
+export type ManualStateTransition<
+    States extends StatesBase
+> = (...args: any) => StateTransition<States>
+
+export type AutomaticStateTransition<
+    States extends StatesBase,
+    AllowedFromStates extends keyof States = keyof States
+> = (
+    current: StateAndData<States, AllowedFromStates>,
+    changeState: Dispatch<StateTransition<States>>
+) => void
 
 export type StatesTransitionsBase<
     States extends StatesBase
 > = {
-    readonly [state in keyof States]:
-    | {
-        readonly [transition: string]: (...args: any[]) => (...currentStateAndData: StateDataPairs<States, state>) => StateDataPairs<States>
-    }
-    | {
-        readonly [AUTOMATIC]: (...currentStateAndData: StateDataPairs<States, state>) => Promise<StateDataPairs<States>>
-        readonly [transition: string]: undefined
+    readonly [state in keyof States]: {
+        readonly [transition: string]: ManualStateTransition<States>
+        readonly [AUTOMATIC]?: AutomaticStateTransition<States, state>
     }
 }
+
+export type AutomaticStatesTransitions<
+    States extends StatesBase,
+    StatesTransitions extends StatesTransitionsBase<States>
+> = {
+    readonly [state in keyof States]: StatesTransitions[state][typeof AUTOMATIC]
+}
+
+export type StateMachineReducerState<
+    States extends StatesBase,
+    StatesTransitions extends StatesTransitionsBase<States>
+> = {
+    state: StateAndData<States>,
+    [AUTOMATIC]: AutomaticStatesTransitions<States, StatesTransitions>,
+    dispatch: Dispatch<StateTransition<States>>
+}
+
+export type StateMachineReducer<
+    States extends StatesBase,
+    StatesTransitions extends StatesTransitionsBase<States>
+> = Reducer<
+        StateMachineReducerState<States, StatesTransitions>,
+        StateTransition<States>
+    >
 
 export type StatesTransitionsDispatch<
     States extends StatesBase,
     StatesTransitions extends StatesTransitionsBase<States>
 > = {
-    readonly [state in keyof States]: StatesTransitions[state] extends { readonly [AUTOMATIC]: any } ?
-        {} :
-        { readonly [transition in keyof StatesTransitions[state]]: (...args: Parameters<StatesTransitions[state][transition]>) => void }
+    readonly [state in keyof States]: {
+        readonly [transition in Exclude<keyof StatesTransitions[state], typeof AUTOMATIC>]: (
+            ...args: Parameters<StatesTransitions[state][transition]>
+        ) => void
+    }
 }
 
 export type StateMachineDispatch<
     States extends StatesBase,
-    StatesTransitions extends StatesTransitionsBase<States>
+    StatesTransitions extends StatesTransitionsBase<States>,
+    SelectedStates extends keyof States = keyof States
 > = {
     readonly [state in keyof States]: {
         state: state,
         data: States[state],
         transitions: StatesTransitionsDispatch<States, StatesTransitions>[state]
     }
-}[keyof States]
-
-export type StateMachineReducerDispatch<
-    States extends StatesBase
-> = Dispatch<
-    {
-        transition: (...currentStateAndData: StateDataPairs<States>) => StateDataPairs<States>
-        expectedStateMachineState: keyof States
-        expectedStateMachineData: States[keyof States]
-    }
->
+}[SelectedStates]

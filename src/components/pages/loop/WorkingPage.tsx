@@ -5,6 +5,7 @@ import Page from "../Page";
 export type WorkingPageProps = {
     title: string,
     progress: BehaviorSubject<number> | number
+    onCancel: () => void
 }
 
 export default function WorkingPage(
@@ -17,5 +18,8 @@ export default function WorkingPage(
 
     return <Page>
         {props.title}: {progress * 100}%
+        <button onClick={props.onCancel}>
+            Cancel
+        </button>
     </Page>
 }

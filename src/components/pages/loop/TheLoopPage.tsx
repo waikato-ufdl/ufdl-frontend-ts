@@ -26,7 +26,7 @@ export default function TheLoopPage(
     switch (stateMachine.state) {
         case "Selecting Primary Dataset":
             return <SelectDatasetPage
-                onSelected={stateMachine.transitions.primaryDatasetSelected}
+                onSelected={(pk) => stateMachine.transitions.primaryDatasetSelected(pk)}
                 onBack={props.onBack}
             />;
 
@@ -44,14 +44,18 @@ export default function TheLoopPage(
                 onBack={props.onBack}
             />;
 
-        case "Create Train Job":
+        case "Merging Additional Images":
         case "Training":
         case "Evaluating":
-        case "Pre-labelling Images":
-            const progress = stateMachine.state === "Create Train Job" ? 0.0 : stateMachine.data.progress.getValue();
+        case "Prelabel":
+            const progress = stateMachine.state === "Merging Additional Images" ?
+                0.0 :
+                stateMachine.data.progress.getValue();
+
             return <WorkingPage
                 title={stateMachine.state}
                 progress={progress}
+                onCancel={stateMachine.transitions.cancel}
             />;
 
         case "Checking":
@@ -63,10 +67,9 @@ export default function TheLoopPage(
                     setLabelColours(labelColours);
                     stateMachine.transitions.goodEnough(false);
                 }}
-                onBack={props.onBack}
+                onBack={() => stateMachine.transitions.goodEnough(true)}
             />;
 
-        case "Merging Additional Images":
         case "Creating Addition Dataset":
             return <Page>
                 {`${stateMachine.state}`}
@@ -87,6 +90,7 @@ export default function TheLoopPage(
         case "Finished":
             return <Page>
                 <p>Finished!</p>
+                <button onClick={stateMachine.transitions.download}>Download</button>
                 <button onClick={props.onBack}>Back</button>
             </Page>;
 

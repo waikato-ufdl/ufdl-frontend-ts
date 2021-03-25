@@ -5,8 +5,6 @@ import {DatasetPK} from "../../../../server/pk";
 import webSocketNotificationOverride from "../webSocketNotificationOverride";
 import createJob from "../../../../server/createJob";
 import jobProgressSubject from "../../../../server/util/jobProgressSubject";
-import completionPromise from "../../../../util/rx/completionPromise";
-import {get_output_info} from "ufdl-js-client/functional/core/jobs/job";
 
 export default function train(
     context: UFDLServerContext,
@@ -33,12 +31,7 @@ export default function train(
     const [jobPK, jobSubject] = createJob(context, 1, createJobSpec);
 
     return [
-        completionPromise(jobSubject).then(
-            async () => {
-                const outputInfo = await get_output_info(context, await jobPK, "model", "tficmodel");
-                return outputInfo['pk'] as number;
-            }
-        ),
+        jobPK,
         jobProgressSubject(jobSubject)
     ];
 }
