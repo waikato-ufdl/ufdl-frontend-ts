@@ -27,7 +27,7 @@ export default function createJob(
         jobPK,
         behaviourSubjectFromSubscribable(
             immediateObservable(
-                jobPK.then(observableWebSocket)
+                jobPK.then((pk) => observableWebSocket(pk, true, true))
             ),
             {}
         )
