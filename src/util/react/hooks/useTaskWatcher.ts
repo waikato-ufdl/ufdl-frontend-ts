@@ -1,14 +1,13 @@
 import {useNonUpdatingReducer} from "./useNonUpdatingReducer";
 import useUpdateTrigger from "./useUpdateTrigger";
 import useDerivedState from "./useDerivedState";
-import {discard} from "../../typescript/discard";
 
 type TaskWatcherAction = {
     add: boolean
-    task: Promise<void>
+    task: Promise<unknown>
 }
 
-type TaskWatcherState = Set<Promise<void>>
+type TaskWatcherState = Set<Promise<unknown>>
 
 function taskWatcherReducer(
     currentState: TaskWatcherState,
@@ -24,15 +23,17 @@ function taskWatcherReducer(
     return newState;
 }
 
-function taskWatcherInitialiser(): TaskWatcherState {
+function taskWatcherInitialiser(
+    // No parameters
+): TaskWatcherState {
     return new Set();
 }
 
-export type TaskDispatch = (
-    task: () => Promise<unknown>,
+export type TaskDispatch = <T>(
+    task: () => Promise<T>,
     renderOnComplete?: boolean,
     renderOnError?: boolean
-) => void
+) => Promise<T>
 
 export default function useTaskWatcher(
     // No parameters
@@ -51,29 +52,27 @@ export default function useTaskWatcher(
             renderOnComplete,
             renderOnError
         ) => {
-            let runningTask: Promise<void>;
+            let runningTask: Promise<any>;
 
             async function taskActual() {
-                let render: boolean;
+                let render: boolean = renderOnComplete !== false;
 
                 try {
-                    await task();
-                    render = renderOnComplete !== false;
+                    return await task();
                 } catch (e) {
-                    discard(e);
                     render = renderOnError !== false;
+                    throw e;
+                } finally {
+                    dispatch({add: false, task: runningTask});
+                    if (render) updateTrigger();
                 }
-
-                dispatch({add: false, task: runningTask});
-
-                if (render) updateTrigger();
-
             }
 
             runningTask = taskActual();
 
             dispatch({add: true, task: runningTask});
 
+            return runningTask;
         },
         [dispatch, updateTrigger]
     );
