@@ -1,5 +1,8 @@
 import {Observable} from "rxjs";
 import {rendezvous} from "./typescript/async/rendezvous";
+import {DataStream, dataStreamSubject} from "./rx/dataStream";
+import completionPromise from "./rx/completionPromise";
+import {toBlob} from "./toBlob";
 
 export function selectFiles(multiple: true): Promise<File[] | null>;
 export function selectFiles(multiple: false): Promise<File | null>;
@@ -114,4 +117,15 @@ export function getPathFromFile(file: File): string[] {
     const relativePath = fileObject.webkitRelativePath as string;
 
     return relativePath.split("/");
+}
+
+export async function saveFile(
+    filename: string,
+    fileData: DataStream
+) {
+    const inputElement: HTMLAnchorElement = document.createElement("a");
+    inputElement.href = URL.createObjectURL(toBlob(await completionPromise(dataStreamSubject(fileData))));
+    inputElement.download = filename;
+
+    inputElement.click();
 }
