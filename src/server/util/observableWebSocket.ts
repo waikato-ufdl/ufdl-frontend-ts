@@ -3,8 +3,12 @@ import {TransitionHandlers} from "../types/TransitionHandlers";
 import createWebSocket from "./createWebSocket";
 import {RawJSONObject} from "ufdl-js-client/types";
 
+export const CANCELLED = Symbol("The job was cancelled");
+
 export default function observableWebSocket(
-    jobPK: number
+    jobPK: number,
+    errorOnError: boolean = false,
+    errorOnCancel: boolean = false
 ) {
     return new Observable<RawJSONObject>(
         (subscriber) => {
@@ -15,9 +19,21 @@ export default function observableWebSocket(
                 on_abort(json) {subscriber.next(json)},
                 on_reset(json) {subscriber.next(json)},
                 on_start(json) {subscriber.next(json)},
-                on_finish(json) {subscriber.next(json); subscriber.complete()},
-                on_error(json) {subscriber.next(json)},
-                on_cancel(json) {subscriber.next(json); subscriber.complete()}
+                on_finish(json) {
+                    subscriber.next(json);
+                    subscriber.complete();
+                },
+                on_error(json) {
+                    subscriber.next(json);
+                    if (errorOnError) subscriber.error(json['error']);
+                },
+                on_cancel(json) {
+                    subscriber.next(json);
+                    if (errorOnCancel)
+                        subscriber.error(CANCELLED);
+                    else
+                        subscriber.complete();
+                }
             };
 
             createWebSocket(jobPK, handlers);
