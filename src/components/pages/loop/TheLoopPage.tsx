@@ -41,7 +41,7 @@ export default function TheLoopPage(
                     setLabelColours(labelColours);
                     stateMachine.transitions.finishedSelectingImages();
                 }}
-                onBack={props.onBack}
+                onBack={stateMachine.transitions.back}
             />;
 
         case "Merging Additional Images":
@@ -85,14 +85,21 @@ export default function TheLoopPage(
                     setLabelColours(labelColours);
                     stateMachine.transitions.finishedFixing();
                 }}
-                onBack={props.onBack}
+                onBack={stateMachine.transitions.back}
             />;
 
         case "Finished":
             return <Page>
                 <p>Finished!</p>
                 <button onClick={stateMachine.transitions.download}>Download</button>
-                <button onClick={props.onBack}>Back</button>
+                <button
+                    onClick={() => {
+                        stateMachine.transitions.reset();
+                        if (props.onBack !== undefined) props.onBack();
+                    }}
+                >
+                    Back
+                </button>
             </Page>;
 
         case "Error":

@@ -78,6 +78,30 @@ export const LOOP_TRANSITIONS = {
                     );
                 }
             };
+        },
+        back() {
+            return (current: LoopStateAndData) => {
+                if (current.state !== "Selecting Images") return;
+
+                if (current.data.modelOutputPK === undefined) {
+                    return createNewLoopState(
+                        "Selecting Primary Dataset",
+                        {
+                            context: current.data.context
+                        }
+                    );
+                } else {
+                    return createNewLoopState(
+                        "Selecting Images",
+                        {
+                            context: current.data.context,
+                            primaryDataset: current.data.primaryDataset,
+                            modelOutputPK: undefined,
+                            targetDataset: current.data.primaryDataset
+                        }
+                    );
+                }
+            };
         }
     },
     "Training": {
@@ -312,6 +336,21 @@ export const LOOP_TRANSITIONS = {
                     }
                 )
             };
+        },
+        back() {
+            return (current: LoopStateAndData) => {
+                if (current.state !== "User Fixing Categories") return;
+
+                return createNewLoopState(
+                    "Selecting Images",
+                    {
+                        context: current.data.context,
+                        primaryDataset: current.data.primaryDataset,
+                        modelOutputPK: current.data.modelOutputPK,
+                        targetDataset: current.data.additionDataset
+                    }
+                )
+            };
         }
     },
     "Merging Additional Images": {
@@ -360,6 +399,16 @@ export const LOOP_TRANSITIONS = {
                         current.data.modelOutputPK
                     );
                 }
+            };
+        },
+        reset() {
+            return (current: LoopStateAndData) => {
+                return createNewLoopState(
+                    "Selecting Primary Dataset",
+                    {
+                        context: current.data.context
+                    }
+                );
             };
         }
     },
