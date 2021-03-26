@@ -7,7 +7,6 @@ export function silentlyCancelJob(
     context: UFDLServerContext,
     jobPK: number | Promise<number>
 ): void {
-    console.trace();
     if (isPromise(jobPK)) {
         jobPK.then((jobPK) => discard(cancel_job(context, jobPK)));
     } else {

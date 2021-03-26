@@ -61,6 +61,7 @@ export default function TheLoopPage(
         case "Checking":
             return <ImageClassificationAnnotatorPage
                 lockedPK={stateMachine.data.evaluationDataset}
+                evalPK={stateMachine.data.primaryDataset}
                 initialLabelColours={labelColours}
                 nextLabel={"Happy?"}
                 onNext={(_, __, labelColours) => {

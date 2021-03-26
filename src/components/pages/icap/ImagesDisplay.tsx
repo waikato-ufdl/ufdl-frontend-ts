@@ -12,9 +12,11 @@ import {FlexItemProps} from "../../../util/react/component/flex/FlexItem";
 import {argsAsArray} from "../../../util/typescript/functions/argsAsArray";
 import {handleDefaults, PropsDefaultHandlers, WithDefault} from "../../../util/typescript/default";
 import {SortFunction} from "./sorting";
+import {getEvalLabel} from "../../../server/hooks/useImageClassificationDataset/eval";
 
 export type ImagesDisplayProps = {
     dataset: ImageClassificationDataset | undefined
+    evalDataset: ImageClassificationDataset | undefined
     onFileSelected: (filename: string) => void
     onLabelChanged: (filename: string, oldLabel: string | undefined, newLabel: string | undefined) => void
     onFileClicked: (filename: string, file: ImageClassificationDatasetItem) => void
@@ -57,6 +59,7 @@ export default function ImagesDisplay(
                 filename={filename}
                 imageData={file.data}
                 label={file.annotations}
+                evalLabel={getEvalLabel(props.evalDataset, filename)}
                 onRelabelled={(oldLabel, newLabel) => props.onLabelChanged(filename, oldLabel, newLabel)}
                 selected={file.selected}
                 onSelect={() => props.onFileSelected(filename)}

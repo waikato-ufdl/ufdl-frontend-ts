@@ -1,20 +1,17 @@
-import {ImageClassificationDataset} from "../ImageClassificationDataset";
+import {ImageClassificationDataset, ImageClassificationDatasetItem} from "../ImageClassificationDataset";
 import {copyMap} from "../../../../util/map";
 
 export const SELECT = Symbol("select");
 
-export const SelectAll = Symbol("Select All");
-export const SelectNone = Symbol("Select None");
-
-export type SelectionSpecifier = string | typeof SelectAll | typeof SelectNone
+export type SelectFunction = (filename: string, item: ImageClassificationDatasetItem) => boolean | undefined
 
 export type SelectAction = {
     type: typeof SELECT
-    selection: SelectionSpecifier
+    selection: SelectFunction
 }
 
 export function createSelectAction(
-    selection: SelectionSpecifier
+    selection: SelectFunction
 ): SelectAction {
     return {
         type: SELECT,
@@ -26,22 +23,18 @@ export function selectAction(
     currentState: ImageClassificationDataset,
     action: SelectAction
 ): ImageClassificationDataset {
-    if (action.selection === SelectAll || action.selection === SelectNone) {
-        return copyMap(
-            currentState,
-            (filename, item) => {
-                return [filename, {...item, selected: action.selection === SelectAll}];
-            }
-        )
-    } else {
-        if (!currentState.has(action.selection)) return currentState;
-        return copyMap(
-            currentState,
-            (filename, item) => {
-                if (filename !== action.selection) return true;
-                return [filename, {...item, selected: !item.selected}]
-            }
-        )
-    }
+    let anyChanged: boolean = false;
+
+    const newState = copyMap(
+        currentState,
+        (filename, item) => {
+            const selected = action.selection(filename, item);
+            if (selected === undefined || selected === item.selected) return true;
+            anyChanged = true;
+            return [filename, {...item, selected: selected}];
+        }
+    );
+
+    return anyChanged ? newState : currentState;
 }
 

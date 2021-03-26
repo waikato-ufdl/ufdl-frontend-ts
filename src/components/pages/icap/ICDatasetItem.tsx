@@ -6,6 +6,7 @@ import CenterContent from "../../CenterContent";
 import {numberWithSuffix} from "../../../util/numberWithSuffix";
 import {LabelColours} from "./labels/LabelColours";
 import LabelSelect from "./labels/LabelSelect";
+import {EvalLabel, NO_EVAL_LABEL} from "../../../server/hooks/useImageClassificationDataset/eval";
 
 export const SELECTED_BORDER_WIDTH_PX: number = 3;
 export const UNSELECTED_BORDER_WIDTH_PX: number = 2;
@@ -13,7 +14,8 @@ export const UNSELECTED_BORDER_WIDTH_PX: number = 2;
 export type ICDatasetItemProps = {
     filename: string
     imageData: BehaviorSubject<Blob>
-    label: string | undefined
+    label: string | undefined,
+    evalLabel: EvalLabel,
     onRelabelled: (oldLabel?: string, newLabel?: string) => void
     selected: boolean
     onSelect: (selected: boolean) => void,
@@ -32,13 +34,18 @@ export class ICDatasetItem extends React.Component<ICDatasetItemProps, ICDataset
             "px"
         );
 
-        const borderStyle: CSSProperties = this.props.label !== undefined ?
-            {
+        const labelColour = this.props.label !== undefined ? this.props.labelColours.get(this.props.label) : "white";
+
+        const borderStyle: CSSProperties = {
                 borderStyle: "solid",
-                borderColor: this.props.labelColours.get(this.props.label),
-                borderWidth: borderWidth
-            } :
-            {};
+                borderColor: this.props.evalLabel === NO_EVAL_LABEL ?
+                    labelColour :
+                    this.props.evalLabel === this.props.label ?
+                        "limegreen" :
+                        "red"
+                ,
+                borderWidth: borderWidth + (this.props.evalLabel !== NO_EVAL_LABEL ? 2 : 0)
+            };
 
         return <div className={"ICDatasetItem"}>
             <CenterContent className={"ICDatasetItemBackgroundImage"}>

@@ -1,5 +1,5 @@
 import {FunctionComponentReturnType} from "../../../../util/react/types";
-import {LabelColours} from "./LabelColours";
+import {LabelColour, LabelColours} from "./LabelColours";
 import {Optional} from "ufdl-js-client/util";
 import {mapToArray} from "../../../../util/map";
 import {LabelSelectOption} from "./LabelSelectOption";
@@ -12,9 +12,10 @@ export type LabelSelectProps
         'value'
     > & {
     onRelabelled: (oldLabel?: string, newLabel?: string) => void,
-    label: string | undefined,
+    label: string | undefined
     labelColours: LabelColours
     children?: never
+    allowSelectNone?: boolean
 }
 
 export default function LabelSelect(
@@ -29,17 +30,17 @@ export default function LabelSelect(
         ...selectProps
     } = props;
 
-    const onChange = asChangeEventHandler(
-        (value: Optional<string>) => {
-            if (value === "") value = undefined;
-            if (value !== props.label) props.onRelabelled(props.label, value);
-        }
-    );
+    function onChange(value: Optional<string>) {
+        if (value === "") value = undefined;
+        props.onRelabelled(props.label, value);
+    }
 
-    const labelOptions = mapToArray(
-        props.labelColours,
-        (label, colour) => <LabelSelectOption label={label} colour={colour}/>
-    );
+    function toOption(label: string | undefined, colour: LabelColour) {
+        return <LabelSelectOption
+            label={label === undefined ? "" : label}
+            colour={colour}
+        />
+    }
 
     if (style === undefined) style = {};
 
@@ -50,11 +51,11 @@ export default function LabelSelect(
     return <select
         className={"LabelSelect"}
         value={label === undefined ? "" : label}
-        onChange={onChange}
+        onChange={asChangeEventHandler(onChange)}
         style={style}
     >
-        <LabelSelectOption label={""} colour={"white"}/>
-        {labelOptions}
+        {toOption(undefined, "white")}
+        {props.allowSelectNone === true ? toOption("", "white") : undefined}
+        {mapToArray(props.labelColours, toOption)}
     </select>
-
 }

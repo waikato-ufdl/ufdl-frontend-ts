@@ -26,7 +26,8 @@ export default function evaluate(
         parameter_values: {
             docker_image: "2",
             "clear-dataset": "true",
-            "store-predictions": "true"
+            "store-predictions": "true",
+            "confidence-scores": "ufdl.joblauncher.classify.confidence.TopScore"
         },
         notification_override: webSocketNotificationOverride()
     };

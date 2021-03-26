@@ -32,7 +32,7 @@ export default function cancelJobTransition(
                     {
                         context: current.data.context,
                         primaryDataset: current.data.primaryDataset,
-                        modelOutputPK: undefined,
+                        modelOutputPK: current.data.modelOutputPK,
                         targetDataset: current.data.additionDataset
                     }
                 );

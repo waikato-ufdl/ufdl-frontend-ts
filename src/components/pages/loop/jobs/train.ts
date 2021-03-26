@@ -23,7 +23,7 @@ export default function train(
         },
         parameter_values: {
             docker_image: "2",
-            steps: "5"
+            steps: "50"
         },
         notification_override: webSocketNotificationOverride()
     };

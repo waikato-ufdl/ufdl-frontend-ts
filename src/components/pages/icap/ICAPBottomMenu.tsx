@@ -1,5 +1,4 @@
 import React from "react";
-import callOrPass from "../../../util/typescript/callOrPass";
 import {Optional} from "ufdl-js-client/util";
 import useStateSafe from "../../../util/react/hooks/useStateSafe";
 import {constantInitialiser} from "../../../util/typescript/initialisers";
@@ -7,19 +6,29 @@ import PickLabelModal from "./labels/PickLabelModal";
 import {LabelColours} from "./labels/LabelColours";
 import {SORT_ORDERS, SortOrder} from "./sorting";
 import asChangeEventHandler from "../../../util/react/asChangeEventHandler";
+import {SelectFunction} from "../../../server/hooks/useImageClassificationDataset/actions/Select";
+import SelectionModal from "./SelectionModal";
+import {ImageClassificationDataset} from "../../../server/hooks/useImageClassificationDataset/ImageClassificationDataset";
 
 export type ICAPBottomMenuProps = {
     onDeleteSelect: (() => void) | undefined
-    onSelectAll: ((select: boolean) => void) | undefined
+    onSelect: ((select: SelectFunction) => void) | undefined
     onRelabelSelected: ((label: Optional<string>) => void) | undefined
     onRequestLabelColourPickerOverlay: (() => void) | undefined
     onSortChanged: (order: SortOrder) => void
     labelColours: LabelColours
+    evalDataset: ImageClassificationDataset | undefined
 }
 
 export default function ICAPBottomMenu(props: ICAPBottomMenuProps) {
 
-    const [modal, setModal] = useStateSafe<[number, number] | undefined>(constantInitialiser(undefined));
+    const [labelModal, setLabelModal] = useStateSafe<[number, number] | undefined>(
+        constantInitialiser(undefined)
+    );
+
+    const [selectModal, setSelectModal] = useStateSafe<[number, number] | undefined>(
+        constantInitialiser(undefined)
+    );
 
     return <div id={"ICAPBottomMenu"} className={"menuBar"}>
         <label>
@@ -34,30 +43,31 @@ export default function ICAPBottomMenu(props: ICAPBottomMenuProps) {
         </button>
 
         <button
-            onClick={() => callOrPass(props.onSelectAll)(true)}
-            disabled={props.onSelectAll === undefined}
+            onClick={(event) => setSelectModal([event.clientX, event.clientY])}
+            disabled={props.onSelect === undefined}
         >
-            Select All
+            Select
         </button>
 
-        <button
-            onClick={() => callOrPass(props.onSelectAll)(false)}
-            disabled={props.onSelectAll === undefined}
-        >
-            Clear All
-        </button>
+        <SelectionModal
+            position={selectModal}
+            onSelect={props.onSelect!}
+            onCancel={() => setSelectModal(undefined)}
+            labels={props.labelColours}
+            evalDataset={props.evalDataset}
+        />
 
         <button
-            onClick={(event) => setModal([event.clientX, event.clientY])}
+            onClick={(event) => setLabelModal([event.clientX, event.clientY])}
             disabled={props.onRelabelSelected === undefined}
         >
             Relabel
         </button>
 
         <PickLabelModal
-            position={modal}
+            position={labelModal}
             onSubmit={props.onRelabelSelected!}
-            onCancel={() => setModal(undefined)}
+            onCancel={() => setLabelModal(undefined)}
             labelColours={props.labelColours}
         />
 

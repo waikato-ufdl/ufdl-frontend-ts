@@ -9,7 +9,7 @@ import {
 } from "./ImageClassificationDatasetReducer";
 import {createInitAction} from "./actions/Init";
 import {mapFromArray, mapToArray} from "../../../util/map";
-import {createSelectAction, SelectAll, SelectNone} from "./actions/Select";
+import {createSelectAction, SelectFunction} from "./actions/Select";
 import {ImageClassificationDataset} from "./ImageClassificationDataset";
 import {fromServer} from "../../../image/fromServer";
 import {ImageClassificationDatasetAction} from "./actions/actions";
@@ -20,15 +20,11 @@ import {DatasetPK} from "../../pk";
 import useTaskWatcher, {TaskDispatch} from "../../../util/react/hooks/useTaskWatcher";
 import {rendezvous} from "../../../util/typescript/async/rendezvous";
 
-
 export type ImageClassificationDatasetMutator = {
     state: ImageClassificationDataset
     selectedFiles: string[]
     synchronised: boolean
-    selectAll(): void
-    selectNone(): void
-    select(all: boolean): void
-    toggleSelection(filename: string): void
+    select(func: SelectFunction): void
     addFiles(files: ImageClassificationDataset): void
     deleteFiles(...filenames: string[]): void
     deleteSelectedFiles(): void
@@ -38,9 +34,9 @@ export type ImageClassificationDatasetMutator = {
 }
 
 export default function useImageClassificationDataset(context: UFDLServerContext): undefined
-export default function useImageClassificationDataset(context: UFDLServerContext, pk: undefined): undefined
-export default function useImageClassificationDataset(context: UFDLServerContext, pk: DatasetPK): ImageClassificationDatasetMutator
-export default function useImageClassificationDataset(context: UFDLServerContext, pk: DatasetPK | undefined): ImageClassificationDatasetMutator | undefined
+export default function useImageClassificationDataset(context: UFDLServerContext, pk: undefined, evalDatasetPK?: DatasetPK): undefined
+export default function useImageClassificationDataset(context: UFDLServerContext, pk: DatasetPK, evalDatasetPK?: DatasetPK): ImageClassificationDatasetMutator
+export default function useImageClassificationDataset(context: UFDLServerContext, pk: DatasetPK | undefined, evalDatasetPK?: DatasetPK): ImageClassificationDatasetMutator | undefined
 export default function useImageClassificationDataset(
     context: UFDLServerContext,
     datasetPK?: DatasetPK
@@ -56,20 +52,13 @@ export default function useImageClassificationDataset(
 
     useEffect(
         () => {
+            async function onNewDataset(pk: DatasetPK) {
+                const dataset = await loadDatasetInit(context, pk);
+                dispatch(createInitAction(dataset))
+            }
+
             if (datasetPK !== undefined) {
-                addTask(
-                    async () => {
-                        await loadDatasetInit(
-                            context,
-                            datasetPK
-                        ).then(
-                            (dataset) => {
-                                dispatch(createInitAction(dataset))
-                            }
-                        )
-                    },
-                    true
-                )
+                addTask(() => onNewDataset(datasetPK), true);
             }
         },
         [context, datasetPK]
@@ -100,17 +89,8 @@ export default function useImageClassificationDataset(
         deleteSelectedFiles(): void {
             this.deleteFiles(...this.selectedFiles);
         },
-        select(all: boolean): void {
-            dispatch(createSelectAction(all ? SelectAll : SelectNone));
-        },
-        selectAll(): void {
-            this.select(true);
-        },
-        selectNone(): void {
-            this.select(false);
-        },
-        toggleSelection(filename: string): void {
-            dispatch(createSelectAction(filename));
+        select(func: SelectFunction): void {
+            dispatch(createSelectAction(func));
         },
         setLabel(filename: string, label: string | undefined) {
             addTask(async () => {

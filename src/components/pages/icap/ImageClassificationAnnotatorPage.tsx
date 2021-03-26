@@ -20,11 +20,13 @@ import {createSimpleStateReducer} from "../../../util/react/hooks/SimpleStateRed
 import {Optional} from "ufdl-js-client/util";
 import {constantInitialiser} from "../../../util/typescript/initialisers";
 import {SORT_FUNCTIONS, SortOrder} from "./sorting";
+import {toggleSelection} from "../../../server/hooks/useImageClassificationDataset/actions/SELECTIONS";
 
 type AnyPK = DatasetPK | ProjectPK | TeamPK | undefined
 
 export type ICAPProps = {
-    lockedPK?: AnyPK
+    lockedPK?: AnyPK,
+    evalPK?: DatasetPK,
     initialLabelColours?: LabelColours
     nextLabel?: string
     onNext?: (
@@ -48,7 +50,9 @@ export default function ImageClassificationAnnotatorPage(
         [props.lockedPK] as const
     );
 
-    const dataset = useImageClassificationDataset(ufdlServerContext, getDatasetPK(selectedPK));
+    const dataset = useImageClassificationDataset(ufdlServerContext, getDatasetPK(selectedPK), props.evalPK);
+
+    const evalDataset = useImageClassificationDataset(ufdlServerContext, props.evalPK);
 
     const labelColoursDispatch = useLabelColours(dataset?.state, props.initialLabelColours);
 
@@ -136,7 +140,8 @@ export default function ImageClassificationAnnotatorPage(
 
         <ImagesDisplay
             dataset={dataset === undefined ? undefined : dataset.state}
-            onFileSelected={(filename) => {if (dataset !== undefined) dataset.toggleSelection(filename)}}
+            evalDataset={evalDataset === undefined ? undefined: evalDataset.state}
+            onFileSelected={(filename) => {if (dataset !== undefined) dataset.select(toggleSelection(filename))}}
             onLabelChanged={
                 (filename, _, newLabel) => {
                     if (dataset !== undefined) dataset.setLabel(filename, newLabel);
@@ -150,11 +155,12 @@ export default function ImageClassificationAnnotatorPage(
 
         <ICAPBottomMenu
             onDeleteSelect={dataset === undefined ? undefined : dataset.deleteSelectedFiles.bind(dataset)}
-            onSelectAll={dataset === undefined ? undefined : dataset.select.bind(dataset)}
+            onSelect={dataset === undefined ? undefined : dataset.select.bind(dataset)}
             onRequestLabelColourPickerOverlay={() => setShowLabelColourPickerPage(true)}
             onRelabelSelected={dataset !== undefined ? dataset.relabelSelectedFiles.bind(dataset) : undefined}
             onSortChanged={setSortOrder}
             labelColours={labelColoursDispatch.state}
+            evalDataset={evalDataset?.state}
         />
     </Page>
 }
