@@ -1,7 +1,7 @@
-import UFDLServerContext from "ufdl-js-client/UFDLServerContext";
+import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import isPromise from "../../../../../util/typescript/async/isPromise";
 import {discard} from "../../../../../util/typescript/discard";
-import {cancel_job} from "ufdl-js-client/functional/core/jobs/job";
+import {cancel_job} from "ufdl-ts-client/functional/core/jobs/job";
 
 export function silentlyCancelJob(
     context: UFDLServerContext,

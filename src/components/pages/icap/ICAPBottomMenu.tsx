@@ -1,5 +1,5 @@
 import React from "react";
-import {Optional} from "ufdl-js-client/util";
+import {Optional} from "ufdl-ts-client/util";
 import useStateSafe from "../../../util/react/hooks/useStateSafe";
 import {constantInitialiser} from "../../../util/typescript/initialisers";
 import PickLabelModal from "./labels/PickLabelModal";

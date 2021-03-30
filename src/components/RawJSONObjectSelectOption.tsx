@@ -1,5 +1,5 @@
 import React from "react";
-import {RawJSONObject} from "ufdl-js-client/types";
+import {RawJSONObject} from "ufdl-ts-client/types";
 
 export type RawJSONObjectSelectOptionProps = Omit<React.OptionHTMLAttributes<HTMLOptionElement>, 'key' | 'value'> & {
     item: RawJSONObject,

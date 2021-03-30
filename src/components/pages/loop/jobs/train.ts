@@ -1,5 +1,5 @@
-import UFDLServerContext from "ufdl-js-client/UFDLServerContext";
-import {CreateJobSpec} from "ufdl-js-client/json/generated/CreateJobSpec";
+import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
+import {CreateJobSpec} from "ufdl-ts-client/json/generated/CreateJobSpec";
 import {BehaviorSubject} from "rxjs";
 import {DatasetPK} from "../../../../server/pk";
 import webSocketNotificationOverride from "../webSocketNotificationOverride";

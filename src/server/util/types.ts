@@ -1,6 +1,6 @@
-import UFDLServerContext from "ufdl-js-client/UFDLServerContext";
-import {FilterSpec} from "ufdl-js-client/json/generated/FilterSpec";
-import {RawJSONObject} from "ufdl-js-client/types";
+import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
+import {FilterSpec} from "ufdl-ts-client/json/generated/FilterSpec";
+import {RawJSONObject} from "ufdl-ts-client/types";
 
 export type ListFunction = (context: UFDLServerContext, filterSpec?: FilterSpec) => Promise<RawJSONObject[]>
 

@@ -1,6 +1,6 @@
-import UFDLServerContext from "ufdl-js-client/UFDLServerContext";
+import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import {DatasetPK} from "../../../../server/pk";
-import * as ICDataset from "ufdl-js-client/functional/image_classification/dataset";
+import * as ICDataset from "ufdl-ts-client/functional/image_classification/dataset";
 
 export default async function copyDataset(
     context: UFDLServerContext,

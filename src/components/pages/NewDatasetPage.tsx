@@ -1,5 +1,5 @@
-import * as ICDataset from "ufdl-js-client/functional/image_classification/dataset";
-import * as ODDataset from "ufdl-js-client/functional/object_detection/dataset";
+import * as ICDataset from "ufdl-ts-client/functional/image_classification/dataset";
+import * as ODDataset from "ufdl-ts-client/functional/object_detection/dataset";
 import React, {useContext} from "react";
 import {UFDL_SERVER_REACT_CONTEXT} from "../../server/UFDLServerContextProvider";
 import {useInterlockedState} from "../../util/react/hooks/useInterlockedState";
@@ -14,8 +14,8 @@ import {TeamSelect} from "../TeamSelect";
 import {ProjectSelect} from "../ProjectSelect";
 import {LicenceSelect} from "../LicenceSelect";
 import useStateSafe from "../../util/react/hooks/useStateSafe";
-import UFDLServerContext from "ufdl-js-client/UFDLServerContext";
-import {RawJSONObject} from "ufdl-js-client/types";
+import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
+import {RawJSONObject} from "ufdl-ts-client/types";
 import {CreateFunction} from "../../server/util/types";
 import asChangeEventHandler from "../../util/react/asChangeEventHandler";
 import {DatasetPK, getProjectPK, getTeamPK, ProjectPK, TeamPK} from "../../server/pk";

@@ -1,7 +1,7 @@
 import {ProjectPK, TeamPK} from "../../server/pk";
 import {FunctionComponentReturnType} from "../../util/react/types";
 import useStateSafe from "../../util/react/hooks/useStateSafe";
-import {Optional} from "ufdl-js-client/util";
+import {Optional} from "ufdl-ts-client/util";
 import {useInterlockedState} from "../../util/react/hooks/useInterlockedState";
 import Page from "./Page";
 import SelectTeamPage from "./SelectTeamPage";

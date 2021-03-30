@@ -1,6 +1,6 @@
 import CSS from "csstype";
 import {mapToArray, spreadJoinMaps} from "../../../../util/map";
-import {toHexString} from "ufdl-js-client/util";
+import {toHexString} from "ufdl-ts-client/util";
 import {pseudoRandomBytes} from "crypto";
 
 export type LabelColour = CSS.Property.BackgroundColor & CSS.Property.BorderColor

@@ -1,5 +1,5 @@
 import React from "react";
-import {list} from "ufdl-js-client/functional/core/team";
+import {list} from "ufdl-ts-client/functional/core/team";
 import {ListSelect, ListSelectProps} from "./ListSelect";
 import {nameFromJSON} from "../server/util/nameFromJSON";
 

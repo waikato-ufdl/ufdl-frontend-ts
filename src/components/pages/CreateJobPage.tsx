@@ -5,10 +5,10 @@
 //import {TeamSelect} from "../TeamSelect";
 //import {ProjectSelect} from "../ProjectSelect";
 //import {DomainSelect} from "../DomainSelect";
-//import {FilterSpec} from "ufdl-js-client/json/generated/FilterSpec";
+//import {FilterSpec} from "ufdl-ts-client/json/generated/FilterSpec";
 //import {exactFilter} from "../../server/util/exactFilter";
-//import * as ICDataset from "ufdl-js-client/functional/image_classification/dataset";
-//import * as ODDataset from "ufdl-js-client/functional/object_detection/dataset";
+//import * as ICDataset from "ufdl-ts-client/functional/image_classification/dataset";
+//import * as ODDataset from "ufdl-ts-client/functional/object_detection/dataset";
 //import {CreateFunction} from "../../server/util/types";
 //import {LicenceSelect} from "../LicenceSelect";
 //import {globalContext} from "../../globalContext";

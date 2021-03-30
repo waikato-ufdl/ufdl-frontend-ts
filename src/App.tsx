@@ -1,7 +1,7 @@
 import React from 'react';
 import './App.css';
 import Window from "./components/Window";
-import UFDLServerContext from "ufdl-js-client/UFDLServerContext";
+import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import {MainMenuPage} from "./components/pages/MainMenuPage";
 
 export default function App() {

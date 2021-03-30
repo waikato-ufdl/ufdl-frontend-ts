@@ -1,5 +1,5 @@
 import React from "react";
-import {RawJSONObject} from "ufdl-js-client/types";
+import {RawJSONObject} from "ufdl-ts-client/types";
 import {mapFromArray} from "../util/map";
 import {ArraySelect} from "../util/react/component/ArraySelect";
 import useDerivedState from "../util/react/hooks/useDerivedState";

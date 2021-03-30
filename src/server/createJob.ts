@@ -1,10 +1,10 @@
 import {BehaviorSubject} from "rxjs";
-import UFDLServerContext from "ufdl-js-client/UFDLServerContext";
-import {CreateJobSpec} from "ufdl-js-client/json/generated/CreateJobSpec";
-import {create_job} from "ufdl-js-client/functional/core/jobs/job_template";
+import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
+import {CreateJobSpec} from "ufdl-ts-client/json/generated/CreateJobSpec";
+import {create_job} from "ufdl-ts-client/functional/core/jobs/job_template";
 import {formatResponseError, handleErrorResponse} from "./util/responseError";
 import observableWebSocket from "./util/observableWebSocket";
-import {RawJSONObject} from "ufdl-js-client/types";
+import {RawJSONObject} from "ufdl-ts-client/types";
 import {immediateObservable} from "../util/rx/immediate";
 import behaviourSubjectFromSubscribable from "../util/rx/behaviourSubjectFromSubscribable";
 

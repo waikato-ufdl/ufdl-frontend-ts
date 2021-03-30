@@ -1,7 +1,7 @@
 import {useEffect, useReducer} from "react";
-import UFDLServerContext from "ufdl-js-client/UFDLServerContext";
-import * as ICDataset from "ufdl-js-client/functional/image_classification/dataset";
-import {Optional} from "ufdl-js-client/util";
+import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
+import * as ICDataset from "ufdl-ts-client/functional/image_classification/dataset";
+import {Optional} from "ufdl-ts-client/util";
 import {DatasetItem} from "../../DatasetItem";
 import {
     imageClassificationDatasetReducer,

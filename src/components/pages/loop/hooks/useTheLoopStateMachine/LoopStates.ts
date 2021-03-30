@@ -1,4 +1,4 @@
-import UFDLServerContext from "ufdl-js-client/UFDLServerContext";
+import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import {DatasetPK} from "../../../../../server/pk";
 import {BehaviorSubject} from "rxjs";
 

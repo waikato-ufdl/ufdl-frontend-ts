@@ -1,12 +1,12 @@
 import {DatasetPK, ProjectPK} from "../../server/pk";
 import {FunctionComponentReturnType} from "../../util/react/types";
 import useStateSafe from "../../util/react/hooks/useStateSafe";
-import {Optional} from "ufdl-js-client/util";
+import {Optional} from "ufdl-ts-client/util";
 import {useInterlockedState} from "../../util/react/hooks/useInterlockedState";
 import Page from "./Page";
 import SelectProjectPage from "./SelectProjectPage";
 import NewDatasetPage from "./NewDatasetPage";
-import * as ICDataset from "ufdl-js-client/functional/image_classification/dataset";
+import * as ICDataset from "ufdl-ts-client/functional/image_classification/dataset";
 import {ListSelect} from "../ListSelect";
 import React from "react";
 import useDerivedState from "../../util/react/hooks/useDerivedState";

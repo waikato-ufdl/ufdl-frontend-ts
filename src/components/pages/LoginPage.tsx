@@ -3,8 +3,8 @@ import React, {useContext} from "react";
 import {UFDL_SERVER_REACT_CONTEXT} from "../../server/UFDLServerContextProvider";
 import Page from "./Page";
 import {Form} from "../Form";
-import {ping} from "ufdl-js-client/functional/core/nodes/node";
-import UFDLServerContext from "ufdl-js-client/UFDLServerContext";
+import {ping} from "ufdl-ts-client/functional/core/nodes/node";
+import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import useStateSafe from "../../util/react/hooks/useStateSafe";
 import {handleErrorResponse} from "../../server/util/responseError";
 

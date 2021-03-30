@@ -1,9 +1,9 @@
 import React, {useContext, useEffect} from "react";
 import {RawJSONObjectSelect} from "./RawJSONObjectSelect";
-import {FilterSpec} from "ufdl-js-client/json/generated/FilterSpec";
-import {RawJSONObject} from "ufdl-js-client/types";
+import {FilterSpec} from "ufdl-ts-client/json/generated/FilterSpec";
+import {RawJSONObject} from "ufdl-ts-client/types";
 import {UFDL_SERVER_REACT_CONTEXT} from "../server/UFDLServerContextProvider";
-import UFDLServerContext from "ufdl-js-client/UFDLServerContext";
+import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import useStateSafe from "../util/react/hooks/useStateSafe";
 
 export type ListSelectProps = {

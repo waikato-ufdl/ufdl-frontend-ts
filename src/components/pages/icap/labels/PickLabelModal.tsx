@@ -1,4 +1,4 @@
-import {Optional} from "ufdl-js-client/util";
+import {Optional} from "ufdl-ts-client/util";
 import {LabelColours} from "./LabelColours";
 import {FunctionComponentReturnType} from "../../../../util/react/types";
 import useStateSafe from "../../../../util/react/hooks/useStateSafe";

@@ -1,5 +1,5 @@
 import {BehaviorSubject, Observable} from "rxjs";
-import {RawJSONObject} from "ufdl-js-client/types";
+import {RawJSONObject} from "ufdl-ts-client/types";
 import {filter, map} from "rxjs/operators";
 
 /**

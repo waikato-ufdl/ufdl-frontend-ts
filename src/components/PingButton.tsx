@@ -1,5 +1,5 @@
 import React, {ButtonHTMLAttributes} from 'react';
-import {ping} from "ufdl-js-client/functional/core/nodes/node";
+import {ping} from "ufdl-ts-client/functional/core/nodes/node";
 import {UFDL_SERVER_REACT_CONTEXT} from "../server/UFDLServerContextProvider";
 import {Empty} from "../util/typescript/types/Empty";
 import {formatResponseError, handleErrorResponse} from "../server/util/responseError";

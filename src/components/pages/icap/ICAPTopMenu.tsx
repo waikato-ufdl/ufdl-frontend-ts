@@ -1,12 +1,12 @@
 import {TeamSelect} from "../../TeamSelect";
 import {ProjectSelect} from "../../ProjectSelect";
 import {ListSelect} from "../../ListSelect";
-import * as ICDataset from "ufdl-js-client/functional/image_classification/dataset";
+import * as ICDataset from "ufdl-ts-client/functional/image_classification/dataset";
 import {nameFromJSON} from "../../../server/util/nameFromJSON";
 import React from "react";
 import {BackButton} from "../../BackButton";
 import {exactFilter} from "../../../server/util/exactFilter";
-import {RawJSONObject} from "ufdl-js-client/types";
+import {RawJSONObject} from "ufdl-ts-client/types";
 import useDerivedState from "../../../util/react/hooks/useDerivedState";
 import {DatasetPK, getDatasetPK, getProjectPK, getTeamPK, ProjectPK, TeamPK} from "../../../server/pk";
 import nameFromSignature from "../../../server/util/nameFromSignature";

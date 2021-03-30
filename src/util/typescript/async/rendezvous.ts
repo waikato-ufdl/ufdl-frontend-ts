@@ -1,4 +1,4 @@
-import {Optional} from "ufdl-js-client/util";
+import {Optional} from "ufdl-ts-client/util";
 
 export type ResolveValue<T> = PromiseLike<T> | T
 export type ResolveFunction<T> = (value: ResolveValue<T>) => void;

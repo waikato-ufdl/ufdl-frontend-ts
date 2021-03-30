@@ -17,7 +17,7 @@ import "./ImageClassificationAnnotatorPage.css";
 import {DatasetPK, getDatasetPK, getProjectPK, getTeamPK, ProjectPK, TeamPK} from "../../../server/pk";
 import useDerivedReducer from "../../../util/react/hooks/useDerivedReducer";
 import {createSimpleStateReducer} from "../../../util/react/hooks/SimpleStateReducer";
-import {Optional} from "ufdl-js-client/util";
+import {Optional} from "ufdl-ts-client/util";
 import {constantInitialiser} from "../../../util/typescript/initialisers";
 import {SORT_FUNCTIONS, SortOrder} from "./sorting";
 import {toggleSelection} from "../../../server/hooks/useImageClassificationDataset/actions/SELECTIONS";

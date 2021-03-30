@@ -4,10 +4,10 @@ import {UFDL_SERVER_REACT_CONTEXT} from "../../server/UFDLServerContextProvider"
 import Page from "./Page";
 import {BackButton} from "../BackButton";
 import {Form} from "../Form";
-import UFDLServerContext from "ufdl-js-client/UFDLServerContext";
-import * as Team from "ufdl-js-client/functional/core/team";
+import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
+import * as Team from "ufdl-ts-client/functional/core/team";
 import useStateSafe from "../../util/react/hooks/useStateSafe";
-import {RawJSONObject} from "ufdl-js-client/types";
+import {RawJSONObject} from "ufdl-ts-client/types";
 import useDerivedState from "../../util/react/hooks/useDerivedState";
 import asChangeEventHandler from "../../util/react/asChangeEventHandler";
 import {TeamPK} from "../../server/pk";

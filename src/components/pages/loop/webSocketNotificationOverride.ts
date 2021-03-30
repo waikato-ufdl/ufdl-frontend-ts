@@ -1,4 +1,4 @@
-import {NotificationOverride} from "ufdl-js-client/json/generated/CreateJobSpec";
+import {NotificationOverride} from "ufdl-ts-client/json/generated/CreateJobSpec";
 
 export default function webSocketNotificationOverride(
     // No parameters

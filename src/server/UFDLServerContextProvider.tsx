@@ -1,5 +1,5 @@
 import React, {ReactNode} from "react";
-import UFDLServerContext from "ufdl-js-client/UFDLServerContext";
+import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 
 // Global context for components which don't receive one via a React context
 const GLOBAL_UFDL_SERVER_CONTEXT: UFDLServerContext = new UFDLServerContext(

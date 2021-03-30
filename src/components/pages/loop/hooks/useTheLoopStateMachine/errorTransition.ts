@@ -2,7 +2,7 @@ import {createNewLoopState} from "./createNewLoopState";
 import {formatResponseError, handleErrorResponse} from "../../../../../server/util/responseError";
 import {StateAndData} from "../../../../../util/react/hooks/useStateMachine/types";
 import {LoopStates} from "./LoopStates";
-import UFDLServerContext from "ufdl-js-client/UFDLServerContext";
+import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import {LoopStateAndData, LoopStateTransition} from "./types";
 import {Dispatch} from "react";
 

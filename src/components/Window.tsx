@@ -1,6 +1,6 @@
 import React, {PropsWithChildren} from 'react';
 import "./Window.css";
-import UFDLServerContext from "ufdl-js-client/UFDLServerContext";
+import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import {UFDLServerContextProvider} from "../server/UFDLServerContextProvider";
 
 

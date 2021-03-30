@@ -1,6 +1,6 @@
 import {FunctionComponentReturnType} from "../../../../util/react/types";
 import {LabelColour, LabelColours} from "./LabelColours";
-import {Optional} from "ufdl-js-client/util";
+import {Optional} from "ufdl-ts-client/util";
 import {mapToArray} from "../../../../util/map";
 import {LabelSelectOption} from "./LabelSelectOption";
 import asChangeEventHandler from "../../../../util/react/asChangeEventHandler";

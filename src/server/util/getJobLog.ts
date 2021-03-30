@@ -1,6 +1,6 @@
-import UFDLServerContext from "ufdl-js-client/UFDLServerContext";
+import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import {DataStream, dataStreamSubject} from "../../util/rx/dataStream";
-import {get_output} from "ufdl-js-client/functional/core/jobs/job";
+import {get_output} from "ufdl-ts-client/functional/core/jobs/job";
 import completionPromise from "../../util/rx/completionPromise";
 import JSZip from "jszip";
 

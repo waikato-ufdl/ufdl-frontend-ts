@@ -1,4 +1,4 @@
-import {Optional} from "ufdl-js-client/util";
+import {Optional} from "ufdl-ts-client/util";
 
 export function ifNotUndefined<T, R>(value: Optional<T>, func: (value: T) => R): Optional<R> {
     if (value === undefined)
