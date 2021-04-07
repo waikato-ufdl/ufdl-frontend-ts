@@ -60,5 +60,10 @@ export default function createWebSocket(
         if (errorHandler !== undefined) errorHandler({error: 'web-socket closed unexpectedly'});
     };
 
+    // Create a callback to just log any other errors that occur
+    webSocket.onerror = function(event) {
+        console.error(`Web-socket connected to job #${pk} encountered an error:`, event);
+    };
+
     return webSocket;
 }
