@@ -7,12 +7,15 @@ import observableWebSocket from "./websocket/observableWebSocket";
 import {RawJSONObject} from "ufdl-ts-client/types";
 import {immediateObservable} from "../util/rx/immediate";
 import behaviourSubjectFromSubscribable from "../util/rx/behaviourSubjectFromSubscribable";
+import completionPromise from "../util/rx/completionPromise";
+import {getJobLog} from "./util/getJobLog";
 
 export default function createJob(
     context: UFDLServerContext,
     templatePK: number,
     createJobSpec: CreateJobSpec
 ): [Promise<number>, BehaviorSubject<RawJSONObject>] {
+    // Create the job and extract its PK from the response
     const jobPK = handleErrorResponse(
         async () => {
             const job = await create_job(context, templatePK, createJobSpec);
@@ -21,13 +24,24 @@ export default function createJob(
         throwOnError
     );
 
-    return [
-        jobPK,
-        behaviourSubjectFromSubscribable(
-            immediateObservable(
-                jobPK.then((pk) => observableWebSocket(pk, true, true))
-            ),
-            {}
-        )
-    ];
+    // Create a behaviour subject to monitor the job's progress
+    const jobMonitor = behaviourSubjectFromSubscribable(
+        immediateObservable(
+            jobPK.then((pk) => observableWebSocket(pk, true, true))
+        ),
+        {}
+    );
+
+    // Always print the log on job completion
+    completionPromise(jobMonitor).then(
+        async () => {
+            const pk = await jobPK;
+            console.log(
+                `Job log for job #${pk}`,
+                await getJobLog(context, pk)
+            );
+        }
+    );
+
+    return [jobPK, jobMonitor];
 }
