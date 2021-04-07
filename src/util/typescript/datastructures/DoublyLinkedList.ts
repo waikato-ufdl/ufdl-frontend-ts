@@ -40,6 +40,14 @@ export class DoublyLinkedList<V> {
         }
     }
 
+    first(): V | undefined {
+        return this.head?.value;
+    }
+
+    last(): V | undefined {
+        return this.tail?.value;
+    }
+
     empty(): boolean {
         return this.head === undefined;
     }
