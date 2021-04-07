@@ -34,6 +34,19 @@ export function assertPresent<T>(
 }
 
 /**
+ * Converts a possible value to its definite equivalent.
+ *
+ * @param value
+ *          The value to convert.
+ */
+export function asAssertedPresent<T>(
+    value: Possible<T>
+): T {
+    assertPresent(value);
+    return value;
+}
+
+/**
  * Treats the value undefined as absent.
  *
  * @param value
