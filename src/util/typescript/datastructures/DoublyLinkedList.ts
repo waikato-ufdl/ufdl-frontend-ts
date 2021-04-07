@@ -1,3 +1,5 @@
+import {Absent, Possible} from "../types/Possible";
+
 /**
  * Internal box-type representing an element in the linked-list.
  */
@@ -40,12 +42,12 @@ export class DoublyLinkedList<V> {
         }
     }
 
-    first(): V | undefined {
-        return this.head?.value;
+    first(): Possible<V> {
+        return this.head === undefined ? Absent : this.head.value;
     }
 
-    last(): V | undefined {
-        return this.tail?.value;
+    last(): Possible<V> {
+        return this.tail === undefined ? Absent : this.tail.value;
     }
 
     empty(): boolean {
@@ -90,4 +92,33 @@ export class DoublyLinkedList<V> {
         this.tail = newTail;
     }
 
+    popFirst(): Possible<V> {
+        if (this.head === undefined) return Absent;
+
+        const result = this.head.value;
+
+        this.head = this.head.next;
+
+        if (this.head === undefined)
+            this.tail = undefined;
+        else
+            this.head.prev = undefined;
+
+        return result;
+    }
+
+    popLast(): Possible<V> {
+        if (this.tail === undefined) return Absent;
+
+        const result = this.tail.value;
+
+        this.tail = this.tail.prev;
+
+        if (this.tail === undefined)
+            this.head = undefined;
+        else
+            this.tail.next = undefined;
+
+        return result;
+    }
 }
