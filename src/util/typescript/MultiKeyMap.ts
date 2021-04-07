@@ -1,18 +1,18 @@
 import {Head, Tail} from "../tuple";
 import {mapAll, mapReduce} from "../map";
-
-const NOT_RESIDENT = Symbol();
+import {Absent, absentAsUndefined, isPresent, Possible} from "./types/Possible";
 
 export class MultiKeyMap<K extends readonly any[], V>
     // implements Map<K, V>
 {
-    private value: V | typeof NOT_RESIDENT = NOT_RESIDENT;
+    private value: Possible<V> = Absent;
+
     private subMap: Map<Head<K>, MultiKeyMap<Tail<K>, V>> | undefined = undefined;
 
     readonly [Symbol.toStringTag]: string = "MultiKeyMap";
 
     get size(): number {
-        return (this.value === NOT_RESIDENT ? 0 : 1) + (
+        return (isPresent(this.value) ? 1 : 0) + (
             this.subMap === undefined ?
                 0 :
                 mapReduce(
@@ -25,7 +25,7 @@ export class MultiKeyMap<K extends readonly any[], V>
     }
 
     get empty(): boolean {
-        if (this.value !== NOT_RESIDENT)
+        if (isPresent(this.value))
             return false;
         else if (this.subMap === undefined)
             return true;
@@ -44,14 +44,14 @@ export class MultiKeyMap<K extends readonly any[], V>
     }
 
     clear(): void {
-        this.value = NOT_RESIDENT;
+        this.value = Absent;
         this.subMap = undefined;
     }
 
     delete(key: Readonly<K>): boolean {
         if (key.length === 0) {
-            const present: boolean = this.value !== NOT_RESIDENT;
-            this.value = NOT_RESIDENT;
+            const present: boolean = isPresent(this.value);
+            this.value = Absent;
             return present;
         }
 
@@ -73,29 +73,29 @@ export class MultiKeyMap<K extends readonly any[], V>
         return deleted;
     }
 
-    private getInternal(key: Readonly<K>): V | typeof NOT_RESIDENT {
+    private getInternal(key: Readonly<K>): Possible<V> {
         if (key.length === 0) {
             return this.value;
         }
 
-        if (this.subMap === undefined) return NOT_RESIDENT;
+        if (this.subMap === undefined) return Absent;
 
         const [head, ...tail] = key;
 
         const subMapAtHead = this.subMap.get(head);
 
-        if (subMapAtHead === undefined) return NOT_RESIDENT;
+        if (subMapAtHead === undefined) return Absent;
 
         return subMapAtHead.getInternal(tail as Tail<K>);
     }
 
     get(key: Readonly<K>): V | undefined {
         const value = this.getInternal(key);
-        return value === NOT_RESIDENT ? undefined : value;
+        return absentAsUndefined(value);
     }
 
     has(key: Readonly<K>): boolean {
-        return this.getInternal(key) !== NOT_RESIDENT;
+        return isPresent(this.getInternal(key));
     }
 
     set(key: Readonly<K>, value: V): this {
