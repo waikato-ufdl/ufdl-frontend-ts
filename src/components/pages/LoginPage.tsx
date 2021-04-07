@@ -7,6 +7,8 @@ import {ping} from "ufdl-ts-client/functional/core/nodes/node";
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import useStateSafe from "../../util/react/hooks/useStateSafe";
 import {handleErrorResponse} from "../../server/util/responseError";
+import logo from "../../logo.svg"
+import "../../logo.css";
 
 export type LoginPageProps = {
     id: "Log In"
@@ -26,6 +28,10 @@ export default function LoginPage(props: LoginPageProps) {
     const [password, setPassword] = useStateSafe<string>(() => "");
 
     return <Page className={"LoginPage"} id={props.id}>
+        <div style={{position: "absolute", top: 0, left: 0}}>
+            {"Powered by React "}
+            <img src={logo} className="App-logo" alt="logo" />
+        </div>
         <Form onSubmit={() => login(ufdlServerContext, username, password, props.onLogin)}>
             <label>
                 Username:
