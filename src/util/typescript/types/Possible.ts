@@ -28,8 +28,9 @@ export function isPresent<T>(
  */
 export function assertPresent<T>(
     value: Possible<T>
-): T {
-    return value as T;
+): asserts value is T {
+    if (!isPresent(value))
+        throw new Error("Value is not present");
 }
 
 /**
