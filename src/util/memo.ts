@@ -1,6 +1,6 @@
 import {isShallowEqual} from "./equivalency";
 import {GenericFunctionWithThisArg} from "./typescript/types/GenericFunction";
-import {MultiKeyMap} from "./typescript/MultiKeyMap";
+import {MultiKeyMap} from "./typescript/datastructures/MultiKeyMap";
 
 export function memo<P extends any[], R>(
     f: (...args: P) => R
