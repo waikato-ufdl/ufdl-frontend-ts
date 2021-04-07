@@ -16,7 +16,7 @@ export default function evaluate(
         input_values: {
             model: {
                 value: modelOutputPK.toString(),
-                type: "job_output<tficmodel>"
+                type: "job_output<tficmodeltflite>"
             },
             data: {
                 value: datasetPK.asNumber.toString(),

@@ -5,7 +5,7 @@ export default async function getModelOutputPK(
     context: UFDLServerContext,
     jobPK: number
 ): Promise<number> {
-    const output = await get_output_info(context, jobPK, "model", "tficmodel");
+    const output = await get_output_info(context, jobPK, "modeltflite", "tficmodeltflite");
 
     return output['pk'] as number;
 }
