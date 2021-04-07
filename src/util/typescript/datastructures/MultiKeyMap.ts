@@ -1,6 +1,6 @@
-import {Head, Tail} from "../tuple";
-import {mapAll, mapReduce} from "../map";
-import {Absent, absentAsUndefined, isPresent, Possible} from "./types/Possible";
+import {Head, Tail} from "../../tuple";
+import {mapAll, mapReduce} from "../../map";
+import {Absent, absentAsUndefined, isPresent, Possible} from "../types/Possible";
 
 export class MultiKeyMap<K extends readonly any[], V>
     // implements Map<K, V>
