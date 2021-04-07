@@ -21,6 +21,18 @@ export function isPresent<T>(
 }
 
 /**
+ * Assertion that that given value is definitely present.
+ *
+ * @param value
+ *          The value that is the subject of the assertion.
+ */
+export function assertPresent<T>(
+    value: Possible<T>
+): T {
+    return value as T;
+}
+
+/**
  * Treats the value undefined as absent.
  *
  * @param value
