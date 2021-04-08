@@ -1,0 +1,13 @@
+.PickLabelModal > * {
+    display: block;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.PickLabelModal > label {
+    margin-right: 5px;
+}
+
+.PickLabelModal > p {
+    font-weight: bold;
+}

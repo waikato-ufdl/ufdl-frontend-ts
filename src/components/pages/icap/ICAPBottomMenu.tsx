@@ -69,6 +69,7 @@ export default function ICAPBottomMenu(props: ICAPBottomMenuProps) {
             onSubmit={props.onRelabelSelected!}
             onCancel={() => setLabelModal(undefined)}
             labelColours={props.labelColours}
+            confirmText={"Relabel"}
         />
 
         <button

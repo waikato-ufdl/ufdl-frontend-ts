@@ -1,6 +1,8 @@
 import React, {PropsWithChildren} from "react";
 import ReactModal from "react-modal";
 import {FunctionComponentReturnType} from "../types";
+import {augmentClassName} from "../../augmentClass";
+import "./LocalModal.css";
 
 export type LocalModalProps = {
     /** The position to display the modal, or undefined to hide it. */
@@ -8,6 +10,9 @@ export type LocalModalProps = {
 
     /** What to do when the user clicks outside the modal. */
     onCancel: () => void
+
+    /** The classes to give to the modal. */
+    className?: string
 }
 
 /**
@@ -30,6 +35,7 @@ export default function LocalModal(
         {top: position[1], bottom: "initial"} : {top: "initial", bottom: window.innerHeight - position[1]};
 
     return <ReactModal
+        className={augmentClassName(props.className, "LocalModal")}
         isOpen={isOpen}
         onRequestClose={props.onCancel}
         style={{

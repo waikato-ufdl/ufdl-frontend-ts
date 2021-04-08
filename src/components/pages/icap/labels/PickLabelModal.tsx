@@ -8,52 +8,62 @@ import asChangeEventHandler from "../../../../util/react/asChangeEventHandler";
 import LabelSelect from "./LabelSelect";
 import React from "react";
 import LocalModal from "../../../../util/react/component/LocalModal";
+import "./PickLabelModal.css";
 
 export type PickLabelModalProps = {
     position: [number, number] | undefined
     onSubmit: (label: Optional<string>) => void
     onCancel: () => void
     labelColours: LabelColours
+    confirmText: string
 }
 
 export default function PickLabelModal(
     props: PickLabelModalProps
 ): FunctionComponentReturnType {
+    // The contents of the label text box
+    const [label, setLabel] = useStateSafe<string>(constantInitialiser(""));
 
-    const [label, setLabel] = useStateSafe<Optional<string>>(constantInitialiser(undefined));
-
-    const onSubmit = (label: Optional<string>) => {
-        if (label === "") label = undefined;
-        setLabel(undefined);
-        props.onSubmit(label);
+    const onSubmit = () => {
+        props.onSubmit(label === "" ? undefined : label);
+        setLabel("");
     };
 
     const onCancel = () => {
-        setLabel(undefined);
+        setLabel("");
         props.onCancel()
     };
 
     return <LocalModal
+        className={"PickLabelModal"}
         position={props.position}
         onCancel={onCancel}
     >
-        <Form onSubmit={() => onSubmit(label)}>
-            <input value={label} onChange={asChangeEventHandler(setLabel)} autoFocus/>
+        <p>Enter new or select existing label,</p>
+        <p>leave empty for no label</p>
+        <Form onSubmit={onSubmit}>
+            <label>
+                New label
+                <input value={label} onChange={asChangeEventHandler(setLabel)} autoFocus/>
+            </label>
         </Form>
 
-        <LabelSelect
-            label={label}
-            onRelabelled={(_, newLabel) => onSubmit(newLabel)}
-            labelColours={props.labelColours}
-            style={{
-                border: "1px solid black"
-            }}
-        />
+        <label>
+            Existing label
+            <LabelSelect
+                label={label}
+                onRelabelled={(_, newLabel) => setLabel(newLabel === undefined ? "" : newLabel)}
+                labelColours={props.labelColours}
+                style={{
+                    border: "1px solid black"
+                }}
+            />
+        </label>
 
         <button
-            onClick={() => onSubmit(undefined)}
+            onClick={onSubmit}
         >
-            No label
+            {props.confirmText}
         </button>
 
     </LocalModal>

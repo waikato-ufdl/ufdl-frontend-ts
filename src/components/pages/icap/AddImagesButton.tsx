@@ -53,6 +53,7 @@ export default function AddImagesButton(
                 }}
                 onCancel={() => setModal(undefined)}
                 labelColours={props.labelColours}
+                confirmText={"Select files..."}
             />
         </div>
     </CenterContent>
