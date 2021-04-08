@@ -33,7 +33,7 @@ export default function createJob(
     );
 
     // Always print the log on job completion
-    completionPromise(jobMonitor).then(
+    completionPromise(jobMonitor).finally(
         async () => {
             const pk = await jobPK;
             console.log(
