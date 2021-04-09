@@ -84,7 +84,7 @@ export default function TheLoopPage(
             return <ImageClassificationAnnotatorPage
                 lockedPK={stateMachine.data.additionDataset}
                 initialLabelColours={labelColours}
-                nextLabel={"Finished Fixing"}
+                nextLabel={"Accept"}
                 onNext={(_, __, labelColours) => {
                     setLabelColours(labelColours);
                     stateMachine.transitions.finishedFixing();
