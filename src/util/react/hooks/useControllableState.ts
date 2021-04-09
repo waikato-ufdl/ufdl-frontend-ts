@@ -44,7 +44,6 @@ function controllableStateReducer(
     prevState: ControllableReducerState<any>,
     action: ControllableReducerAction<any>
 ): ControllableReducerState<any> {
-    console.log(prevState, action);
     if (action.isControl) {
         return {
             controlled: action.controlled,
