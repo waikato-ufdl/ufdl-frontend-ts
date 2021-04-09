@@ -165,6 +165,7 @@ export default function ImageClassificationAnnotatorPage(
             onSortChanged={setSortOrder}
             labelColours={labelColoursDispatch.state}
             evalDataset={evalDataset?.state}
+            numSelected={dataset === undefined ? [0, 0] : [dataset.selectedFiles.length, dataset.state.size]}
         />
     </Page>
 }

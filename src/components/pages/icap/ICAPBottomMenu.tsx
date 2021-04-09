@@ -18,6 +18,7 @@ export type ICAPBottomMenuProps = {
     onSortChanged: (order: SortOrder) => void
     labelColours: LabelColours
     evalDataset: ImageClassificationDataset | undefined
+    numSelected: [number, number]
 }
 
 export default function ICAPBottomMenu(props: ICAPBottomMenuProps) {
@@ -30,9 +31,11 @@ export default function ICAPBottomMenu(props: ICAPBottomMenuProps) {
         constantInitialiser(undefined)
     );
 
+    const [numSelected, outOf] = props.numSelected;
+
     return <div id={"ICAPBottomMenu"} className={"menuBar"}>
         <label>
-            Selected
+            {`Selected (${numSelected}/${outOf}) `}
         </label>
 
         <button
