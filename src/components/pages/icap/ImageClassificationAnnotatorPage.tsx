@@ -33,7 +33,8 @@ export type ICAPProps = {
     onNext?: (
         selectedPK: AnyPK,
         dataset: Optional<ImageClassificationDatasetMutator>,
-        labelColours: LabelColours
+        labelColours: LabelColours,
+        position: [number, number]
     ) => void
     onBack?: () => void
 }
@@ -134,8 +135,8 @@ export default function ImageClassificationAnnotatorPage(
             }
             onRequestNewDataset={() => setShowNewDatasetPage(true)}
             nextLabel={props.nextLabel}
-            onNext={() => {
-                if (props.onNext !== undefined) props.onNext(selectedPK, dataset, labelColoursDispatch.state)
+            onNext={(position) => {
+                if (props.onNext !== undefined) props.onNext(selectedPK, dataset, labelColoursDispatch.state, position)
             }}
             nextDisabled={dataset === undefined || !dataset.synchronised}
             onBack={props.onBack}

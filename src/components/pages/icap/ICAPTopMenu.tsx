@@ -18,7 +18,7 @@ export type ICAPTopMenuProps = {
     onDatasetChanged: (dataset?: RawJSONObject, pk?: number) => void
     onRequestNewDataset: () => void
     nextLabel?: string
-    onNext?: () => void
+    onNext?: (position: [number, number]) => void
     nextDisabled?: boolean
     onBack?: () => void
 }
@@ -84,7 +84,9 @@ export default function ICAPTopMenu(props: ICAPTopMenuProps) {
         {
             props.onNext &&
                 <button
-                    onClick={props.onNext}
+                    onClick={(event) => {
+                        if (props.onNext !== undefined) props.onNext([event.clientX, event.clientY])
+                    }}
                     disabled={props.nextDisabled}
                 >
                     {props.nextLabel === undefined ? "Next" : props.nextLabel}

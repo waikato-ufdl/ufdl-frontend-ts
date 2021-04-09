@@ -8,6 +8,8 @@ import Page from "../Page";
 import {LabelColours} from "../icap/labels/LabelColours";
 import useTheLoopStateMachine from "./hooks/useTheLoopStateMachine/useTheLoopStateMachine";
 import WorkingPage from "./WorkingPage";
+import {constantInitialiser} from "../../../util/typescript/initialisers";
+import RefineOrDoneModal from "./RefineOrDoneModal";
 
 export type TheLoopPageProps = {
     onBack?: () => void
@@ -22,6 +24,8 @@ export default function TheLoopPage(
     const stateMachine = useTheLoopStateMachine(ufdlServerContext);
 
     const [labelColours, setLabelColours] = useStateSafe<LabelColours>(() => new Map());
+
+    const [modalPosition, setModalPosition] = useStateSafe<[number, number] | undefined>(constantInitialiser(undefined));
 
     switch (stateMachine.state) {
         case "Selecting Primary Dataset":
@@ -63,17 +67,25 @@ export default function TheLoopPage(
             />;
 
         case "Checking":
-            return <ImageClassificationAnnotatorPage
-                lockedPK={stateMachine.data.evaluationDataset}
-                evalPK={stateMachine.data.primaryDataset}
-                initialLabelColours={labelColours}
-                nextLabel={"Happy?"}
-                onNext={(_, __, labelColours) => {
-                    setLabelColours(labelColours);
-                    stateMachine.transitions.goodEnough(false);
-                }}
-                onBack={() => stateMachine.transitions.goodEnough(true)}
-            />;
+            return <>
+                <ImageClassificationAnnotatorPage
+                    lockedPK={stateMachine.data.evaluationDataset}
+                    evalPK={stateMachine.data.primaryDataset}
+                    initialLabelColours={labelColours}
+                    nextLabel={"Next"}
+                    onNext={(_, __, labelColours, position) => {
+                        setLabelColours(labelColours);
+                        setModalPosition(position);
+                    }}
+                    onBack={stateMachine.transitions.back}
+                />
+                <RefineOrDoneModal
+                    onRefine={() => {setModalPosition(undefined); stateMachine.transitions.goodEnough(false)}}
+                    onDone={() => {setModalPosition(undefined); stateMachine.transitions.goodEnough(true)}}
+                    position={modalPosition}
+                    onCancel={() => setModalPosition(undefined)}
+                />
+            </>;
 
         case "Creating Addition Dataset":
             return <Page>
@@ -94,7 +106,7 @@ export default function TheLoopPage(
 
         case "Finished":
             return <Page>
-                <p>Finished!</p>
+                {"Finished!"}
                 <button onClick={stateMachine.transitions.download}>Download</button>
                 <button
                     onClick={() => {
@@ -108,7 +120,7 @@ export default function TheLoopPage(
 
         case "Error":
             return <Page>
-                <p>Error</p>
+                {"Error"}
                 {stateMachine.data.reason.toString()}
                 <button onClick={stateMachine.transitions.reset}>Back</button>
             </Page>
