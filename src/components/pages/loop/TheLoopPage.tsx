@@ -26,8 +26,11 @@ export default function TheLoopPage(
     switch (stateMachine.state) {
         case "Selecting Primary Dataset":
             return <SelectDatasetPage
-                onSelected={(pk) => stateMachine.transitions.primaryDatasetSelected(pk)}
-                onBack={props.onBack}
+                onDatasetSelected={stateMachine.transitions.setSelected}
+                onProjectSelected={stateMachine.transitions.setSelected}
+                onTeamSelected={stateMachine.transitions.setSelected}
+                from={stateMachine.data.from}
+                onBack={stateMachine.data.from === undefined ? props.onBack : stateMachine.transitions.back}
             />;
 
         case "Selecting Images":

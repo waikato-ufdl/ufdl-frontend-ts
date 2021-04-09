@@ -3,10 +3,12 @@ import {RawJSONObject} from "ufdl-ts-client/types";
 import {mapFromArray} from "../util/map";
 import {ArraySelect} from "../util/react/component/ArraySelect";
 import useDerivedState from "../util/react/hooks/useDerivedState";
+import {Controllable} from "../util/react/hooks/useControllableState";
+import {isPresent, Possible} from "../util/typescript/types/Possible";
 
 export type RawJSONObjectSelectProps = {
     values: readonly RawJSONObject[]
-    value?: number
+    value: Controllable<number>
     labelFunction: (json: RawJSONObject) => string
     onChange?: (item?: RawJSONObject, pk?: number) => void
     disabled?: boolean
@@ -34,17 +36,19 @@ export function RawJSONObjectSelect(props: RawJSONObjectSelectProps) {
 
     const onChangeActual = onChange === undefined ?
         undefined :
-        (value: RawJSONObject | undefined, index: number) => {
-            if (index === -1) {
-                onChange()
-            } else {
+        (value: Possible<RawJSONObject>, index: number) => {
+            if (isPresent(value)) {
                 onChange(value, indexToPk[index])
+            } else {
+                onChange()
             }
         };
 
-    return <ArraySelect<RawJSONObject>
+    const pk = typeof value === "number" ? value === -1 ? -1 : pkToIndex.get(value) : value;
+
+    return <ArraySelect<RawJSONObject[]>
         values={props.values}
-        value={value === undefined ? undefined : value === -1 ? -1 : pkToIndex.get(value) }
+        value={pk === undefined ? -2 : pk}
         labelFunction={labelFunction}
         onChange={onChangeActual}
         disabled={disabled}

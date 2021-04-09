@@ -1,10 +1,11 @@
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
-import {DatasetPK} from "../../../../../server/pk";
+import {DatasetPK, ProjectPK, TeamPK} from "../../../../../server/pk";
 import {BehaviorSubject} from "rxjs";
 
 export type LoopStates = {
     "Selecting Primary Dataset": {
         context: UFDLServerContext
+        from: TeamPK | ProjectPK | undefined
     }
     "Selecting Images": {
         context: UFDLServerContext

@@ -1,8 +1,12 @@
-import {DatasetPK, ProjectPK} from "../../server/pk";
+import {DatasetPK, ProjectPK, TeamPK} from "../../server/pk";
 import {FunctionComponentReturnType} from "../../util/react/types";
 import useStateSafe from "../../util/react/hooks/useStateSafe";
 import {Optional} from "ufdl-ts-client/util";
-import {useInterlockedState} from "../../util/react/hooks/useInterlockedState";
+import {
+    Controllable,
+    UNCONTROLLED_KEEP,
+    useControllableState
+} from "../../util/react/hooks/useControllableState";
 import Page from "./Page";
 import SelectProjectPage from "./SelectProjectPage";
 import NewDatasetPage from "./NewDatasetPage";
@@ -15,47 +19,56 @@ import nameFromSignature from "../../server/util/nameFromSignature";
 import {BackButton} from "../BackButton";
 import RenderSelectedChildren from "../../util/react/component/RenderSelectedChildren";
 import ignoreFirstNArgs from "../../util/typescript/ignoreFirstNArgs";
+import {constantInitialiser} from "../../util/typescript/initialisers";
 
 export type SelectDatasetPageProps = {
-    onSelected: (pk: DatasetPK) => void
+    onDatasetSelected: (pk: DatasetPK) => void
+    onProjectSelected?: (pk: ProjectPK) => void
+    onTeamSelected?: (pk: TeamPK) => void
     onBack?: () => void
-    project?: ProjectPK
+    from: Controllable<ProjectPK | TeamPK | undefined>
+    lock?: "team" | "project"
 }
 
 export default function SelectDatasetPage(
     props: SelectDatasetPageProps
 ): FunctionComponentReturnType {
 
-    const [project, setProject, projectLocked] = useInterlockedState<Optional<ProjectPK>>(
-        props.project,
+    const [from, setFrom, fromLocked] = useControllableState<Optional<ProjectPK | TeamPK>>(
+        props.from,
         () => undefined
     );
 
     const datasetProjectFilter = useDerivedState(
-        ([pk]) => pk === undefined ? undefined : exactFilter("project", pk.asNumber),
-        [project]
+        ([pk]) => pk instanceof ProjectPK ? exactFilter("project", pk.asNumber) : undefined,
+        [from]
     );
 
-    const [showNewDatasetPage, setShowNewDatasetPage] = useStateSafe(() => false);
+    const [showNewDatasetPage, setShowNewDatasetPage] = useStateSafe(constantInitialiser(false));
 
     return <RenderSelectedChildren
-        selector={project === undefined ? 0 : showNewDatasetPage ? 1 : 2}
+        selector={from instanceof ProjectPK ? showNewDatasetPage ? 1 : 2 : 0}
     >
         <SelectProjectPage
-            onSelected={(pk) => setProject(pk)}
+            onProjectSelected={(pk) => {setFrom(pk); if (props.onProjectSelected !== undefined) props.onProjectSelected(pk)}}
+            onTeamSelected={props.onTeamSelected}
+            team={from instanceof ProjectPK ? from.team : from}
+            lockTeam={props.lock !== undefined}
             onBack={props.onBack}
         />
         <NewDatasetPage
-            domain={"ic"}
-            lockedPK={project}
-            onCreate={(pk) => {props.onSelected(pk); setShowNewDatasetPage(false)} }
+            domain={"ic"} lockDomain
+            from={from} lockFrom={props.lock}
+            onCreate={(pk) => {props.onDatasetSelected(pk); setShowNewDatasetPage(false)} }
             onBack={() => setShowNewDatasetPage(false)}
+            licencePK={UNCONTROLLED_KEEP}
+            isPublic={UNCONTROLLED_KEEP}
         />
         <Page>
             <BackButton
                 onBack={() => {
-                    if (project !== undefined && !projectLocked)
-                        setProject(undefined);
+                    if (!fromLocked && from !== undefined)
+                        setFrom(from instanceof ProjectPK ? from.team : undefined);
                     else if (props.onBack !== undefined)
                         props.onBack()
                 }}
@@ -66,10 +79,11 @@ export default function SelectDatasetPage(
                 list={ICDataset.list}
                 labelFunction={nameFromSignature}
                 onChange={ignoreFirstNArgs(1, (pk?: number) => {
-                    if (pk !== undefined && project !== undefined)
-                        props.onSelected(project.dataset(pk))
+                    if (pk !== undefined && from instanceof ProjectPK)
+                        props.onDatasetSelected(from.dataset(pk))
                 })}
                 filter={datasetProjectFilter}
+                value={UNCONTROLLED_KEEP}
             />
             <button
                 onClick={() => setShowNewDatasetPage(true)}

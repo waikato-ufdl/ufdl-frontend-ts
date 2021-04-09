@@ -1,18 +1,32 @@
 import React from "react";
-import {useInterlockedState} from "../hooks/useInterlockedState";
+import {Controllable, useControllableState} from "../hooks/useControllableState";
 import asChangeEventHandler from "../asChangeEventHandler";
+import {constantInitialiser} from "../../typescript/initialisers";
+import {ElementType} from "../../typescript/types/array/ElementType";
+import {Absent, Possible} from "../../typescript/types/Possible";
 
-export type ArraySelectProps<T extends {}> = {
-    values: Readonly<T[]>
-    value?: number
-    labelFunction?: (item: T, index: number) => string
-    onChange?: (value: T | undefined, index: number) => void
+export type ArraySelectProps<T extends readonly unknown[]> = {
+    values: Readonly<T>
+    value: Controllable<number>
+    labelFunction?: (item: ElementType<T>, index: number) => string
+    onChange?: (value: Possible<ElementType<T>>, index: number) => void
     disabled?: boolean
 }
 
-export function ArraySelect<T extends {}>(props: ArraySelectProps<T>) {
+function defaultLabelFunction<T extends readonly unknown[]>(
+    item: ElementType<T>
+): string {
+    return `${item}`;
+}
+
+export function ArraySelect<T extends readonly unknown[]>(
+    props: ArraySelectProps<T>
+) {
     // Create state
-    const [value, setValue, valueLocked] = useInterlockedState<number>(props.value, () => -1);
+    const [value, setValue, valueLocked] = useControllableState<number>(
+        props.value,
+        constantInitialiser(-1)
+    );
 
     // Extract props
     const {
@@ -23,7 +37,7 @@ export function ArraySelect<T extends {}>(props: ArraySelectProps<T>) {
     } = props;
 
     // Apply defaults
-    const labelFunctionActual = labelFunction || ((item) => item.toString());
+    const labelFunctionActual = labelFunction || defaultLabelFunction;
 
     // Create an option for each value
     const valueOptions = values.map(
@@ -38,7 +52,7 @@ export function ArraySelect<T extends {}>(props: ArraySelectProps<T>) {
         (index) => {
             setValue(index);
 
-            const value = index !== -1 ? props.values[index] : undefined;
+            const value = index !== -1 ? props.values[index] : Absent;
 
             if (onChange !== undefined) onChange(value, index);
         },
@@ -46,7 +60,7 @@ export function ArraySelect<T extends {}>(props: ArraySelectProps<T>) {
     );
 
     return <select
-        className={"ArraySelectProps"}
+        className={"ArraySelect"}
         onChange={onChangeActual}
         value={value.toString()}
         disabled={disabled}
@@ -56,7 +70,4 @@ export function ArraySelect<T extends {}>(props: ArraySelectProps<T>) {
         </option>
         {valueOptions}
     </select>
-
-
-
 }

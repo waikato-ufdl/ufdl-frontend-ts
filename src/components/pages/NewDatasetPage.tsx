@@ -2,7 +2,7 @@ import * as ICDataset from "ufdl-ts-client/functional/image_classification/datas
 import * as ODDataset from "ufdl-ts-client/functional/object_detection/dataset";
 import React, {useContext} from "react";
 import {UFDL_SERVER_REACT_CONTEXT} from "../../server/UFDLServerContextProvider";
-import {useInterlockedState} from "../../util/react/hooks/useInterlockedState";
+import {Controllable, useControllableState} from "../../util/react/hooks/useControllableState";
 import {constantInitialiser} from "../../util/typescript/initialisers";
 import useDerivedState from "../../util/react/hooks/useDerivedState";
 import {exactFilter} from "../../server/util/exactFilter";
@@ -18,7 +18,7 @@ import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import {RawJSONObject} from "ufdl-ts-client/types";
 import {CreateFunction} from "../../server/util/types";
 import asChangeEventHandler from "../../util/react/asChangeEventHandler";
-import {DatasetPK, getProjectPK, getTeamPK, ProjectPK, TeamPK} from "../../server/pk";
+import {DatasetPK, ProjectPK, TeamPK} from "../../server/pk";
 import {
     DEFAULT_HANDLED_ERROR_RESPONSE,
     WithErrorResponseHandler,
@@ -35,10 +35,14 @@ const createFunctions: {[key in Domain]: WithErrorResponseHandler<Parameters<Cre
 } as const;
 
 export type NewDatasetPageProps = {
-    domain?: Domain
-    lockedPK?: TeamPK | ProjectPK
-    licence_pk?: number
-    is_public?: boolean
+    domain: Controllable<Domain>
+    lockDomain?: boolean
+    from: Controllable<TeamPK | ProjectPK | undefined>
+    lockFrom?: "team" | "project"
+    licencePK: Controllable<number>
+    lockLicence?: boolean
+    isPublic: Controllable<boolean>
+    lockIsPublic?: boolean
     onCreate?: (pk: DatasetPK) => void
     onBack?: () => void
 }
@@ -47,18 +51,20 @@ export default function NewDatasetPage(props: NewDatasetPageProps) {
 
     const ufdlServerContext = useContext(UFDL_SERVER_REACT_CONTEXT);
 
-    const [domain, setDomain, domainLocked] = useInterlockedState<Domain | undefined>(props.domain, constantInitialiser(undefined));
-    const [teamPK, setTeamPK, teamPKLocked] = useInterlockedState<TeamPK | undefined>(getTeamPK(props.lockedPK), constantInitialiser(undefined));
-    const [projectPK, setProjectPK, projectPKLocked] = useInterlockedState<ProjectPK | undefined>(getProjectPK(props.lockedPK), constantInitialiser(undefined));
-    const [licencePK, setLicencePK, licencePKLocked] = useInterlockedState<number | undefined>(props.licence_pk, constantInitialiser(undefined));
-    const [isPublic, setIsPublic, isPublicLocked] = useInterlockedState<boolean>(props.is_public, constantInitialiser(false));
+    const [domain, setDomain, domainLocked] = useControllableState<Domain | undefined>(props.domain, constantInitialiser(undefined));
+    const [from, setFrom, fromLocked] = useControllableState<ProjectPK | TeamPK | undefined>(props.from, constantInitialiser(undefined));
+    const [licencePK, setLicencePK, licencePKLocked] = useControllableState<number | undefined>(props.licencePK, constantInitialiser(undefined));
+    const [isPublic, setIsPublic, isPublicLocked] = useControllableState<boolean>(props.isPublic, constantInitialiser(false));
 
     const [name, setName] = useStateSafe<string>(constantInitialiser(""));
     const [description, setDescription] = useStateSafe<string>(constantInitialiser(""));
 
+    const teamPK = from instanceof ProjectPK ? from.team : from;
+    const projectPK = from instanceof ProjectPK ? from : undefined;
+
     const projectTeamFilter = useDerivedState(
-        ([teamPK]) => teamPK === undefined ? undefined : exactFilter("team", teamPK.asNumber),
-        [teamPK]
+        () => teamPK !== undefined ? exactFilter("team", teamPK.asNumber) : undefined,
+        [from]
     );
 
     const clearForm = useDerivedState(
@@ -72,7 +78,7 @@ export default function NewDatasetPage(props: NewDatasetPageProps) {
 
     const onSubmit = () => submitNewDataset(
         ufdlServerContext,
-        projectPK,
+        from,
         name,
         description,
         isPublic,
@@ -80,7 +86,7 @@ export default function NewDatasetPage(props: NewDatasetPageProps) {
         domain,
         (dataset) => {
             if (props.onCreate !== undefined) {
-                props.onCreate((projectPK as ProjectPK).dataset(dataset['pk'] as number));
+                props.onCreate((from as ProjectPK).dataset(dataset['pk'] as number));
             }
             clearForm();
         }
@@ -93,7 +99,7 @@ export default function NewDatasetPage(props: NewDatasetPageProps) {
                 Domain:
                 <DomainSelect
                     onChange={setDomain}
-                    domains={AVAILABLE_DOMAINS}
+                    values={AVAILABLE_DOMAINS}
                     value={domain}
                     disabled={domainLocked}
                 />
@@ -101,19 +107,19 @@ export default function NewDatasetPage(props: NewDatasetPageProps) {
             <label>
                 Team:
                 <TeamSelect
-                    onChange={(_, pk) => setTeamPK(pk === undefined ? undefined : new TeamPK(pk))}
-                    value={teamPK?.asNumber}
-                    disabled={teamPKLocked}
+                    onChange={(_, pk) => setFrom(pk === undefined ? undefined : new TeamPK(pk))}
+                    value={teamPK === undefined ? -1 : teamPK.asNumber}
+                    disabled={props.lockFrom !== undefined}
                 />
             </label>
             <label>
                 Project:
                 <ProjectSelect
-                    onChange={(_, pk) => setProjectPK(pk === undefined ? undefined : teamPK?.project(pk))}
+                    onChange={(_, pk) => setFrom(pk === undefined ? undefined : teamPK?.project(pk))}
                     filter={projectTeamFilter}
                     forceEmpty={teamPK === undefined}
-                    value={projectPK?.asNumber}
-                    disabled={projectPKLocked}
+                    value={projectPK === undefined ? -1 : projectPK.asNumber}
+                    disabled={props.lockFrom === "project"}
                 />
             </label>
             <label>
@@ -126,7 +132,7 @@ export default function NewDatasetPage(props: NewDatasetPageProps) {
             <label>
                 Licence:
                 <LicenceSelect
-                    value={licencePK}
+                    value={licencePK === undefined ? -1 : licencePK}
                     disabled={licencePKLocked}
                     onChange={(_, pk) => setLicencePK(pk)}
                 />
@@ -153,12 +159,12 @@ export default function NewDatasetPage(props: NewDatasetPageProps) {
 }
 
 function canSubmit(
-    projectPK: ProjectPK | undefined,
+    projectPK: ProjectPK | TeamPK | undefined,
     name: string,
     licencePK: number | undefined,
     domain: Domain | undefined
 ): boolean {
-    return projectPK !== undefined &&
+    return projectPK instanceof ProjectPK &&
         name !== "" &&
         licencePK !== undefined &&
         domain !== undefined
@@ -166,7 +172,7 @@ function canSubmit(
 
 async function submitNewDataset(
     context: UFDLServerContext,
-    projectPK: ProjectPK | undefined,
+    projectPK: ProjectPK | TeamPK | undefined,
     name: string,
     description: string,
     isPublic: boolean,

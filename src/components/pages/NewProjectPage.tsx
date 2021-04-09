@@ -1,7 +1,7 @@
 import React, {ReactElement, useContext} from "react";
 import {JSXFunctionElementConstructor} from "../../util/react/jsx/JSXFunctionElementConstructor";
 import {UFDL_SERVER_REACT_CONTEXT} from "../../server/UFDLServerContextProvider";
-import {useInterlockedState} from "../../util/react/hooks/useInterlockedState";
+import {Controllable, useControllableState} from "../../util/react/hooks/useControllableState";
 import Page from "./Page";
 import {BackButton} from "../BackButton";
 import {Form} from "../Form";
@@ -15,7 +15,8 @@ import {DEFAULT_HANDLED_ERROR_RESPONSE, withErrorResponseHandler} from "../../se
 import {constantInitialiser} from "../../util/typescript/initialisers";
 
 export type NewProjectPageProps = {
-    team_pk?: number
+    teamPK: Controllable<number | undefined>
+    lockTeam?: boolean
     onCreate?: (pk: number) => void
     onBack?: () => void
 }
@@ -28,8 +29,8 @@ export default function NewProjectPage(
 
     const ufdlServerContext = useContext(UFDL_SERVER_REACT_CONTEXT);
 
-    const [teamPK, setTeamPk, teamPKLocked] = useInterlockedState<number | undefined>(
-        props.team_pk,
+    const [teamPK, setTeamPk, teamPKLocked] = useControllableState<number | undefined>(
+        props.teamPK,
         constantInitialiser(undefined)
     );
 
@@ -55,8 +56,8 @@ export default function NewProjectPage(
                 Team:
                 <TeamSelect
                     onChange={(_, pk) => setTeamPk(pk)}
-                    value={teamPK}
-                    disabled={teamPKLocked}
+                    value={teamPK === undefined ? -1 : teamPK}
+                    disabled={props.lockTeam === true}
                 />
             </label>
             <label>

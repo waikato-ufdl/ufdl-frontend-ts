@@ -1,4 +1,4 @@
-import {useInterlockedState} from "../../util/react/hooks/useInterlockedState";
+import {Controllable, useControllableState} from "../../util/react/hooks/useControllableState";
 import React, {useContext} from "react";
 import {UFDL_SERVER_REACT_CONTEXT} from "../../server/UFDLServerContextProvider";
 import Page from "./Page";
@@ -9,23 +9,26 @@ import useStateSafe from "../../util/react/hooks/useStateSafe";
 import {handleErrorResponse} from "../../server/util/responseError";
 import logo from "../../logo.svg"
 import "../../logo.css";
+import {constantInitialiser} from "../../util/typescript/initialisers";
+import asChangeEventHandler from "../../util/react/asChangeEventHandler";
 
 export type LoginPageProps = {
     id: "Log In"
-    username?: string
+    username: Controllable<string>
+    lockUsername?: boolean
     onLogin: () => void
 }
 
 export default function LoginPage(props: LoginPageProps) {
 
-    const [username, setUsername, usernameLocked] = useInterlockedState<string>(
+    const [username, setUsername, usernameLocked] = useControllableState<string>(
         props.username,
-        () => ""
+        constantInitialiser("")
     );
 
     const ufdlServerContext = useContext(UFDL_SERVER_REACT_CONTEXT);
 
-    const [password, setPassword] = useStateSafe<string>(() => "");
+    const [password, setPassword] = useStateSafe<string>(constantInitialiser(""));
 
     return <Page className={"LoginPage"} id={props.id}>
         <div style={{position: "absolute", top: 0, left: 0}}>
@@ -37,9 +40,9 @@ export default function LoginPage(props: LoginPageProps) {
                 Username:
                 <input
                     value={username}
-                    onChange={(event) => setUsername(event.target.value)}
+                    onChange={asChangeEventHandler(setUsername)}
                     autoFocus={true}
-                    disabled={usernameLocked}
+                    disabled={props.lockUsername}
                 />
             </label>
             <label>
@@ -47,7 +50,7 @@ export default function LoginPage(props: LoginPageProps) {
                 <input
                     type={"password"}
                     value={password}
-                    onChange={(event) => setPassword(event.target.value)}
+                    onChange={asChangeEventHandler(setPassword)}
                 />
             </label>
             <input type={"submit"} value={"Log In"} />

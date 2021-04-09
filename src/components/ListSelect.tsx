@@ -5,13 +5,14 @@ import {RawJSONObject} from "ufdl-ts-client/types";
 import {UFDL_SERVER_REACT_CONTEXT} from "../server/UFDLServerContextProvider";
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import useStateSafe from "../util/react/hooks/useStateSafe";
+import {Controllable} from "../util/react/hooks/useControllableState";
 
 export type ListSelectProps = {
     list: (context: UFDLServerContext, filter?: FilterSpec) => Promise<RawJSONObject[]>
     filter?: FilterSpec
     labelFunction: (json: RawJSONObject) => string
     forceEmpty?: boolean
-    value?: number
+    value: Controllable<number>
     onChange?: (item?: RawJSONObject, pk?: number) => void
     disabled?: boolean
 }

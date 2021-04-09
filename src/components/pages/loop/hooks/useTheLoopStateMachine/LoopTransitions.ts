@@ -1,4 +1,4 @@
-import {DatasetPK} from "../../../../../server/pk";
+import {DatasetPK, ProjectPK, TeamPK} from "../../../../../server/pk";
 import {createNewLoopState} from "./createNewLoopState";
 import {
     createErrorResponseTransitionHandler,
@@ -22,20 +22,43 @@ import {CANCELLED} from "../../../../../server/websocket/observableWebSocket";
 
 export const LOOP_TRANSITIONS = {
     "Selecting Primary Dataset": {
-        primaryDatasetSelected(dataset: DatasetPK) {
+        setSelected(selection: DatasetPK | ProjectPK | TeamPK | undefined) {
+            return (current: LoopStateAndData) => {
+                if (current.state !== "Selecting Primary Dataset") return;
+
+                if (selection instanceof DatasetPK) {
+                    return createNewLoopState(
+                        "Selecting Images",
+                        {
+                            context: current.data.context,
+                            primaryDataset: selection,
+                            targetDataset: selection,
+                            modelOutputPK: undefined
+                        }
+                    );
+                } else {
+                    return createNewLoopState(
+                        "Selecting Primary Dataset",
+                        {
+                            context: current.data.context,
+                            from: selection
+                        }
+                    );
+                }
+            }
+        },
+        back() {
             return (current: LoopStateAndData) => {
                 if (current.state !== "Selecting Primary Dataset") return;
 
                 return createNewLoopState(
-                    "Selecting Images",
+                    "Selecting Primary Dataset",
                     {
                         context: current.data.context,
-                        primaryDataset: dataset,
-                        targetDataset: dataset,
-                        modelOutputPK: undefined
+                        from: current.data.from instanceof ProjectPK ? current.data.from.team : undefined
                     }
                 );
-            };
+            }
         }
     },
     "Selecting Images": {
@@ -87,7 +110,8 @@ export const LOOP_TRANSITIONS = {
                     return createNewLoopState(
                         "Selecting Primary Dataset",
                         {
-                            context: current.data.context
+                            context: current.data.context,
+                            from: current.data.primaryDataset.project
                         }
                     );
                 } else {
@@ -406,7 +430,8 @@ export const LOOP_TRANSITIONS = {
                 return createNewLoopState(
                     "Selecting Primary Dataset",
                     {
-                        context: current.data.context
+                        context: current.data.context,
+                        from: undefined
                     }
                 );
             };
@@ -418,7 +443,8 @@ export const LOOP_TRANSITIONS = {
                 return createNewLoopState(
                     "Selecting Primary Dataset",
                     {
-                        context: current.data.context
+                        context: current.data.context,
+                        from: undefined
                     }
                 );
             };

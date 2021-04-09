@@ -8,20 +8,25 @@ import NewDatasetPage from "./NewDatasetPage";
 import NewTeamPage from "./NewTeamPage";
 import TheLoopPage from "./loop/TheLoopPage";
 import ImageClassificationAnnotatorPage from "./icap/ImageClassificationAnnotatorPage";
+import {UNCONTROLLED_KEEP} from "../../util/react/hooks/useControllableState";
 
 export function MainMenuPage() {
 
     const [loggedIn, setLoggedIn] = useStateSafe<boolean>(() => false);
 
     if (!loggedIn) {
-        return <LoginPage id={"Log In"} onLogin={() => setLoggedIn(true)} />
+        return <LoginPage
+            id={"Log In"}
+            username={UNCONTROLLED_KEEP}
+            onLogin={() => setLoggedIn(true)}
+        />
     }
 
     return <MenuPage titleGenerator={["Dummy Page", "New Team", "New Project", "New Dataset", "ICAP", "The Loop"]}>
         <DummyPage pings={42} />
         <NewTeamPage />
-        <NewProjectPage />
-        <NewDatasetPage />
+        <NewProjectPage teamPK={UNCONTROLLED_KEEP} />
+        <NewDatasetPage domain={UNCONTROLLED_KEEP} licencePK={UNCONTROLLED_KEEP} isPublic={UNCONTROLLED_KEEP} from={UNCONTROLLED_KEEP}/>
         <ImageClassificationAnnotatorPage />
         <TheLoopPage />
     </MenuPage>

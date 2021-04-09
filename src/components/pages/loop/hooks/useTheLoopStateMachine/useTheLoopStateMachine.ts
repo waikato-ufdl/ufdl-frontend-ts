@@ -14,7 +14,7 @@ export default function useTheLoopStateMachine(
         () => {
             return {
                 state: "Selecting Primary Dataset",
-                data: {context: context}
+                data: {context: context, from: undefined}
             }
         }
     );

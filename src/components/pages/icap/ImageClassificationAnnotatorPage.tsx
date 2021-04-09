@@ -21,6 +21,7 @@ import {Optional} from "ufdl-ts-client/util";
 import {constantInitialiser} from "../../../util/typescript/initialisers";
 import {SORT_FUNCTIONS, SortOrder} from "./sorting";
 import {toggleSelection} from "../../../server/hooks/useImageClassificationDataset/actions/SELECTIONS";
+import {UNCONTROLLED_KEEP} from "../../../util/react/hooks/useControllableState";
 
 type AnyPK = DatasetPK | ProjectPK | TeamPK | undefined
 
@@ -66,7 +67,9 @@ export default function ImageClassificationAnnotatorPage(
     if (showNewDatasetPage) {
         return <NewDatasetPage
             domain={"ic"}
-            lockedPK={props.lockedPK instanceof DatasetPK ? undefined : props.lockedPK}
+            licencePK={UNCONTROLLED_KEEP}
+            isPublic={UNCONTROLLED_KEEP}
+            from={props.lockedPK instanceof DatasetPK ? undefined : props.lockedPK}
             onCreate={(pk) => {setSelectedPK(pk); setShowNewDatasetPage(false)}}
             onBack={() => setShowNewDatasetPage(false)}
         />

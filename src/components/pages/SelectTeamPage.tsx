@@ -6,6 +6,8 @@ import NewTeamPage from "./NewTeamPage";
 import {TeamPK} from "../../server/pk";
 import {BackButton} from "../BackButton";
 import React from "react";
+import {constantInitialiser} from "../../util/typescript/initialisers";
+import {UNCONTROLLED_KEEP} from "../../util/react/hooks/useControllableState";
 
 export type SelectTeamPageProps = {
     onSelected: (pk: TeamPK) => void
@@ -16,7 +18,7 @@ export default function SelectTeamPage(
     props: SelectTeamPageProps
 ): FunctionComponentReturnType {
 
-    const [showNewTeamPage, setShowNewTeamPage] = useStateSafe(() => false);
+    const [showNewTeamPage, setShowNewTeamPage] = useStateSafe(constantInitialiser(false));
 
     if (showNewTeamPage)
         return <NewTeamPage
@@ -30,6 +32,7 @@ export default function SelectTeamPage(
         />
         Team:
         <TeamSelect
+            value={UNCONTROLLED_KEEP}
             onChange={(_, pk) => {if (pk !== undefined) props.onSelected(new TeamPK(pk))}}
         />
         <button
