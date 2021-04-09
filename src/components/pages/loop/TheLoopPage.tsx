@@ -30,6 +30,7 @@ export default function TheLoopPage(
                 onProjectSelected={stateMachine.transitions.setSelected}
                 onTeamSelected={stateMachine.transitions.setSelected}
                 from={stateMachine.data.from}
+                lock={"project"}
                 onBack={stateMachine.data.from === undefined ? props.onBack : stateMachine.transitions.back}
             />;
 
