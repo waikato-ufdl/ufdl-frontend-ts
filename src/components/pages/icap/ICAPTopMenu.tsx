@@ -2,7 +2,6 @@ import {TeamSelect} from "../../TeamSelect";
 import {ProjectSelect} from "../../ProjectSelect";
 import {ListSelect} from "../../ListSelect";
 import * as ICDataset from "ufdl-ts-client/functional/image_classification/dataset";
-import {nameFromJSON} from "../../../server/util/nameFromJSON";
 import React from "react";
 import {BackButton} from "../../BackButton";
 import {exactFilter} from "../../../server/util/exactFilter";
