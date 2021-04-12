@@ -1,11 +1,12 @@
 import {ImageClassificationDataset} from "../../../../server/hooks/useImageClassificationDataset/ImageClassificationDataset";
-import {LabelColour, LabelColours, loadColoursFromContext, pickNewRandomColour} from "./LabelColours";
+import {LabelColour, LabelColours, pickNewRandomColour} from "./LabelColours";
 import {createMapStateReducer, MapStateDispatch} from "../../../../util/react/hooks/useMapState";
 import useDerivedReducer from "../../../../util/react/hooks/useDerivedReducer";
 import useDerivedState from "../../../../util/react/hooks/useDerivedState";
 import {copyMap} from "../../../../util/map";
 import {useContext} from "react";
 import {UFDL_SERVER_REACT_CONTEXT} from "../../../../server/UFDLServerContextProvider";
+import {loadColoursFromContext} from "./storage";
 
 function initialiseLabelColours(
     dataset: readonly [ImageClassificationDataset | undefined],

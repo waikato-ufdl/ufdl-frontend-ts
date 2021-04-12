@@ -4,7 +4,7 @@ import Page from "../Page";
 import ICAPTopMenu from "./ICAPTopMenu";
 import ImagesDisplay from "./ImagesDisplay";
 import ICAPBottomMenu from "./ICAPBottomMenu";
-import {LabelColour, LabelColours, storeColoursInContext} from "./labels/LabelColours";
+import {LabelColour, LabelColours} from "./labels/LabelColours";
 import LabelColourPickerPage from "./labels/LabelColourPickerPage";
 import {mapAny} from "../../../util/map";
 import useImageClassificationDataset, {ImageClassificationDatasetMutator} from "../../../server/hooks/useImageClassificationDataset/useImageClassificationDataset";
@@ -22,6 +22,7 @@ import {constantInitialiser} from "../../../util/typescript/initialisers";
 import {SORT_FUNCTIONS, SortOrder} from "./sorting";
 import {toggleSelection} from "../../../server/hooks/useImageClassificationDataset/actions/SELECTIONS";
 import {UNCONTROLLED_KEEP} from "../../../util/react/hooks/useControllableState";
+import {storeColoursInContext} from "./labels/storage";
 
 type AnyPK = DatasetPK | ProjectPK | TeamPK | undefined
 

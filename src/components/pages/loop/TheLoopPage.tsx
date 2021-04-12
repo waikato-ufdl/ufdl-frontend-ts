@@ -5,7 +5,7 @@ import SelectDatasetPage from "../SelectDatasetPage";
 import {FunctionComponentReturnType} from "../../../util/react/types";
 import ImageClassificationAnnotatorPage from "../icap/ImageClassificationAnnotatorPage";
 import Page from "../Page";
-import {LabelColours, storeColoursInContext} from "../icap/labels/LabelColours";
+import {LabelColours} from "../icap/labels/LabelColours";
 import useTheLoopStateMachine from "./hooks/useTheLoopStateMachine/useTheLoopStateMachine";
 import WorkingPage from "./WorkingPage";
 import {constantInitialiser} from "../../../util/typescript/initialisers";
