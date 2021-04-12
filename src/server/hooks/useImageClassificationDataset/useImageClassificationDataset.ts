@@ -1,4 +1,4 @@
-import {useEffect, useReducer} from "react";
+import {useContext, useEffect, useReducer} from "react";
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import * as ICDataset from "ufdl-ts-client/functional/image_classification/dataset";
 import {Optional} from "ufdl-ts-client/util";
@@ -8,9 +8,9 @@ import {
     ImageClassificationDatasetReducer
 } from "./ImageClassificationDatasetReducer";
 import {createInitAction} from "./actions/Init";
-import {mapFromArray, mapToArray} from "../../../util/map";
+import {mapToArray} from "../../../util/map";
 import {createSelectAction, SelectFunction} from "./actions/Select";
-import {ImageClassificationDataset} from "./ImageClassificationDataset";
+import {ImageClassificationDataset, ImageClassificationDatasetItem} from "./ImageClassificationDataset";
 import {fromServer} from "../../../image/fromServer";
 import {ImageClassificationDatasetAction} from "./actions/actions";
 import {createAddFileAction} from "./actions/AddFile";
@@ -19,6 +19,8 @@ import {createSetLabelAction} from "./actions/SetLabel";
 import {DatasetPK} from "../../pk";
 import useTaskWatcher, {TaskDispatch} from "../../../util/react/hooks/useTaskWatcher";
 import {rendezvous} from "../../../util/typescript/async/rendezvous";
+import {ImageCache, UFDL_IMAGE_CACHE_CONTEXT} from "../../ImageCacheContext";
+import forEachOwnProperty from "../../../util/typescript/forEachOwnProperty";
 
 export type ImageClassificationDatasetMutator = {
     state: ImageClassificationDataset
@@ -34,13 +36,15 @@ export type ImageClassificationDatasetMutator = {
 }
 
 export default function useImageClassificationDataset(context: UFDLServerContext): undefined
-export default function useImageClassificationDataset(context: UFDLServerContext, pk: undefined, evalDatasetPK?: DatasetPK): undefined
-export default function useImageClassificationDataset(context: UFDLServerContext, pk: DatasetPK, evalDatasetPK?: DatasetPK): ImageClassificationDatasetMutator
-export default function useImageClassificationDataset(context: UFDLServerContext, pk: DatasetPK | undefined, evalDatasetPK?: DatasetPK): ImageClassificationDatasetMutator | undefined
+export default function useImageClassificationDataset(context: UFDLServerContext, pk: undefined): undefined
+export default function useImageClassificationDataset(context: UFDLServerContext, pk: DatasetPK): ImageClassificationDatasetMutator
+export default function useImageClassificationDataset(context: UFDLServerContext, pk: DatasetPK | undefined): ImageClassificationDatasetMutator | undefined
 export default function useImageClassificationDataset(
     context: UFDLServerContext,
     datasetPK?: DatasetPK
 ): Optional<ImageClassificationDatasetMutator> {
+
+    const imageCache = useContext(UFDL_IMAGE_CACHE_CONTEXT);
 
     const [synchronised, addTask] = useTaskWatcher();
 
@@ -53,7 +57,7 @@ export default function useImageClassificationDataset(
     useEffect(
         () => {
             async function onNewDataset(pk: DatasetPK) {
-                const dataset = await loadDatasetInit(context, pk);
+                const dataset = await loadDatasetInit(context, pk, imageCache);
                 dispatch(createInitAction(dataset))
             }
 
@@ -116,31 +120,46 @@ export default function useImageClassificationDataset(
 
 async function loadDatasetInit(
     context: UFDLServerContext,
-    pk: DatasetPK
+    pk: DatasetPK,
+    imageCache: ImageCache
 ): Promise<ImageClassificationDataset> {
     const dataset = await ICDataset.retrieve(context, pk.asNumber);
 
     const categories = await ICDataset.get_categories(context, pk.asNumber) as {[filename: string]: string[]};
 
-    return mapFromArray(
-        dataset['files'] as string[],
-        (filename) => {
-            const categoriesForFile = categories[filename];
-            const label = categoriesForFile !== undefined && categoriesForFile.length > 0 ?
-                categoriesForFile[0] :
-                undefined;
+    function toItem(filename: string, handle: string): [string, ImageClassificationDatasetItem] {
+        const categoriesForFile = categories[filename];
+        const label = categoriesForFile !== undefined && categoriesForFile.length > 0 ?
+            categoriesForFile[0] :
+            undefined;
 
-            return [
-                filename,
-                {
-                    data: fromServer(context, pk.asNumber, filename),
-                    resident: true,
-                    selected: false,
-                    annotations: label
-                }
-            ]
+        let data = imageCache.get(handle);
+        if (data === undefined) {
+            data = fromServer(context, pk.asNumber, filename);
+            imageCache.set(handle, data);
         }
+
+        return [
+            filename,
+            {
+                data: data,
+                resident: true,
+                selected: false,
+                annotations: label
+            }
+        ]
+    }
+
+    const files = dataset['files'] as {[filename: string]: string};
+
+    const result = new Map();
+
+    forEachOwnProperty(
+        files,
+        (filename, handle) => result.set(...toItem(filename as string, handle))
     );
+
+    return result;
 }
 
 function addFiles(
