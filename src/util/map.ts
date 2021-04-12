@@ -127,6 +127,20 @@ export function mapSetDefault<K, V>(
     return true;
 }
 
+export function mapGetDefault<K, V>(map: ReadonlyMap<K, V>, key: K, defaultValue: () => V, set: false): V;
+export function mapGetDefault<K, V>(map: Map<K, V>, key: K, defaultValue: () => V, set: boolean): V;
+export function mapGetDefault<K, V>(
+    map: Map<K, V> | ReadonlyMap<K, V>,
+    key: K,
+    defaultValue: () => V,
+    set: boolean
+): V {
+    if (map.has(key)) return map.get(key) as V;
+    const def = defaultValue();
+    if (set) (map as Map<K, V>).set(key, def);
+    return def;
+}
+
 export function copyMap<K, V>(
     map: ReadonlyMap<K, V>,
     alteration?: (key: K, value: V) => [K, V] | boolean
