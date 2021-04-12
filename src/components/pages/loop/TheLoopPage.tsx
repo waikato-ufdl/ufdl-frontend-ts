@@ -5,7 +5,7 @@ import SelectDatasetPage from "../SelectDatasetPage";
 import {FunctionComponentReturnType} from "../../../util/react/types";
 import ImageClassificationAnnotatorPage from "../icap/ImageClassificationAnnotatorPage";
 import Page from "../Page";
-import {LabelColours} from "../icap/labels/LabelColours";
+import {LabelColours, storeColoursInContext} from "../icap/labels/LabelColours";
 import useTheLoopStateMachine from "./hooks/useTheLoopStateMachine/useTheLoopStateMachine";
 import WorkingPage from "./WorkingPage";
 import {constantInitialiser} from "../../../util/typescript/initialisers";
@@ -47,6 +47,7 @@ export default function TheLoopPage(
                 nextLabel={latestModelPresent ? "Prelabel" : "Train"}
                 onNext={(_, __, labelColours) => {
                     setLabelColours(labelColours);
+                    storeColoursInContext(labelColours, ufdlServerContext);
                     stateMachine.transitions.finishedSelectingImages();
                 }}
                 onBack={stateMachine.transitions.back}
@@ -75,6 +76,7 @@ export default function TheLoopPage(
                     nextLabel={"Next"}
                     onNext={(_, __, labelColours, position) => {
                         setLabelColours(labelColours);
+                        storeColoursInContext(labelColours, ufdlServerContext);
                         setModalPosition(position);
                     }}
                     onBack={stateMachine.transitions.back}
@@ -99,6 +101,7 @@ export default function TheLoopPage(
                 nextLabel={"Accept"}
                 onNext={(_, __, labelColours) => {
                     setLabelColours(labelColours);
+                    storeColoursInContext(labelColours, ufdlServerContext);
                     stateMachine.transitions.finishedFixing();
                 }}
                 onBack={stateMachine.transitions.back}

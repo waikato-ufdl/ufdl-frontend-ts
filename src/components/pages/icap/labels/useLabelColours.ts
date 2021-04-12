@@ -1,9 +1,11 @@
 import {ImageClassificationDataset} from "../../../../server/hooks/useImageClassificationDataset/ImageClassificationDataset";
-import {LabelColour, LabelColours, pickNewRandomColour} from "./LabelColours";
+import {LabelColour, LabelColours, loadColoursFromContext, pickNewRandomColour} from "./LabelColours";
 import {createMapStateReducer, MapStateDispatch} from "../../../../util/react/hooks/useMapState";
 import useDerivedReducer from "../../../../util/react/hooks/useDerivedReducer";
 import useDerivedState from "../../../../util/react/hooks/useDerivedState";
 import {copyMap} from "../../../../util/map";
+import {useContext, useEffect} from "react";
+import {UFDL_SERVER_REACT_CONTEXT} from "../../../../server/UFDLServerContextProvider";
 
 function initialiseLabelColours(
     dataset: readonly [ImageClassificationDataset | undefined],
@@ -40,6 +42,8 @@ export default function useLabelColours(
     initialLabelColours?: LabelColours
 ): LabelColoursDispatch {
 
+    const ufdlServerContext = useContext(UFDL_SERVER_REACT_CONTEXT);
+
     // Create a reducer which acts as a map of label-colours, but re-initialises
     // when the dataset's pk changes
     const [reducerState, dispatch] = useDerivedReducer(
@@ -50,10 +54,28 @@ export default function useLabelColours(
     );
 
     // Wrap the dispatch in an object
-    return useDerivedState(
+    const mapDispatch =  useDerivedState(
         ([reducerState, dispatch]) => new LabelColoursDispatch(reducerState, dispatch),
         [reducerState, dispatch] as const
     );
 
+    useEffect(
+        () => {
+            loadColoursFromContext(ufdlServerContext).then(
+                (colours) => {
+                    if (colours !== undefined) {
+                        colours.forEach(
+                            (colour, label) => {
+                                if (!mapDispatch.state.has(label)) mapDispatch.set(label, colour)
+                            }
+                        );
+                    }
+                }
+            )
 
+        },
+        [ufdlServerContext.host, ufdlServerContext.username, dataset]
+    );
+
+    return mapDispatch;
 }

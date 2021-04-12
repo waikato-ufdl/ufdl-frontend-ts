@@ -1,7 +1,8 @@
 import CSS from "csstype";
-import {mapToArray, spreadJoinMaps} from "../../../../util/map";
+import {mapReduce, mapToArray, spreadJoinMaps} from "../../../../util/map";
 import {toHexString} from "ufdl-ts-client/util";
 import {pseudoRandomBytes} from "crypto";
+import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 
 export type LabelColour = CSS.Property.BackgroundColor & CSS.Property.BorderColor
 
@@ -47,4 +48,49 @@ export function pickNewRandomColour(labelColours: LabelColours): string {
     }
 
     return newColour;
+}
+
+const LABEL_COLOUR_STORAGE_KEY = "_LABEL_COLOURS_";
+
+export async function loadColoursFromContext(
+    context: UFDLServerContext
+): Promise<LabelColours | undefined> {
+    const stored = await context.get_item(LABEL_COLOUR_STORAGE_KEY);
+
+    if (stored === null) return undefined;
+
+    const result: Map<string, LabelColour> = new Map();
+
+    const entriesSerialised = stored.split("\n");
+
+    for (const serialisedEntry of entriesSerialised) {
+        const [label, colour] = serialisedEntry.split("|");
+        result.set(label, colour);
+    }
+
+    return result;
+}
+
+export async function storeColoursInContext(
+    labelColours: LabelColours,
+    context: UFDLServerContext
+) {
+    const current = await loadColoursFromContext(context);
+
+    const updated = current === undefined
+        ? labelColours
+        : spreadJoinMaps(
+            current,
+            labelColours
+        );
+
+    const serialised = mapReduce(
+        labelColours,
+        "",
+        (current, key, value) => {
+            return current + `${key}|${value}\n`;
+        }
+    );
+
+    await context.store_item(LABEL_COLOUR_STORAGE_KEY, serialised);
 }
