@@ -107,6 +107,16 @@ export function spreadJoinMaps<K, V>(
     return result;
 }
 
+/**
+ * Sets the value for the given key, only if no value already exists.
+ *
+ * @param map
+ *          The map to alter.
+ * @param key
+ *          The key to (possibly) set.
+ * @param defaultValue
+ *          The initialiser of the value to set if no value already exists.
+ */
 export function mapSetDefault<K, V>(
     map: Map<K, V>,
     key: K,
