@@ -4,7 +4,7 @@ import {createMapStateReducer, MapStateDispatch} from "../../../../util/react/ho
 import useDerivedReducer from "../../../../util/react/hooks/useDerivedReducer";
 import useDerivedState from "../../../../util/react/hooks/useDerivedState";
 import {copyMap} from "../../../../util/map";
-import {useContext, useEffect} from "react";
+import {useContext} from "react";
 import {UFDL_SERVER_REACT_CONTEXT} from "../../../../server/UFDLServerContextProvider";
 
 function initialiseLabelColours(
@@ -44,6 +44,10 @@ export default function useLabelColours(
 
     const ufdlServerContext = useContext(UFDL_SERVER_REACT_CONTEXT);
 
+    if (initialLabelColours === undefined) {
+        initialLabelColours = loadColoursFromContext(ufdlServerContext);
+    }
+
     // Create a reducer which acts as a map of label-colours, but re-initialises
     // when the dataset's pk changes
     const [reducerState, dispatch] = useDerivedReducer(
@@ -54,28 +58,8 @@ export default function useLabelColours(
     );
 
     // Wrap the dispatch in an object
-    const mapDispatch =  useDerivedState(
+    return useDerivedState(
         ([reducerState, dispatch]) => new LabelColoursDispatch(reducerState, dispatch),
         [reducerState, dispatch] as const
     );
-
-    useEffect(
-        () => {
-            loadColoursFromContext(ufdlServerContext).then(
-                (colours) => {
-                    if (colours !== undefined) {
-                        colours.forEach(
-                            (colour, label) => {
-                                if (!mapDispatch.state.has(label)) mapDispatch.set(label, colour)
-                            }
-                        );
-                    }
-                }
-            )
-
-        },
-        [ufdlServerContext.host, ufdlServerContext.username, dataset]
-    );
-
-    return mapDispatch;
 }

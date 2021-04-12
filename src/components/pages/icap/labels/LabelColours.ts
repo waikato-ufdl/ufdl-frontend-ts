@@ -52,10 +52,10 @@ export function pickNewRandomColour(labelColours: LabelColours): string {
 
 const LABEL_COLOUR_STORAGE_KEY = "_LABEL_COLOURS_";
 
-export async function loadColoursFromContext(
+export function loadColoursFromContext(
     context: UFDLServerContext
-): Promise<LabelColours | undefined> {
-    const stored = await context.get_item(LABEL_COLOUR_STORAGE_KEY);
+): LabelColours | undefined {
+    const stored = context.get_item(LABEL_COLOUR_STORAGE_KEY, false);
 
     if (stored === null) return undefined;
 
@@ -71,11 +71,11 @@ export async function loadColoursFromContext(
     return result;
 }
 
-export async function storeColoursInContext(
+export function storeColoursInContext(
     labelColours: LabelColours,
     context: UFDLServerContext
 ) {
-    const current = await loadColoursFromContext(context);
+    const current = loadColoursFromContext(context);
 
     const updated = current === undefined
         ? labelColours
@@ -85,12 +85,12 @@ export async function storeColoursInContext(
         );
 
     const serialised = mapReduce(
-        labelColours,
+        updated,
         "",
         (current, key, value) => {
-            return current + `${key}|${value}\n`;
+            return current + (current === "" ? "" : "\n") + `${key}|${value}`;
         }
     );
 
-    await context.store_item(LABEL_COLOUR_STORAGE_KEY, serialised);
+    context.store_item(LABEL_COLOUR_STORAGE_KEY, serialised, false);
 }

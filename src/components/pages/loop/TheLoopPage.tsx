@@ -23,7 +23,7 @@ export default function TheLoopPage(
 
     const stateMachine = useTheLoopStateMachine(ufdlServerContext);
 
-    const [labelColours, setLabelColours] = useStateSafe<LabelColours>(() => new Map());
+    const [labelColours, setLabelColours] = useStateSafe<LabelColours | undefined>(constantInitialiser(undefined));
 
     const [modalPosition, setModalPosition] = useStateSafe<[number, number] | undefined>(constantInitialiser(undefined));
 
@@ -47,7 +47,6 @@ export default function TheLoopPage(
                 nextLabel={latestModelPresent ? "Prelabel" : "Train"}
                 onNext={(_, __, labelColours) => {
                     setLabelColours(labelColours);
-                    storeColoursInContext(labelColours, ufdlServerContext);
                     stateMachine.transitions.finishedSelectingImages();
                 }}
                 onBack={stateMachine.transitions.back}
@@ -76,7 +75,6 @@ export default function TheLoopPage(
                     nextLabel={"Next"}
                     onNext={(_, __, labelColours, position) => {
                         setLabelColours(labelColours);
-                        storeColoursInContext(labelColours, ufdlServerContext);
                         setModalPosition(position);
                     }}
                     onBack={stateMachine.transitions.back}
@@ -101,7 +99,6 @@ export default function TheLoopPage(
                 nextLabel={"Accept"}
                 onNext={(_, __, labelColours) => {
                     setLabelColours(labelColours);
-                    storeColoursInContext(labelColours, ufdlServerContext);
                     stateMachine.transitions.finishedFixing();
                 }}
                 onBack={stateMachine.transitions.back}

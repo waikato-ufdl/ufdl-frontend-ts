@@ -4,7 +4,7 @@ import Page from "../Page";
 import ICAPTopMenu from "./ICAPTopMenu";
 import ImagesDisplay from "./ImagesDisplay";
 import ICAPBottomMenu from "./ICAPBottomMenu";
-import {LabelColour, LabelColours} from "./labels/LabelColours";
+import {LabelColour, LabelColours, storeColoursInContext} from "./labels/LabelColours";
 import LabelColourPickerPage from "./labels/LabelColourPickerPage";
 import {mapAny} from "../../../util/map";
 import useImageClassificationDataset, {ImageClassificationDatasetMutator} from "../../../server/hooks/useImageClassificationDataset/useImageClassificationDataset";
@@ -98,7 +98,10 @@ export default function ImageClassificationAnnotatorPage(
                     }
                 )
             }}
-            onBack={() => setShowLabelColourPickerPage(false)}
+            onBack={() => {
+                storeColoursInContext(labelColoursDispatch.state, ufdlServerContext);
+                setShowLabelColourPickerPage(false)
+            }}
         />
     } else if (showLargeImageOverlay !== undefined) {
         return <DataImage
