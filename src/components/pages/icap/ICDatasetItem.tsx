@@ -1,5 +1,5 @@
 import React, {CSSProperties} from "react";
-import {DataImage} from "../../../image/DataImage";
+import DataImage from "../../../util/react/component/DataImage";
 import {BehaviorSubject} from "rxjs";
 import "./ICDatasetItem.css";
 import CenterContent from "../../CenterContent";
@@ -13,7 +13,7 @@ export const UNSELECTED_BORDER_WIDTH_PX: number = 2;
 
 export type ICDatasetItemProps = {
     filename: string
-    imageData: BehaviorSubject<Blob>
+    imageData: BehaviorSubject<Blob> | Blob | string
     label: string | undefined,
     evalLabel: EvalLabel,
     onRelabelled: (oldLabel?: string, newLabel?: string) => void

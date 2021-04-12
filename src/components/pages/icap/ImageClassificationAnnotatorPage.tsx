@@ -8,7 +8,7 @@ import {LabelColour, LabelColours} from "./labels/LabelColours";
 import LabelColourPickerPage from "./labels/LabelColourPickerPage";
 import {mapAny} from "../../../util/map";
 import useImageClassificationDataset, {ImageClassificationDatasetMutator} from "../../../server/hooks/useImageClassificationDataset/useImageClassificationDataset";
-import {DataImage} from "../../../image/DataImage";
+import DataImage from "../../../util/react/component/DataImage";
 import {BehaviorSubject} from "rxjs";
 import useLabelColours from "./labels/useLabelColours";
 import useStateSafe from "../../../util/react/hooks/useStateSafe";
