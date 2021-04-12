@@ -52,7 +52,7 @@ export default function ImageClassificationAnnotatorPage(
         [props.lockedPK] as const
     );
 
-    const dataset = useImageClassificationDataset(ufdlServerContext, getDatasetPK(selectedPK), props.evalPK);
+    const dataset = useImageClassificationDataset(ufdlServerContext, getDatasetPK(selectedPK));
 
     const evalDataset = useImageClassificationDataset(ufdlServerContext, props.evalPK);
 
