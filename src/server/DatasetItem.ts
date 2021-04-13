@@ -1,7 +1,8 @@
-import {BehaviorSubject} from "rxjs";
+import {FileCache} from "./FileCacheContext";
 
 export type DatasetItem<A> = {
-    readonly data: BehaviorSubject<Blob>
+    readonly dataHandle: string
+    readonly dataCache: FileCache
     readonly resident: boolean
     readonly selected: boolean
     readonly annotations?: A

@@ -2,13 +2,12 @@ import {useContext, useEffect, useReducer} from "react";
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import * as ICDataset from "ufdl-ts-client/functional/image_classification/dataset";
 import {Optional} from "ufdl-ts-client/util";
-import {DatasetItem} from "../../DatasetItem";
 import {
     imageClassificationDatasetReducer,
     ImageClassificationDatasetReducer
 } from "./ImageClassificationDatasetReducer";
 import {createInitAction} from "./actions/Init";
-import {mapToArray} from "../../../util/map";
+import {mapGetDefault, mapSetDefault, mapToArray} from "../../../util/map";
 import {createSelectAction, SelectFunction} from "./actions/Select";
 import {ImageClassificationDataset, ImageClassificationDatasetItem} from "./ImageClassificationDataset";
 import {fromServer} from "../../../image/fromServer";
@@ -19,15 +18,16 @@ import {createSetLabelAction} from "./actions/SetLabel";
 import {DatasetPK} from "../../pk";
 import useTaskWatcher, {TaskDispatch} from "../../../util/react/hooks/useTaskWatcher";
 import {rendezvous} from "../../../util/typescript/async/rendezvous";
-import {ImageCache, UFDL_IMAGE_CACHE_CONTEXT} from "../../ImageCacheContext";
+import {FileCache, UFDL_FILE_CACHE_CONTEXT} from "../../FileCacheContext";
 import forEachOwnProperty from "../../../util/typescript/forEachOwnProperty";
+import {BehaviorSubject} from "rxjs";
 
 export type ImageClassificationDatasetMutator = {
     state: ImageClassificationDataset
     selectedFiles: string[]
     synchronised: boolean
     select(func: SelectFunction): void
-    addFiles(files: ImageClassificationDataset): void
+    addFiles(files: ReadonlyMap<string, [BehaviorSubject<Blob>, string | undefined]>): void
     deleteFiles(...filenames: string[]): void
     deleteSelectedFiles(): void
     deleteAllFiles(): void
@@ -44,7 +44,7 @@ export default function useImageClassificationDataset(
     datasetPK?: DatasetPK
 ): Optional<ImageClassificationDatasetMutator> {
 
-    const imageCache = useContext(UFDL_IMAGE_CACHE_CONTEXT);
+    const imageCache = useContext(UFDL_FILE_CACHE_CONTEXT);
 
     const [synchronised, addTask] = useTaskWatcher();
 
@@ -81,8 +81,8 @@ export default function useImageClassificationDataset(
             ) as string[];
         },
         synchronised: synchronised,
-        addFiles(files: ReadonlyMap<string, DatasetItem<string>>): void {
-            addFiles(context, datasetPK, files, dispatch, addTask)
+        addFiles(files: ReadonlyMap<string, [BehaviorSubject<Blob>, string | undefined]>): void {
+            addFiles(context, datasetPK, files, dispatch, addTask, imageCache)
         },
         deleteAllFiles(): void {
             this.deleteFiles(...mapToArray(reducerState, (filename) => filename));
@@ -121,7 +121,7 @@ export default function useImageClassificationDataset(
 async function loadDatasetInit(
     context: UFDLServerContext,
     pk: DatasetPK,
-    imageCache: ImageCache
+    imageCache: FileCache
 ): Promise<ImageClassificationDataset> {
     const dataset = await ICDataset.retrieve(context, pk.asNumber);
 
@@ -133,16 +133,19 @@ async function loadDatasetInit(
             categoriesForFile[0] :
             undefined;
 
-        let data = imageCache.get(handle);
-        if (data === undefined) {
-            data = fromServer(context, pk.asNumber, filename);
-            imageCache.set(handle, data);
-        }
+        // Trigger the caching of the image
+        const data = mapGetDefault(
+            imageCache,
+            handle,
+            () => fromServer(context, pk.asNumber, filename),
+            true
+        );
 
         return [
             filename,
             {
-                data: data,
+                dataHandle: handle,
+                dataCache: imageCache,
                 resident: true,
                 selected: false,
                 annotations: label
@@ -165,47 +168,69 @@ async function loadDatasetInit(
 function addFiles(
     context: UFDLServerContext,
     pk: DatasetPK,
-    files: ReadonlyMap<string, DatasetItem<string>>,
+    files: ReadonlyMap<string, [BehaviorSubject<Blob>, string | undefined]>,
     dispatch: (action: ImageClassificationDatasetAction) => void,
-    addTask: TaskDispatch
+    addTask: TaskDispatch,
+    imageCache: FileCache
 ) {
     files.forEach(
         (file, filename) => {
             addTask(async () => {
                 const [promise, resolve, reject] = rendezvous<void>();
 
+                const dataSubject = file[0];
+
                 const subscriber = {
-                    complete: () => {
-                        ICDataset.add_file(
-                            context,
-                            pk.asNumber,
-                            filename,
-                            file.data.getValue()
-                        ).then(
-                            () => {
-                                if (file.annotations === undefined) return;
-                                ICDataset.add_categories(
+                    complete: async () => {
+                        try {
+                            const response = await ICDataset.add_file(
+                                context,
+                                pk.asNumber,
+                                filename,
+                                dataSubject.value
+                            );
+
+                            const handle = response['handle'] as string;
+
+                            mapSetDefault(
+                                imageCache,
+                                handle,
+                                () => dataSubject
+                            );
+
+                            if (file[1] !== undefined) {
+                                await ICDataset.add_categories(
                                     context,
                                     pk.asNumber,
                                     [filename],
-                                    [file.annotations]
+                                    [file[1]]
+                                );
+                            }
+
+                            dispatch(
+                                createAddFileAction(
+                                    filename,
+                                    {
+                                        dataHandle: handle,
+                                        dataCache: imageCache,
+                                        resident: true,
+                                        selected: false,
+                                        annotations: file[1]
+                                    }
                                 )
-                            }
-                        ).then(
-                            () => {
-                                dispatch(createAddFileAction(filename, file));
-                                resolve();
-                            }
-                        ).catch(reject);
+                            );
+
+                            resolve();
+                        } catch (e) {
+                            reject(e);
+                        }
                     }
                 };
 
-                file.data.subscribe(subscriber);
+                dataSubject.subscribe(subscriber);
 
                 await promise;
             });
-
-
         }
     );
 }

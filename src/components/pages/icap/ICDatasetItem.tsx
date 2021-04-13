@@ -13,7 +13,7 @@ export const UNSELECTED_BORDER_WIDTH_PX: number = 2;
 
 export type ICDatasetItemProps = {
     filename: string
-    imageData: BehaviorSubject<Blob> | Blob | string
+    imageData: BehaviorSubject<Blob> | BehaviorSubject<string> | Blob | string
     label: string | undefined,
     evalLabel: EvalLabel,
     onRelabelled: (oldLabel?: string, newLabel?: string) => void

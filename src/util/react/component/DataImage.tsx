@@ -4,9 +4,10 @@ import {BehaviorSubject} from "rxjs";
 import {augmentClassName} from "../../augmentClass";
 import {useObservable} from "../hooks/useObservable";
 import useDerivedState from "../hooks/useDerivedState";
+import isBehaviourSubject from "../../rx/isBehaviourSubject";
 
 export type DataImageProps = Omit<ImgHTMLAttributes<HTMLImageElement>, 'src'> & {
-    src: BehaviorSubject<Blob> | Blob | string | undefined
+    src: BehaviorSubject<Blob> | BehaviorSubject<string> | Blob | string | undefined
 }
 
 export default function DataImage(
@@ -20,24 +21,23 @@ export default function DataImage(
         ...imgProps
     } = props;
 
-    const srcTracker = useObservable(
-        src !== undefined && typeof src !== "string" && !(src instanceof Blob) ? src : undefined
+    const srcTracker = useObservable<Blob | string>(
+        isBehaviourSubject(src) ? src : undefined
     );
 
     // Create a data-url for any data-like sources
-    const srcActual: string | undefined = useDerivedState(
-        () => src instanceof Blob
-            ? URL.createObjectURL(src)
-            : typeof src === "string"
-                ? src
-                : src !== undefined
-                    ? URL.createObjectURL(src.value)
-                    : undefined,
-        [src, srcTracker]
+    const srcValue: string | Blob | undefined = isBehaviourSubject(src)
+        ? src.value
+        : src;
+
+    // Create a url for blobs
+    const url = useDerivedState(
+        () => srcValue instanceof Blob ? URL.createObjectURL(srcValue) : srcValue,
+        [srcValue]
     );
 
     return <img
-        src={srcActual}
+        src={url}
         className={augmentClassName(className, "DataImage")}
         alt={alt === undefined ? "" : alt}
         {...imgProps}

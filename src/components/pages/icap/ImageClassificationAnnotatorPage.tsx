@@ -64,7 +64,7 @@ export default function ImageClassificationAnnotatorPage(
     // Sub-page displays
     const [showNewDatasetPage, setShowNewDatasetPage] = useStateSafe<boolean>(() => false);
     const [showLabelColourPickerPage, setShowLabelColourPickerPage] = useStateSafe<boolean>(() => false);
-    const [showLargeImageOverlay, setShowLargeImageOverlay] = useStateSafe<BehaviorSubject<Blob> | undefined>(() => undefined);
+    const [showLargeImageOverlay, setShowLargeImageOverlay] = useStateSafe<BehaviorSubject<string> | string | undefined>(() => undefined);
 
     if (showNewDatasetPage) {
         return <NewDatasetPage
@@ -155,7 +155,7 @@ export default function ImageClassificationAnnotatorPage(
                     if (dataset !== undefined) dataset.setLabel(filename, newLabel);
                 }
             }
-            onFileClicked={(_, file) => setShowLargeImageOverlay(file.data)}
+            onFileClicked={(_, file) => setShowLargeImageOverlay(file.dataCache.getURL(file.dataHandle))}
             onAddFiles={(files) => {if (dataset !== undefined) dataset.addFiles(files)}}
             labelColours={labelColoursDispatch.state}
             sortFunction={SORT_FUNCTIONS[sortOrder]}
