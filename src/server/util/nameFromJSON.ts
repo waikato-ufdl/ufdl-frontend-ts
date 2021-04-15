@@ -1,5 +1,7 @@
-import {RawJSONObject} from "ufdl-ts-client/types";
+import {RawJSONObject} from "ufdl-ts-client/types/raw";
 
-export function nameFromJSON(json: RawJSONObject): string {
-    return json['name'] as string;
+export function nameFromJSON(
+    json: RawJSONObject & {name: string}
+): string {
+    return json.name;
 }

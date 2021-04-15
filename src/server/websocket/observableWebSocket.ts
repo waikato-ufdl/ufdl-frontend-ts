@@ -1,7 +1,7 @@
 import {Observable} from "rxjs";
 import {TransitionHandlers} from "../types/TransitionHandlers";
 import createWebSocket from "./createWebSocket";
-import {RawJSONObject} from "ufdl-ts-client/types";
+import {RawJSONObject} from "ufdl-ts-client/types/raw";
 
 export const CANCELLED = Symbol("The job was cancelled");
 

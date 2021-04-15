@@ -7,7 +7,7 @@ import {Form} from "../Form";
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import * as Team from "ufdl-ts-client/functional/core/team";
 import useStateSafe from "../../util/react/hooks/useStateSafe";
-import {RawJSONObject} from "ufdl-ts-client/types";
+import {TeamInstance} from "ufdl-ts-client/types/core/team";
 import useDerivedState from "../../util/react/hooks/useDerivedState";
 import asChangeEventHandler from "../../util/react/asChangeEventHandler";
 import {TeamPK} from "../../server/pk";
@@ -34,7 +34,7 @@ export default function NewTeamPage(
     );
 
     const onSuccess = useDerivedState(
-        ([onCreate, clearForm]) => (team: RawJSONObject) => {
+        ([onCreate, clearForm]) => (team: TeamInstance) => {
             if (onCreate !== undefined) onCreate(new TeamPK(team['pk'] as number));
             clearForm();
         },
@@ -65,7 +65,7 @@ function canSubmit(
 async function submitNewTeam(
     context: UFDLServerContext,
     name: string,
-    onSuccess: (project: RawJSONObject) => void
+    onSuccess: (team: TeamInstance) => void
 ): Promise<void> {
     if (!canSubmit(name)) return;
 

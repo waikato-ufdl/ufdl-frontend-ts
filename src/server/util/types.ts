@@ -1,10 +1,14 @@
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import {FilterSpec} from "ufdl-ts-client/json/generated/FilterSpec";
-import {RawJSONObject} from "ufdl-ts-client/types";
+import {DatasetInstance} from "ufdl-ts-client/types/core/dataset";
+import {RawModelInstance} from "ufdl-ts-client/types/base";
 
-export type ListFunction = (context: UFDLServerContext, filterSpec?: FilterSpec) => Promise<RawJSONObject[]>
+export type ListFunction<M extends RawModelInstance> = (
+    context: UFDLServerContext,
+    filterSpec?: FilterSpec
+) => Promise<M[]>
 
-export type CreateFunction = (
+export type CreateDatasetFunction = (
     context: UFDLServerContext,
     name: string,
     project: number,
@@ -12,4 +16,4 @@ export type CreateFunction = (
     description?: string,
     is_public?: boolean,
     tags?: string
-) => Promise<RawJSONObject>
+) => Promise<DatasetInstance>

@@ -1,19 +1,31 @@
 import React from "react";
-import {RawJSONObject} from "ufdl-ts-client/types";
+import {RawModelInstance} from "ufdl-ts-client/types/base";
 
-export type RawJSONObjectSelectOptionProps = Omit<React.OptionHTMLAttributes<HTMLOptionElement>, 'key' | 'value'> & {
-    item: RawJSONObject,
-    labelMapFunction: (json: RawJSONObject) => string,
-    children?: never
-}
+export type RawJSONObjectSelectOptionProps<M extends RawModelInstance>
+    = Omit<React.OptionHTMLAttributes<HTMLOptionElement>, 'key' | 'value'>
+    & {
+        item: M,
+        labelMapFunction: (json: M) => string,
+        children?: never
+    }
 
-export function RawJSONObjectSelectOption(props: RawJSONObjectSelectOptionProps) {
-    const {item, labelMapFunction, ...optionProps} = props;
+export function RawJSONObjectSelectOption<M extends RawModelInstance>(
+    props: RawJSONObjectSelectOptionProps<M>
+) {
+    const {
+        item,
+        labelMapFunction,
+        ...optionProps
+    } = props;
 
-    const pk = item['pk'] as number;
+    const pk = item.pk;
     const label = labelMapFunction(item);
 
-    return <option key={pk} value={pk} {...optionProps}>
+    return <option
+        key={pk}
+        value={pk}
+        {...optionProps}
+    >
         {label}
     </option>
 }

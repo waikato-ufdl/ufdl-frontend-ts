@@ -9,7 +9,7 @@ import {TeamSelect} from "../TeamSelect";
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import * as Project from "ufdl-ts-client/functional/core/project";
 import useStateSafe from "../../util/react/hooks/useStateSafe";
-import {RawJSONObject} from "ufdl-ts-client/types";
+import {ProjectInstance} from "ufdl-ts-client/types/core/project";
 import useDerivedState from "../../util/react/hooks/useDerivedState";
 import {DEFAULT_HANDLED_ERROR_RESPONSE, withErrorResponseHandler} from "../../server/util/responseError";
 import {constantInitialiser} from "../../util/typescript/initialisers";
@@ -42,7 +42,7 @@ export default function NewProjectPage(
     );
 
     const onSuccess = useDerivedState(
-        ([onCreate, clearForm]) => (project: RawJSONObject) => {
+        ([onCreate, clearForm]) => (project: ProjectInstance) => {
             if (onCreate !== undefined) onCreate(project['pk'] as number);
             clearForm();
         },
@@ -83,7 +83,7 @@ async function submitNewProject(
     context: UFDLServerContext,
     teamPK: number | undefined,
     name: string,
-    onSuccess: (project: RawJSONObject) => void
+    onSuccess: (project: ProjectInstance) => void
 ): Promise<void> {
     if (!canSubmit(teamPK, name)) return;
 

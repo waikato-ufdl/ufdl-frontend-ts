@@ -4,7 +4,7 @@ import {CreateJobSpec} from "ufdl-ts-client/json/generated/CreateJobSpec";
 import {create_job} from "ufdl-ts-client/functional/core/jobs/job_template";
 import {handleErrorResponse, throwOnError} from "./util/responseError";
 import observableWebSocket from "./websocket/observableWebSocket";
-import {RawJSONObject} from "ufdl-ts-client/types";
+import {RawJSONObject} from "ufdl-ts-client/types/raw";
 import {immediateObservable} from "../util/rx/immediate";
 import behaviourSubjectFromSubscribable from "../util/rx/behaviourSubjectFromSubscribable";
 import completionPromise from "../util/rx/completionPromise";
@@ -19,7 +19,7 @@ export default function createJob(
     const jobPK = handleErrorResponse(
         async () => {
             const job = await create_job(context, templatePK, createJobSpec);
-            return job['pk'] as number;
+            return job.pk;
         },
         throwOnError
     );

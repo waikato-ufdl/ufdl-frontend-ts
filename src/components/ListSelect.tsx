@@ -1,26 +1,26 @@
 import React, {useContext, useEffect} from "react";
 import {RawJSONObjectSelect} from "./RawJSONObjectSelect";
 import {FilterSpec} from "ufdl-ts-client/json/generated/FilterSpec";
-import {RawJSONObject} from "ufdl-ts-client/types";
+import {RawModelInstance} from "ufdl-ts-client/types/base";
 import {UFDL_SERVER_REACT_CONTEXT} from "../server/UFDLServerContextProvider";
-import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import useStateSafe from "../util/react/hooks/useStateSafe";
 import {Controllable} from "../util/react/hooks/useControllableState";
+import {ListFunction} from "../server/util/types";
 
-export type ListSelectProps = {
-    list: (context: UFDLServerContext, filter?: FilterSpec) => Promise<RawJSONObject[]>
+export type ListSelectProps<M extends RawModelInstance> = {
+    list: ListFunction<M>
     filter?: FilterSpec
-    labelFunction: (json: RawJSONObject) => string
+    labelFunction: (json: M) => string
     forceEmpty?: boolean
     value: Controllable<number>
-    onChange?: (item?: RawJSONObject, pk?: number) => void
+    onChange?: (item?: M, pk?: number) => void
     disabled?: boolean
 }
 
-export function ListSelect(props: ListSelectProps) {
+export function ListSelect<M extends RawModelInstance>(props: ListSelectProps<M>) {
     const context = useContext(UFDL_SERVER_REACT_CONTEXT);
 
-    const [items, setItems] = useStateSafe<RawJSONObject[]>(() => []);
+    const [items, setItems] = useStateSafe<M[]>(() => []);
 
     const {list, filter, labelFunction, forceEmpty, value, onChange, disabled} = props;
 

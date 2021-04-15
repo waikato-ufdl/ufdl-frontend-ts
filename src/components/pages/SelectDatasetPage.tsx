@@ -20,6 +20,7 @@ import {BackButton} from "../BackButton";
 import RenderSelectedChildren from "../../util/react/component/RenderSelectedChildren";
 import ignoreFirstNArgs from "../../util/typescript/ignoreFirstNArgs";
 import {constantInitialiser} from "../../util/typescript/initialisers";
+import {DatasetInstance} from "ufdl-ts-client/types/core/dataset";
 
 export type SelectDatasetPageProps = {
     onDatasetSelected: (pk: DatasetPK) => void
@@ -75,7 +76,7 @@ export default function SelectDatasetPage(
                 disabled={props.onBack === undefined}
             />
             Dataset:
-            <ListSelect
+            <ListSelect<DatasetInstance>
                 list={ICDataset.list}
                 labelFunction={nameFromSignature}
                 onChange={ignoreFirstNArgs(1, (pk?: number) => {

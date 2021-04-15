@@ -50,8 +50,13 @@ export async function handleErrorResponse(
 export type WithErrorResponseHandler<P extends readonly any[], R, E = typeof DEFAULT_HANDLED_ERROR_RESPONSE>
     = (...args: P) => Promise<R | E>
 
-export function withErrorResponseHandler<P extends readonly any[], R>(action: (...args: P) => R): WithErrorResponseHandler<P, R>;
-export function withErrorResponseHandler<P extends readonly any[], R, E>(action: (...args: P) => R, onError: (response: Response) => PossiblePromise<E>): WithErrorResponseHandler<P, R, E>;
+export function withErrorResponseHandler<P extends readonly any[], R>(
+    action: (...args: P) => Promise<R>
+): WithErrorResponseHandler<P, R>;
+export function withErrorResponseHandler<P extends readonly any[], R, E>(
+    action: (...args: P) => Promise<R>,
+    onError: (response: Response) => PossiblePromise<E>
+): WithErrorResponseHandler<P, R, E>;
 export function withErrorResponseHandler(
     action: (...args: any) => any,
     onError: (response: Response) => PossiblePromise<any> = alertOnError

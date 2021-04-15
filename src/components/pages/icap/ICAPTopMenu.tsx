@@ -5,7 +5,9 @@ import * as ICDataset from "ufdl-ts-client/functional/image_classification/datas
 import React from "react";
 import {BackButton} from "../../BackButton";
 import {exactFilter} from "../../../server/util/exactFilter";
-import {RawJSONObject} from "ufdl-ts-client/types";
+import {DatasetInstance} from "ufdl-ts-client/types/core/dataset";
+import {TeamInstance} from "ufdl-ts-client/types/core/team";
+import {ProjectInstance} from "ufdl-ts-client/types/core/project";
 import useDerivedState from "../../../util/react/hooks/useDerivedState";
 import {DatasetPK, getDatasetPK, getProjectPK, getTeamPK, ProjectPK, TeamPK} from "../../../server/pk";
 import nameFromSignature from "../../../server/util/nameFromSignature";
@@ -13,9 +15,9 @@ import nameFromSignature from "../../../server/util/nameFromSignature";
 export type ICAPTopMenuProps = {
     selectedPK: DatasetPK | ProjectPK | TeamPK | undefined
     lockedPK: DatasetPK | ProjectPK | TeamPK | undefined
-    onTeamChanged: (team?: RawJSONObject, pk?: number) => void
-    onProjectChanged: (project?: RawJSONObject, pk?: number) => void
-    onDatasetChanged: (dataset?: RawJSONObject, pk?: number) => void
+    onTeamChanged: (team?: TeamInstance, pk?: number) => void
+    onProjectChanged: (project?: ProjectInstance, pk?: number) => void
+    onDatasetChanged: (dataset?: DatasetInstance, pk?: number) => void
     onRequestNewDataset: () => void
     nextLabel?: string
     onNext?: (position: [number, number]) => void
@@ -65,7 +67,7 @@ export default function ICAPTopMenu(props: ICAPTopMenuProps) {
         </label>
         <label>
             Dataset:
-            <ListSelect
+            <ListSelect<DatasetInstance>
                 list={ICDataset.list}
                 labelFunction={nameFromSignature}
                 onChange={props.onDatasetChanged}

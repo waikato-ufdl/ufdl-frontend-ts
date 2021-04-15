@@ -15,8 +15,8 @@ import {ProjectSelect} from "../ProjectSelect";
 import {LicenceSelect} from "../LicenceSelect";
 import useStateSafe from "../../util/react/hooks/useStateSafe";
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
-import {RawJSONObject} from "ufdl-ts-client/types";
-import {CreateFunction} from "../../server/util/types";
+import {DatasetInstance} from "ufdl-ts-client/types/core/dataset";
+import {CreateDatasetFunction} from "../../server/util/types";
 import asChangeEventHandler from "../../util/react/asChangeEventHandler";
 import {DatasetPK, ProjectPK, TeamPK} from "../../server/pk";
 import {
@@ -29,7 +29,9 @@ const AVAILABLE_DOMAINS = ["ic", "od"] as const;
 
 export type Domain = (typeof AVAILABLE_DOMAINS)[number];
 
-const createFunctions: {[key in Domain]: WithErrorResponseHandler<Parameters<CreateFunction>, ReturnType<CreateFunction>>} = {
+const createFunctions: {
+    [key in Domain]: WithErrorResponseHandler<Parameters<CreateDatasetFunction>, DatasetInstance>
+} = {
     "ic": withErrorResponseHandler(ICDataset.create),
     "od": withErrorResponseHandler(ODDataset.create)
 } as const;
@@ -178,7 +180,7 @@ async function submitNewDataset(
     isPublic: boolean,
     licencePK: number | undefined,
     domain: Domain | undefined,
-    onSuccess: (dataset: RawJSONObject) => void
+    onSuccess: (dataset: DatasetInstance) => void
 ): Promise<void> {
     if (!canSubmit(projectPK, name, licencePK, domain)) return;
 
