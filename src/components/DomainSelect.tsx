@@ -6,11 +6,14 @@ import {MapSelect, MapSelectProps} from "../util/react/component/MapSelect";
 import {Controllable, isControlled} from "../util/react/hooks/useControllableState";
 import {mapFromArray} from "../util/map";
 
-export type DomainSelectProps<D extends AvailableDomainsType> = Omit<MapSelectProps<D>, 'values' | 'value' | 'onChange'> & {
-    values: readonly D[],
-    value: Controllable<D | undefined>
-    onChange?: (domain?: D) => void
-}
+export type DomainSelectProps<D extends AvailableDomainsType>
+    = Omit<MapSelectProps<D>, 'values' | 'value' | 'onChange'>
+    &
+    {
+        values: readonly D[],
+        value: Controllable<D | undefined>
+        onChange?: (domain?: D) => void
+    }
 
 export function DomainSelect<D extends AvailableDomainsType>(
     props: DomainSelectProps<D>
@@ -36,7 +39,7 @@ export function DomainSelect<D extends AvailableDomainsType>(
         () => {
             return onChange === undefined
                 ? undefined
-                : (domain: Possible<D>) => isPresent(domain) ? domain : undefined
+                : (domain: Possible<D>) => onChange(isPresent(domain) ? domain : undefined)
         },
         [onChange]
     );
