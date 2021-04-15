@@ -27,7 +27,7 @@ export default function createJob(
     // Create a behaviour subject to monitor the job's progress
     const jobMonitor = behaviourSubjectFromSubscribable(
         immediateObservable(
-            jobPK.then((pk) => observableWebSocket(pk, true, true))
+            jobPK.then((pk) => observableWebSocket(context, pk, true, true))
         ),
         {}
     );

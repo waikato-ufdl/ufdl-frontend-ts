@@ -1,33 +1,35 @@
 import {Observable} from "rxjs";
-import {TransitionHandlers} from "../types/TransitionHandlers";
-import createWebSocket from "./createWebSocket";
 import {RawJSONObject} from "ufdl-ts-client/types/raw";
+import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
+import * as Job from "ufdl-ts-client/functional/core/jobs/job";
+import {JobTransitionHandlers} from "ufdl-ts-client/types/core/jobs/job";
 
 export const CANCELLED = Symbol("The job was cancelled");
 
 export default function observableWebSocket(
+    context: UFDLServerContext,
     jobPK: number,
     errorOnError: boolean = false,
     errorOnCancel: boolean = false
 ) {
     return new Observable<RawJSONObject>(
         (subscriber) => {
-            const handlers: TransitionHandlers = {
-                on_acquire(json) {subscriber.next(json)},
-                on_release(json) {subscriber.next(json)},
-                on_progress(json) {subscriber.next(json)},
-                on_abort(json) {subscriber.next(json)},
-                on_reset(json) {subscriber.next(json)},
-                on_start(json) {subscriber.next(json)},
-                on_finish(json) {
+            const handlers: JobTransitionHandlers = {
+                acquire(json) {subscriber.next(json);},
+                release(json) {subscriber.next(json)},
+                progress(json) {subscriber.next(json)},
+                abort(json) {subscriber.next(json)},
+                reset(json) {subscriber.next(json)},
+                start(json) {subscriber.next(json)},
+                finish(json) {
                     subscriber.next(json);
                     subscriber.complete();
                 },
-                on_error(json) {
+                error(json) {
                     subscriber.next(json);
                     if (errorOnError) subscriber.error(json['error']);
                 },
-                on_cancel(json) {
+                cancel(json) {
                     subscriber.next(json);
                     if (errorOnCancel)
                         subscriber.error(CANCELLED);
@@ -36,7 +38,13 @@ export default function observableWebSocket(
                 }
             };
 
-            createWebSocket(jobPK, handlers);
+            Job.connect_to_job(
+                context,
+                jobPK,
+                handlers,
+                (self) => {if (!self) subscriber.error({error: 'web-socket closed unexpectedly'})},
+                (event) => console.error(`Web-socket connected to job #${jobPK} encountered an error:`, event)
+            );
         }
     )
 }
