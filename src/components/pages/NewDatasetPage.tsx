@@ -1,5 +1,7 @@
 import * as ICDataset from "ufdl-ts-client/functional/image_classification/dataset";
 import * as ODDataset from "ufdl-ts-client/functional/object_detection/dataset";
+import * as ISDataset from "ufdl-ts-client/functional/image_segmentation/dataset";
+import * as SPDataset from "ufdl-ts-client/functional/speech/dataset";
 import React, {useContext} from "react";
 import {UFDL_SERVER_REACT_CONTEXT} from "../../server/UFDLServerContextProvider";
 import {Controllable, useControllableState} from "../../util/react/hooks/useControllableState";
@@ -25,15 +27,17 @@ import {
     withErrorResponseHandler
 } from "../../server/util/responseError";
 
-const AVAILABLE_DOMAINS = ["ic", "od"] as const;
+const AVAILABLE_DOMAINS = ["ic", "od", "is", "sp"] as const;
 
 export type Domain = (typeof AVAILABLE_DOMAINS)[number];
 
 const createFunctions: {
     [key in Domain]: WithErrorResponseHandler<Parameters<CreateDatasetFunction>, DatasetInstance>
 } = {
-    "ic": withErrorResponseHandler(ICDataset.create),
-    "od": withErrorResponseHandler(ODDataset.create)
+    ic: withErrorResponseHandler(ICDataset.create),
+    od: withErrorResponseHandler(ODDataset.create),
+    is: withErrorResponseHandler(ISDataset.create),
+    sp: withErrorResponseHandler(SPDataset.create)
 } as const;
 
 export type NewDatasetPageProps = {
