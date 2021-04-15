@@ -1,6 +1,7 @@
 import {BehaviorSubject, Observable} from "rxjs";
 import {RawJSONObject} from "ufdl-ts-client/types/raw";
 import {filter, map} from "rxjs/operators";
+import behaviourSubjectFromSubscribable from "../../util/rx/behaviourSubjectFromSubscribable";
 
 /**
  * Creates a behaviour subject which tracks the progress of a job.
@@ -13,9 +14,6 @@ import {filter, map} from "rxjs/operators";
 export default function jobProgressSubject(
     observable: Observable<RawJSONObject>
 ): BehaviorSubject<number> {
-    // Create a behaviour subject starting at 0%
-    const subject = new BehaviorSubject<number>(0.0);
-
     // Create an operator which filters to only updates containing a value for the progress amount
     const filterProgressUpdates = filter(
         (value: RawJSONObject) => {
@@ -29,9 +27,9 @@ export default function jobProgressSubject(
             return value['progress'] as number
         }
     );
-
-    // Subscribe the subject to the filtered, mapped version of the web-socket
-    extractProgress(filterProgressUpdates(observable)).subscribe(subject);
     
-    return subject;
+    return behaviourSubjectFromSubscribable(
+        extractProgress(filterProgressUpdates(observable)),
+        0.0
+    );
 }
