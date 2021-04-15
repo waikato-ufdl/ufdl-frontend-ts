@@ -103,7 +103,7 @@ export default function NewDatasetPage(props: NewDatasetPageProps) {
                     onChange={setDomain}
                     values={AVAILABLE_DOMAINS}
                     value={domain}
-                    disabled={domainLocked}
+                    disabled={props.lockDomain}
                 />
             </label>
             <label>
