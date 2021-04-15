@@ -4,6 +4,14 @@ export type Equivalencies<T extends object> = {
     [K in keyof T]-?: Equivalency<T[K]>
 }
 
+export function alwaysEquivalent(_a: unknown, _b: unknown): true {
+    return true;
+}
+
+export function neverEquivalent(_a: unknown, _b: unknown): false {
+    return false;
+}
+
 export function areEquivalent<T extends object>(a: T, b: T, e: Equivalencies<T>) {
     for (const key in e) {
         const equivalency = e[key];
