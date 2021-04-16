@@ -21,20 +21,18 @@ export default function observableWebSocket(
                 abort(json) {subscriber.next(json)},
                 reset(json) {subscriber.next(json)},
                 start(json) {subscriber.next(json)},
-                finish(json) {
-                    subscriber.next(json);
-                    subscriber.complete();
-                },
+                finish(json) {subscriber.next(json);},
                 error(json) {
                     subscriber.next(json);
-                    if (errorOnError) subscriber.error(json['error']);
+                    if (errorOnError) {
+                        subscriber.error(json['error']);
+                        return true;
+                    }
+                    return;
                 },
                 cancel(json) {
                     subscriber.next(json);
-                    if (errorOnCancel)
-                        subscriber.error(CANCELLED);
-                    else
-                        subscriber.complete();
+                    if (errorOnCancel) subscriber.error(CANCELLED);
                 }
             };
 
@@ -42,7 +40,13 @@ export default function observableWebSocket(
                 context,
                 jobPK,
                 handlers,
-                (self) => {if (!self) subscriber.error({error: 'web-socket closed unexpectedly'})},
+                (self) => {
+                    if (!self)
+                        subscriber.error({error: 'web-socket closed unexpectedly'});
+                    else if (!subscriber.closed)
+                        subscriber.complete();
+
+                },
                 (event) => console.error(`Web-socket connected to job #${jobPK} encountered an error:`, event)
             );
         }
