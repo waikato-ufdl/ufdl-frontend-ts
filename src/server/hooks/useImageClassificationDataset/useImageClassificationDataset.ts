@@ -17,10 +17,10 @@ import {createDeleteFileAction} from "./actions/DeleteFile";
 import {createSetLabelAction} from "./actions/SetLabel";
 import {DatasetPK} from "../../pk";
 import useTaskWatcher, {TaskDispatch} from "../../../util/react/hooks/useTaskWatcher";
-import {rendezvous} from "../../../util/typescript/async/rendezvous";
 import {FileCache, UFDL_FILE_CACHE_CONTEXT} from "../../FileCacheContext";
 import forEachOwnProperty from "../../../util/typescript/forEachOwnProperty";
 import {BehaviorSubject} from "rxjs";
+import completionPromise from "../../../util/rx/completionPromise";
 
 export type ImageClassificationDatasetMutator = {
     state: ImageClassificationDataset
@@ -176,60 +176,46 @@ function addFiles(
     files.forEach(
         (file, filename) => {
             addTask(async () => {
-                const [promise, resolve, reject] = rendezvous<void>();
-
                 const dataSubject = file[0];
 
-                const subscriber = {
-                    complete: async () => {
-                        try {
-                            const response = await ICDataset.add_file(
-                                context,
-                                pk.asNumber,
-                                filename,
-                                dataSubject.value
-                            );
+                const data = await completionPromise(dataSubject);
 
-                            const handle = response['handle'] as string;
+                const response = await ICDataset.add_file(
+                    context,
+                    pk.asNumber,
+                    filename,
+                    data
+                );
 
-                            mapSetDefault(
-                                imageCache,
-                                handle,
-                                () => dataSubject
-                            );
+                const handle = response.handle;
 
-                            if (file[1] !== undefined) {
-                                await ICDataset.add_categories(
-                                    context,
-                                    pk.asNumber,
-                                    [filename],
-                                    [file[1]]
-                                );
-                            }
+                mapSetDefault(
+                    imageCache,
+                    handle,
+                    () => dataSubject
+                );
 
-                            dispatch(
-                                createAddFileAction(
-                                    filename,
-                                    {
-                                        dataHandle: handle,
-                                        dataCache: imageCache,
-                                        resident: true,
-                                        selected: false,
-                                        annotations: file[1]
-                                    }
-                                )
-                            );
+                if (file[1] !== undefined) {
+                    await ICDataset.add_categories(
+                        context,
+                        pk.asNumber,
+                        [filename],
+                        [file[1]]
+                    );
+                }
 
-                            resolve();
-                        } catch (e) {
-                            reject(e);
+                dispatch(
+                    createAddFileAction(
+                        filename,
+                        {
+                            dataHandle: handle,
+                            dataCache: imageCache,
+                            resident: true,
+                            selected: false,
+                            annotations: file[1]
                         }
-                    }
-                };
-
-                dataSubject.subscribe(subscriber);
-
-                await promise;
+                    )
+                );
             });
         }
     );
