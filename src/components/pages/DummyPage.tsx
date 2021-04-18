@@ -22,7 +22,7 @@ export default function DummyPage(
     const context = useContext(UFDL_SERVER_REACT_CONTEXT);
 
     return <Page className={"DummyPage"}>
-        <p>Logged in to {context.host} as {context.username}</p>
+        {`Logged in to ${context.host} as ${context.username}`}
         <div>
             <BackButton onBack={props.onBack} />
             <PingButton
