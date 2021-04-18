@@ -176,7 +176,7 @@ function addFiles(
     files.forEach(
         (file, filename) => {
             addTask(async () => {
-                const dataSubject = file[0];
+                const [dataSubject, label] = file;
 
                 const data = await completionPromise(dataSubject);
 
@@ -195,12 +195,12 @@ function addFiles(
                     () => dataSubject
                 );
 
-                if (file[1] !== undefined) {
+                if (label !== undefined) {
                     await ICDataset.add_categories(
                         context,
                         pk.asNumber,
                         [filename],
-                        [file[1]]
+                        [label]
                     );
                 }
 
