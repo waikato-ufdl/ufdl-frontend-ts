@@ -4,17 +4,18 @@ import {CreateJobSpec} from "ufdl-ts-client/json/generated/CreateJobSpec";
 import {create_job} from "ufdl-ts-client/functional/core/jobs/job_template";
 import {handleErrorResponse, throwOnError} from "./util/responseError";
 import observableWebSocket from "./websocket/observableWebSocket";
-import {RawJSONObject} from "ufdl-ts-client/types/raw";
 import {immediateObservable} from "../util/rx/immediate";
 import behaviourSubjectFromSubscribable from "../util/rx/behaviourSubjectFromSubscribable";
 import completionPromise from "../util/rx/completionPromise";
 import {getJobLog} from "./util/getJobLog";
+import {JobTransitionMessage} from "ufdl-ts-client/types/core/jobs/job";
+import {EMPTY, Empty} from "../util/typescript/types/Empty";
 
 export default function createJob(
     context: UFDLServerContext,
     templatePK: number,
     createJobSpec: CreateJobSpec
-): [Promise<number>, BehaviorSubject<RawJSONObject>] {
+): [Promise<number>, BehaviorSubject<JobTransitionMessage | Empty>] {
     // Create the job and extract its PK from the response
     const jobPK = handleErrorResponse(
         async () => {
@@ -25,11 +26,11 @@ export default function createJob(
     );
 
     // Create a behaviour subject to monitor the job's progress
-    const jobMonitor = behaviourSubjectFromSubscribable(
+    const jobMonitor = behaviourSubjectFromSubscribable<JobTransitionMessage | Empty>(
         immediateObservable(
             jobPK.then((pk) => observableWebSocket(context, pk, true, true))
         ),
-        {}
+        EMPTY
     );
 
     // Always print the log on job completion
