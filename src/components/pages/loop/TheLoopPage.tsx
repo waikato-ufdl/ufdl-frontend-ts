@@ -128,7 +128,7 @@ export default function TheLoopPage(
         case "Error":
             return <Page>
                 {"Error"}
-                {stateMachine.data.reason.toString()}
+                {String(stateMachine.data.reason)}
                 <button onClick={stateMachine.transitions.reset}>Back</button>
             </Page>
 
