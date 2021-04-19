@@ -34,15 +34,19 @@ export async function observeReadableStream<T>(
     stream: ReadableStream<T>,
     observer: PartialObserver<T>
 ): Promise<void> {
-    const reader = stream.getReader();
+    try {
+        const reader = stream.getReader();
 
-    while (true) {
-        const {value, done} = await reader.read();
+        while (true) {
+            const {value, done} = await reader.read();
 
-        if (done || value === undefined) break;
+            if (done || value === undefined) break;
 
-        if (observer.next !== undefined) observer.next(value);
+            if (observer.next !== undefined) observer.next(value);
+        }
+
+        if (observer.complete !== undefined) observer.complete();
+    } catch (e) {
+        if (observer.error !== undefined) observer.error(e);
     }
-
-    if (observer.complete !== undefined) observer.complete();
 }
