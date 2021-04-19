@@ -10,6 +10,7 @@ import useTheLoopStateMachine from "./hooks/useTheLoopStateMachine/useTheLoopSta
 import WorkingPage from "./WorkingPage";
 import {constantInitialiser} from "../../../util/typescript/initialisers";
 import RefineOrDoneModal from "./RefineOrDoneModal";
+import tryGetBehaviourSubjectValue from "../../../util/rx/tryGetBehaviourSubjectValue";
 
 export type TheLoopPageProps = {
     onBack?: () => void
@@ -56,9 +57,15 @@ export default function TheLoopPage(
         case "Training":
         case "Evaluating":
         case "Prelabel":
-            const progress = stateMachine.state === "Merging Additional Images" ?
-                0.0 :
-                stateMachine.data.progress.getValue();
+            let progress = stateMachine.state === "Merging Additional Images" ?
+                    0.0 :
+                    tryGetBehaviourSubjectValue(
+                        stateMachine.data.progress,
+                        (e) => {
+                            console.log("Error getting progress value", e);
+                            return -1.0;
+                        }
+                    );
 
             return <WorkingPage
                 title={stateMachine.state}
