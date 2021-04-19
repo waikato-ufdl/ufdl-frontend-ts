@@ -3,7 +3,6 @@ import {BehaviorSubject} from "rxjs";
 import {map} from "rxjs/operators";
 import behaviourSubjectOperatorFunction from "../util/rx/behaviourSubjectOperatorFunction";
 import {mapGetDefault} from "../util/map";
-import LoggingObserver from "../util/rx/LoggingObserver";
 
 export class FileCache extends Map<string, BehaviorSubject<Blob>> {
     private _urlMap: Map<string, BehaviorSubject<string>>;
