@@ -61,10 +61,7 @@ export default function TheLoopPage(
                     0.0 :
                     tryGetBehaviourSubjectValue(
                         stateMachine.data.progress,
-                        (e) => {
-                            console.log("Error getting progress value", e);
-                            return -1.0;
-                        }
+                        constantInitialiser(0.0)
                     );
 
             return <WorkingPage
