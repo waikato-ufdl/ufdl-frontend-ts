@@ -10,6 +10,7 @@ import completionPromise from "../util/rx/completionPromise";
 import {getJobLog} from "./util/getJobLog";
 import {JobTransitionMessage} from "ufdl-ts-client/types/core/jobs/job";
 import {EMPTY, Empty} from "../util/typescript/types/Empty";
+import onCompletion from "../util/typescript/async/onCompletion";
 
 export default function createJob(
     context: UFDLServerContext,
@@ -34,7 +35,8 @@ export default function createJob(
     );
 
     // Always print the log on job completion
-    completionPromise(jobMonitor).finally(
+    onCompletion(
+        completionPromise(jobMonitor),
         async () => {
             const pk = await jobPK;
 

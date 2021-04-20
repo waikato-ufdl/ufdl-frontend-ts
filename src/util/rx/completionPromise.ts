@@ -1,6 +1,6 @@
 import {BehaviorSubject} from "rxjs";
 import {rendezvous} from "../typescript/async/rendezvous";
-import {discard} from "../typescript/discard";
+import onCompletion from "../typescript/async/onCompletion";
 
 /**
  * A promise of the completion of a behaviour subject.
@@ -23,7 +23,10 @@ export default async function completionPromise<T>(
     });
 
     // Once the promise resolves, the subscription is no longer required
-    discard(promise.finally(() => subscription.unsubscribe()));
+    onCompletion(
+        promise,
+        () => subscription.unsubscribe()
+    );
 
     return promise;
 }
