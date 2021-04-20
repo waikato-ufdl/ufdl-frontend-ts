@@ -37,10 +37,12 @@ export default function createJob(
     completionPromise(jobMonitor).finally(
         async () => {
             const pk = await jobPK;
-            console.log(
-                `Job log for job #${pk}`,
-                await getJobLog(context, pk)
-            );
+
+            try {
+                console.log(`Job log for job #${pk}`, await getJobLog(context, pk));
+            } catch (e) {
+                console.log(`Failed to get job log for job #${pk}`, e);
+            }
         }
     );
 
