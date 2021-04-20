@@ -39,7 +39,7 @@ export function rendezvous<T>(): [Promise<T>, ResolveFunction<T>, RejectFunction
                 outcome = false;
                 rejectReason = reason;
             } else {
-                reject(rejectReason);
+                reject(reason);
             }
         }
     ]
