@@ -1,4 +1,4 @@
-import {BehaviorSubject, Subscribable} from "rxjs";
+import {BehaviorSubject, Observable} from "rxjs";
 
 /**
  * Creates a behaviour subject which follows the given subscribable.
@@ -11,9 +11,9 @@ import {BehaviorSubject, Subscribable} from "rxjs";
  *          The behaviour subject.
  */
 export default function behaviourSubjectFromSubscribable<T>(
-    subscribable: Subscribable<T>,
+    subscribable: Observable<T>,
     initial: T
-) {
+): BehaviorSubject<T> {
     // Create the subject
     const subject = new BehaviorSubject(initial);
 
