@@ -1,47 +1,47 @@
-import React, {ButtonHTMLAttributes} from 'react';
-import {ping} from "ufdl-ts-client/functional/core/nodes/node";
+import React, {ButtonHTMLAttributes, useContext} from "react";
+import {FunctionComponentReturnType} from "../util/react/types";
 import {UFDL_SERVER_REACT_CONTEXT} from "../server/UFDLServerContextProvider";
-import {Empty} from "../util/typescript/types/Empty";
-import {formatResponseError, handleErrorResponse} from "../server/util/responseError";
+import {ping} from "ufdl-ts-client/functional/core/nodes/node";
+import {formatResponseError, withErrorResponseHandler} from "../server/util/responseError";
+import {discard} from "../util/typescript/discard";
 
-export interface PingButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+export type PingButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
     onSuccess?: () => void,
     onFailure?: (reason: string) => void
 }
 
-type OnClickType = PingButtonProps['onClick'];
+export default function PingButton(
+    props: PingButtonProps
+): FunctionComponentReturnType {
 
-export class PingButton extends React.Component<PingButtonProps, Empty> {
+    const ufdlServerContext = useContext(UFDL_SERVER_REACT_CONTEXT);
 
-    static contextType = UFDL_SERVER_REACT_CONTEXT;
-    context!: React.ContextType<typeof UFDL_SERVER_REACT_CONTEXT>;
+    const {
+        onClick,
+        onSuccess,
+        onFailure,
+        ...buttonProps
+    } = props;
 
-    private augmentOnClick(onClick: OnClickType): OnClickType {
-        if (onClick !== undefined) {
-            return async (event) => {
-                this.ping();
-                onClick(event);
-            }
-        } else {
-            return async (_) => {
-                await this.ping();
-            }
+    const pingActual = withErrorResponseHandler(
+        async () => {
+            await ping(ufdlServerContext);
+            if (onSuccess !== undefined) onSuccess();
+        },
+        async (response) => {
+            if (onFailure !== undefined) onFailure(await formatResponseError(response));
         }
-    }
+    );
 
-    async ping(): Promise<void> {
-         await handleErrorResponse(
-            async () => {
-                await ping(this.context);
-                if (this.props.onSuccess !== undefined) this.props.onSuccess();
-            },
-            async (response) => {
-                if (this.props.onFailure !== undefined) this.props.onFailure(await formatResponseError(response));
-            }
-        );
-    }
+    const onClickActual: typeof onClick = onClick !== undefined
+        ? (event) => {
+            discard(pingActual());
+            onClick(event);
+        }
+        : pingActual;
 
-    render() {
-        return <button {...this.props} onClick={this.augmentOnClick(this.props.onClick)} />;
-    }
+    return <button
+        onClick={onClickActual}
+        {...buttonProps}
+    />
 }
