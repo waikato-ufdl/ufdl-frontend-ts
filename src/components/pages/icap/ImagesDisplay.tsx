@@ -1,7 +1,7 @@
 import React from "react";
 import AddImagesButton from "./AddImagesButton";
 import {mapToArray} from "../../../util/map";
-import {ICDatasetItem} from "./ICDatasetItem";
+import ICDatasetItem from "./ICDatasetItem";
 import {LabelColours} from "./labels/LabelColours";
 import {
     ImageClassificationDataset,
