@@ -3,7 +3,7 @@ import {JSXFunctionElementConstructor} from "../../util/react/jsx/JSXFunctionEle
 import {UFDL_SERVER_REACT_CONTEXT} from "../../server/UFDLServerContextProvider";
 import Page from "./Page";
 import {BackButton} from "../BackButton";
-import {Form} from "../Form";
+import {Form} from "../../util/react/component/Form";
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import * as Team from "ufdl-ts-client/functional/core/team";
 import useStateSafe from "../../util/react/hooks/useStateSafe";

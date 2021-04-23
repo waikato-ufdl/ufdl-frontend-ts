@@ -10,7 +10,7 @@ import useDerivedState from "../../util/react/hooks/useDerivedState";
 import {exactFilter} from "../../server/util/exactFilter";
 import Page from "./Page";
 import {BackButton} from "../BackButton";
-import {Form} from "../Form";
+import {Form} from "../../util/react/component/Form";
 import {DomainSelect} from "../DomainSelect";
 import {TeamSelect} from "../TeamSelect";
 import {ProjectSelect} from "../ProjectSelect";

@@ -3,7 +3,7 @@ import {LabelColours} from "./LabelColours";
 import {FunctionComponentReturnType} from "../../../../util/react/types";
 import useStateSafe from "../../../../util/react/hooks/useStateSafe";
 import {constantInitialiser} from "../../../../util/typescript/initialisers";
-import {Form} from "../../../Form";
+import {Form} from "../../../../util/react/component/Form";
 import asChangeEventHandler from "../../../../util/react/asChangeEventHandler";
 import LabelSelect from "./LabelSelect";
 import React from "react";

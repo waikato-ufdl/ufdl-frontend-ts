@@ -4,7 +4,7 @@ import {UFDL_SERVER_REACT_CONTEXT} from "../../server/UFDLServerContextProvider"
 import {Controllable, useControllableState} from "../../util/react/hooks/useControllableState";
 import Page from "./Page";
 import {BackButton} from "../BackButton";
-import {Form} from "../Form";
+import {Form} from "../../util/react/component/Form";
 import {TeamSelect} from "../TeamSelect";
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import * as Project from "ufdl-ts-client/functional/core/project";

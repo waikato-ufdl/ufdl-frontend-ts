@@ -2,7 +2,7 @@ import {Controllable, useControllableState} from "../../util/react/hooks/useCont
 import React, {useContext} from "react";
 import {UFDL_SERVER_REACT_CONTEXT} from "../../server/UFDLServerContextProvider";
 import Page from "./Page";
-import {Form} from "../Form";
+import {Form} from "../../util/react/component/Form";
 import {ping} from "ufdl-ts-client/functional/core/nodes/node";
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import useStateSafe from "../../util/react/hooks/useStateSafe";

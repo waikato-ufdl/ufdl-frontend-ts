@@ -5,7 +5,7 @@ import LabelAndColourPicker from "./LabelAndColourPicker";
 import {BackButton} from "../../../BackButton";
 import useStateSafe from "../../../../util/react/hooks/useStateSafe";
 import {constantInitialiser} from "../../../../util/typescript/initialisers";
-import {Form} from "../../../Form";
+import {Form} from "../../../../util/react/component/Form";
 import asChangeEventHandler from "../../../../util/react/asChangeEventHandler";
 
 export type LabelColourPickerPageProps = {
