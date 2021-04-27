@@ -4,10 +4,10 @@ import {map} from "rxjs/operators";
 import behaviourSubjectOperatorFunction from "../util/rx/behaviourSubjectOperatorFunction";
 import {mapGetDefault} from "../util/map";
 
-export class FileCache extends Map<string, BehaviorSubject<Blob>> {
-    private _urlMap: Map<string, BehaviorSubject<string>>;
+export class FileCache extends Map<string, BehaviorSubject<Blob> | Blob> {
+    private _urlMap: Map<string, BehaviorSubject<string> | string>;
 
-    constructor(entries?: readonly (readonly [string, BehaviorSubject<Blob>])[] | null) {
+    constructor(entries?: readonly (readonly [string, BehaviorSubject<Blob> | Blob])[] | null) {
         super(entries);
         this._urlMap = new Map();
     }
@@ -22,16 +22,17 @@ export class FileCache extends Map<string, BehaviorSubject<Blob>> {
         return super.delete(key);
     }
 
-    getURL(key: string): BehaviorSubject<string> | undefined {
+    getURL(key: string): BehaviorSubject<string> | string | undefined {
         return mapGetDefault(
             this._urlMap,
             key,
             () => {
                 const data = this.get(key);
-                const x = data === undefined
+                return data === undefined
                     ? undefined
-                    : behaviourSubjectOperatorFunction(map(URL.createObjectURL))(data);
-                return x;
+                    : data instanceof Blob
+                        ? URL.createObjectURL(data)
+                        : behaviourSubjectOperatorFunction(map(URL.createObjectURL))(data);
             },
             this.has(key)
         )

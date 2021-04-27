@@ -13,7 +13,6 @@ import {argsAsArray} from "../../../util/typescript/functions/argsAsArray";
 import {handleDefaults, PropsDefaultHandlers, WithDefault} from "../../../util/typescript/default";
 import {SortFunction} from "./sorting";
 import {getEvalLabel} from "../../../server/hooks/useImageClassificationDataset/eval";
-import {BehaviorSubject} from "rxjs";
 
 export type ImagesDisplayProps = {
     dataset: ImageClassificationDataset | undefined
@@ -21,7 +20,7 @@ export type ImagesDisplayProps = {
     onFileSelected: (filename: string) => void
     onLabelChanged: (filename: string, oldLabel: string | undefined, newLabel: string | undefined) => void
     onFileClicked: (filename: string, file: ImageClassificationDatasetItem) => void
-    onAddFiles: (files: Map<string, [BehaviorSubject<Blob>, string | undefined]>) => void
+    onAddFiles: (files: Map<string, [Blob, string | undefined]>) => void
     labelColours: LabelColours
     sortFunction: WithDefault<SortFunction>
 }

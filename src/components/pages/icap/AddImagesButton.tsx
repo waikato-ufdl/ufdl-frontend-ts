@@ -1,19 +1,18 @@
 import CenterContent from "../../CenterContent";
 import React from "react";
-import {getPathFromFile, selectFiles, selectFolders} from "../../../util/files";
 import {mapFromArray} from "../../../util/map";
-import {fromFile} from "../../../image/fromFile";
 import "./AddImagesButton.css";
 import {LabelColours} from "./labels/LabelColours";
 import useStateSafe from "../../../util/react/hooks/useStateSafe";
 import {constantInitialiser} from "../../../util/typescript/initialisers";
 import {FunctionComponentReturnType} from "../../../util/react/types";
 import PickLabelModal from "./labels/PickLabelModal";
-import {BehaviorSubject} from "rxjs";
+import selectFiles from "../../../util/files/selectFiles";
+import getPathFromFile from "../../../util/files/getPathFromFile";
 
 export type AddImagesButtonProps = {
     disabled?: boolean
-    onSelected: (files: Map<string, [BehaviorSubject<Blob>, string | undefined]>) => void
+    onSelected: (files: Map<string, [Blob, string | undefined]>) => void
     labelColours: LabelColours
 }
 
@@ -37,7 +36,7 @@ export default function AddImagesButton(
             <button
                 className={"AddFoldersButton"}
                 onClick={() => {
-                    selectImages(selectFolders(), undefined).then(
+                    selectImages(selectFiles("folder"), undefined).then(
                         (images) => {
                             if (images !== undefined) props.onSelected(images);
                         }
@@ -52,7 +51,7 @@ export default function AddImagesButton(
                 position={modal}
                 onSubmit={(label) => {
                     setModal(undefined);
-                    selectImages(selectFiles(true), label).then(
+                    selectImages(selectFiles("multiple"), label).then(
                         (images) => {
                             if (images !== undefined) props.onSelected(images);
                         }
@@ -69,7 +68,7 @@ export default function AddImagesButton(
 async function selectImages(
     filesPromise: Promise<File[] | null>,
     labelOverride: string | undefined
-): Promise<Map<string, [BehaviorSubject<Blob>, string | undefined]> | undefined> {
+): Promise<Map<string, [Blob, string | undefined]> | undefined> {
     const files = await filesPromise;
 
     if (files === null || files.length === 0) return;
@@ -83,7 +82,7 @@ async function selectImages(
                 pathElements[pathElements.length - 2] :
                 labelOverride;
 
-            return [file.name, [fromFile(file), label]];
+            return [file.name, [file, label]];
         }
     );
 }

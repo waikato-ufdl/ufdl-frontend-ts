@@ -1,7 +1,7 @@
 import {BehaviorSubject} from "rxjs";
 import {get_file} from "ufdl-ts-client/functional/core/dataset";
 import {map} from "rxjs/operators";
-import {toBlob} from "../util/toBlob";
+import toBlob from "../util/toBlob";
 import {immediateBehaviourSubject} from "../util/rx/immediate";
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import {DataStreamSubject, dataStreamSubject} from "../util/rx/dataStream";

@@ -27,7 +27,7 @@ export type ImageClassificationDatasetMutator = {
     selectedFiles: string[]
     synchronised: boolean
     select(func: SelectFunction): void
-    addFiles(files: ReadonlyMap<string, [BehaviorSubject<Blob>, string | undefined]>): void
+    addFiles(files: ReadonlyMap<string, [Blob, string | undefined]>): void
     deleteFiles(...filenames: string[]): void
     deleteSelectedFiles(): void
     deleteAllFiles(): void
@@ -81,7 +81,7 @@ export default function useImageClassificationDataset(
             ) as string[];
         },
         synchronised: synchronised,
-        addFiles(files: ReadonlyMap<string, [BehaviorSubject<Blob>, string | undefined]>): void {
+        addFiles(files: ReadonlyMap<string, [Blob, string | undefined]>): void {
             addFiles(context, datasetPK, files, dispatch, addTask, imageCache)
         },
         deleteAllFiles(): void {
@@ -168,7 +168,7 @@ async function loadDatasetInit(
 function addFiles(
     context: UFDLServerContext,
     pk: DatasetPK,
-    files: ReadonlyMap<string, [BehaviorSubject<Blob>, string | undefined]>,
+    files: ReadonlyMap<string, [Blob, string | undefined]>,
     dispatch: (action: ImageClassificationDatasetAction) => void,
     addTask: TaskDispatch,
     imageCache: FileCache
@@ -176,9 +176,7 @@ function addFiles(
     files.forEach(
         (file, filename) => {
             addTask(async () => {
-                const [dataSubject, label] = file;
-
-                const data = await completionPromise(dataSubject);
+                const [data, label] = file;
 
                 const response = await ICDataset.add_file(
                     context,
@@ -192,7 +190,7 @@ function addFiles(
                 mapSetDefault(
                     imageCache,
                     handle,
-                    () => dataSubject
+                    () => data
                 );
 
                 if (label !== undefined) {
