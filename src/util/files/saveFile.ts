@@ -1,6 +1,6 @@
 import {DataStream, DataStreamSubject, dataStreamSubject} from "../rx/dataStream";
 import completionPromise from "../rx/completionPromise";
-import toBlob from "../toBlob";
+import toBlob from "../typescript/data/toBlob";
 import {BehaviorSubject} from "rxjs";
 import isPromise from "../typescript/async/isPromise";
 

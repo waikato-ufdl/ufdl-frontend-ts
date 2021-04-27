@@ -1,6 +1,6 @@
 import {BehaviorSubject} from "rxjs";
 import {observableReadableStream} from "./readableStream";
-import {concatUint8Array} from "../concatUint8Array";
+import {concatUint8Array} from "../typescript/data/concatUint8Array";
 import behaviourSubjectOperatorFunction from "./behaviourSubjectOperatorFunction";
 import {scan} from "rxjs/operators";
 import behaviourSubjectFromSubscribable from "./behaviourSubjectFromSubscribable";
