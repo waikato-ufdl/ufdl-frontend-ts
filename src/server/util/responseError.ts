@@ -16,6 +16,8 @@ export async function formatResponseError(
 
 export const DEFAULT_HANDLED_ERROR_RESPONSE = Symbol("A response error occurred and was handled by default.");
 
+export type WithDefaultHandledErrorResponse<R> = R | typeof DEFAULT_HANDLED_ERROR_RESPONSE
+
 export async function alertOnError(
     response: Response
 ): Promise<typeof DEFAULT_HANDLED_ERROR_RESPONSE> {
@@ -31,7 +33,7 @@ export async function throwOnError(
     throw new Error(formatted);
 }
 
-export async function handleErrorResponse<R>(action: (() => Promise<R>) | Promise<R>): Promise<R | typeof DEFAULT_HANDLED_ERROR_RESPONSE>;
+export async function handleErrorResponse<R>(action: (() => Promise<R>) | Promise<R>): Promise<WithDefaultHandledErrorResponse<R>>;
 export async function handleErrorResponse<R, E>(action: (() => Promise<R>) | Promise<R>, onError: (response: Response) => PossiblePromise<E>): Promise<R | E>;
 export async function handleErrorResponse(
     action: (() => Promise<any>) | Promise<any>,

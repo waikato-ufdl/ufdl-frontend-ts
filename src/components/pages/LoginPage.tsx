@@ -6,7 +6,7 @@ import {Form} from "../../util/react/component/Form";
 import {ping} from "ufdl-ts-client/functional/core/nodes/node";
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import useStateSafe from "../../util/react/hooks/useStateSafe";
-import {handleErrorResponse} from "../../server/util/responseError";
+import {DEFAULT_HANDLED_ERROR_RESPONSE, handleErrorResponse} from "../../server/util/responseError";
 import logo from "../../logo.svg"
 import "../../logo.css";
 import {constantInitialiser} from "../../util/typescript/initialisers";
@@ -68,8 +68,9 @@ async function login(
     // Change the context to the specified user
     context.change_user(username, password);
 
-    // Change to the landing page
-    const success = await handleErrorResponse(() => ping(context));
+    // Ping the backend to validate the user
+    const success = (await handleErrorResponse(ping(context))) !== DEFAULT_HANDLED_ERROR_RESPONSE;
 
-    if (success === undefined) onSuccess();
+    // Run the success handler if succesfully
+    if (success) onSuccess();
 }
