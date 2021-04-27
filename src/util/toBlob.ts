@@ -1,14 +1,17 @@
+export type BlobSource = Uint8Array | ArrayBuffer
+
 /**
  * Converts a Uint8Array into a Blob.
  *
- * @param array
- *          The array to convert.
+ * @param source
+ *          The source to convert.
  * @return
  *          The blob.
  */
-export function toBlob(
-    array: Uint8Array | ArrayBuffer
+export default function toBlob(
+    source: BlobSource
 ): Blob {
-    if (array instanceof Uint8Array) array = array.buffer;
-    return new Blob([array]);
+    if (source instanceof Uint8Array) source = source.buffer;
+
+    return new Blob([source]);
 }
