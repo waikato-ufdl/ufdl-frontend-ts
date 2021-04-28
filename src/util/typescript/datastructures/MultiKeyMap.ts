@@ -1,4 +1,5 @@
-import {Head, Tail} from "../../tuple";
+import {Head} from "../types/array/Head";
+import {Tail} from "../types/array/Tail";
 import {mapAll, mapReduce} from "../../map";
 import {Absent, absentAsUndefined, isPresent, Possible} from "../types/Possible";
 
