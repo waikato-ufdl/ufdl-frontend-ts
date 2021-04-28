@@ -1,16 +1,10 @@
 import {BehaviorSubject} from "rxjs";
-import {observableReadableStream} from "./readableStream";
-import {concatUint8Array} from "../typescript/data/concatUint8Array";
-import behaviourSubjectOperatorFunction from "./behaviourSubjectOperatorFunction";
+import {observableReadableStream} from "../readableStream";
+import {concatUint8Array} from "../../typescript/data/concatUint8Array";
+import behaviourSubjectOperatorFunction from "../behaviourSubjectOperatorFunction";
 import {scan} from "rxjs/operators";
-import behaviourSubjectFromSubscribable from "./behaviourSubjectFromSubscribable";
-
-/*
- * Functionality for using a progressive download of data in RX.
- */
-
-/** A readable stream of data. */
-export type DataStream = ReadableStream<Uint8Array>
+import behaviourSubjectFromSubscribable from "../behaviourSubjectFromSubscribable";
+import {DataStream} from "ufdl-ts-client/types/base";
 
 /** A download progression of data. */
 export type DataStreamSubject = BehaviorSubject<Uint8Array>

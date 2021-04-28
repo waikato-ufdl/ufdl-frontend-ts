@@ -1,4 +1,5 @@
-import {DataStream, DataStreamSubject, dataStreamSubject} from "../rx/dataStream";
+import {DataStream} from "../../../../ufdl-ts-client/dist/types/base";
+import {DataStreamSubject, dataStreamSubject} from "../rx/data/DataStreamSubject";
 import completionPromise from "../rx/completionPromise";
 import toBlob from "../typescript/data/toBlob";
 import {BehaviorSubject} from "rxjs";

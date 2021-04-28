@@ -10,7 +10,8 @@ import {createInitAction} from "./actions/Init";
 import {mapGetDefault, mapSetDefault, mapToArray} from "../../../util/map";
 import {createSelectAction, SelectFunction} from "./actions/Select";
 import {ImageClassificationDataset, ImageClassificationDatasetItem} from "./ImageClassificationDataset";
-import {fromServer} from "../../../image/fromServer";
+import {get_file} from "ufdl-ts-client/functional/image_classification/dataset";
+import forDownload from "../../forDownload";
 import {ImageClassificationDatasetAction} from "./actions/actions";
 import {createAddFileAction} from "./actions/AddFile";
 import {createDeleteFileAction} from "./actions/DeleteFile";
@@ -137,7 +138,7 @@ async function loadDatasetInit(
         const data = mapGetDefault(
             imageCache,
             handle,
-            () => fromServer(context, pk.asNumber, filename),
+            () => forDownload(get_file)(context, pk.asNumber, filename),
             true
         );
 
