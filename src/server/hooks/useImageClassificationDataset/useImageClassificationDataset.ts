@@ -20,8 +20,6 @@ import {DatasetPK} from "../../pk";
 import useTaskWatcher, {TaskDispatch} from "../../../util/react/hooks/useTaskWatcher";
 import {FileCache, UFDL_FILE_CACHE_CONTEXT} from "../../FileCacheContext";
 import forEachOwnProperty from "../../../util/typescript/forEachOwnProperty";
-import {BehaviorSubject} from "rxjs";
-import completionPromise from "../../../util/rx/completionPromise";
 
 export type ImageClassificationDatasetMutator = {
     state: ImageClassificationDataset
