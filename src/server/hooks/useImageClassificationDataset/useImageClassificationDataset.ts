@@ -7,7 +7,7 @@ import {
     ImageClassificationDatasetReducer
 } from "./ImageClassificationDatasetReducer";
 import {createInitAction} from "./actions/Init";
-import {mapGetDefault, mapSetDefault, mapToArray} from "../../../util/map";
+import {mapGetDefault, mapMap, mapSetDefault, mapToArray} from "../../../util/map";
 import {createSelectAction, SelectFunction} from "./actions/Select";
 import {ImageClassificationDataset, ImageClassificationDatasetItem} from "./ImageClassificationDataset";
 import {get_file} from "ufdl-ts-client/functional/image_classification/dataset";
@@ -20,6 +20,8 @@ import {DatasetPK} from "../../pk";
 import useTaskWatcher, {TaskDispatch} from "../../../util/react/hooks/useTaskWatcher";
 import {FileCache, UFDL_FILE_CACHE_CONTEXT} from "../../FileCacheContext";
 import forEachOwnProperty from "../../../util/typescript/forEachOwnProperty";
+import compressFiles from "../../util/compressFiles";
+import {CategoriesFile} from "ufdl-ts-client/functional/image_classification/mixin_actions";
 
 export type ImageClassificationDatasetMutator = {
     state: ImageClassificationDataset
@@ -172,35 +174,33 @@ function addFiles(
     addTask: TaskDispatch,
     imageCache: FileCache
 ) {
-    files.forEach(
-        (file, filename) => {
-            addTask(async () => {
-                const [data, label] = file;
+    addTask(
+        async () => {
+            const dataMap = mapMap(
+                files,
+                (key, value) => [[key, value[0]]]
+            )
 
-                const response = await ICDataset.add_file(
-                    context,
-                    pk.asNumber,
-                    filename,
-                    data
-                );
+            const compressed = await compressFiles(dataMap);
+            const filesAdded = await ICDataset.add_files(context, pk.asNumber, compressed);
 
-                const handle = response.handle;
+            const labels: CategoriesFile = {}
 
+            for (const {filename, handle} of filesAdded) {
                 mapSetDefault(
                     imageCache,
                     handle,
-                    () => data
+                    () => dataMap.get(filename)!
                 );
 
-                if (label !== undefined) {
-                    await ICDataset.add_categories(
-                        context,
-                        pk.asNumber,
-                        [filename],
-                        [label]
-                    );
-                }
+                const label = files.get(filename)![1]
 
+                labels[filename] = label === undefined ? [] : [label]
+            }
+
+            await ICDataset.set_categories(context, pk.asNumber, labels);
+
+            for (const {filename, handle} of filesAdded) {
                 dispatch(
                     createAddFileAction(
                         filename,
@@ -209,13 +209,13 @@ function addFiles(
                             dataCache: imageCache,
                             resident: true,
                             selected: false,
-                            annotations: file[1]
+                            annotations: labels[filename][0]
                         }
                     )
                 );
-            });
+            }
         }
-    );
+    )
 }
 
 function deleteFiles(
