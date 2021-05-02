@@ -3,12 +3,11 @@ import React from "react";
 import {mapFromArray} from "../../../util/map";
 import "./AddImagesButton.css";
 import {LabelColours} from "./labels/LabelColours";
-import useStateSafe from "../../../util/react/hooks/useStateSafe";
-import {constantInitialiser} from "../../../util/typescript/initialisers";
 import {FunctionComponentReturnType} from "../../../util/react/types";
 import PickLabelModal from "./labels/PickLabelModal";
 import selectFiles from "../../../util/files/selectFiles";
 import getPathFromFile from "../../../util/files/getPathFromFile";
+import useLocalModal from "../../../util/react/hooks/useLocalModal";
 
 export type AddImagesButtonProps = {
     disabled?: boolean
@@ -21,13 +20,13 @@ export default function AddImagesButton(
     props: AddImagesButtonProps
 ): FunctionComponentReturnType {
 
-    const [modal, setModal] = useStateSafe<[number, number] | undefined>(constantInitialiser(undefined));
+    const pickLabelModal = useLocalModal();
 
     return <CenterContent>
         <div className={"AddImagesButton"}>
             <button
                 className={"AddFilesButton"}
-                onClick={(event) => setModal([event.clientX, event.clientY])}
+                onClick={pickLabelModal.onClick}
                 disabled={props.disabled}
             >
                 Files
@@ -48,16 +47,16 @@ export default function AddImagesButton(
             </button>
 
             <PickLabelModal
-                position={modal}
+                position={pickLabelModal.position}
                 onSubmit={(label) => {
-                    setModal(undefined);
+                    pickLabelModal.hide();
                     selectImages(selectFiles("multiple"), label).then(
                         (images) => {
                             if (images !== undefined) props.onSelected(images);
                         }
                     );
                 }}
-                onCancel={() => setModal(undefined)}
+                onCancel={pickLabelModal.hide}
                 labelColours={props.labelColours}
                 confirmText={"Select files..."}
             />

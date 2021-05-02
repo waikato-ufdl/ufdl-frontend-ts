@@ -1,7 +1,5 @@
 import React from "react";
 import {Optional} from "ufdl-ts-client/util";
-import useStateSafe from "../../../util/react/hooks/useStateSafe";
-import {constantInitialiser} from "../../../util/typescript/initialisers";
 import PickLabelModal from "./labels/PickLabelModal";
 import {LabelColours} from "./labels/LabelColours";
 import {SORT_ORDERS, SortOrder} from "./sorting";
@@ -9,6 +7,7 @@ import asChangeEventHandler from "../../../util/react/asChangeEventHandler";
 import {SelectFunction} from "../../../server/hooks/useImageClassificationDataset/actions/Select";
 import SelectionModal from "./SelectionModal";
 import {ImageClassificationDataset} from "../../../server/hooks/useImageClassificationDataset/ImageClassificationDataset";
+import useLocalModal from "../../../util/react/hooks/useLocalModal";
 
 export type ICAPBottomMenuProps = {
     onDeleteSelect: (() => void) | undefined
@@ -23,13 +22,9 @@ export type ICAPBottomMenuProps = {
 
 export default function ICAPBottomMenu(props: ICAPBottomMenuProps) {
 
-    const [labelModal, setLabelModal] = useStateSafe<[number, number] | undefined>(
-        constantInitialiser(undefined)
-    );
+    const labelModal = useLocalModal();
 
-    const [selectModal, setSelectModal] = useStateSafe<[number, number] | undefined>(
-        constantInitialiser(undefined)
-    );
+    const selectModal = useLocalModal();
 
     const [numSelected, outOf] = props.numSelected;
 
@@ -46,31 +41,31 @@ export default function ICAPBottomMenu(props: ICAPBottomMenuProps) {
         </button>
 
         <button
-            onClick={(event) => setSelectModal([event.clientX, event.clientY])}
+            onClick={selectModal.onClick}
             disabled={props.onSelect === undefined}
         >
             Select
         </button>
 
         <SelectionModal
-            position={selectModal}
+            position={selectModal.position}
             onSelect={props.onSelect!}
-            onCancel={() => setSelectModal(undefined)}
+            onCancel={selectModal.hide}
             labels={props.labelColours}
             evalDataset={props.evalDataset}
         />
 
         <button
-            onClick={(event) => setLabelModal([event.clientX, event.clientY])}
+            onClick={labelModal.onClick}
             disabled={props.onRelabelSelected === undefined}
         >
             Relabel
         </button>
 
         <PickLabelModal
-            position={labelModal}
+            position={labelModal.position}
             onSubmit={props.onRelabelSelected!}
-            onCancel={() => setLabelModal(undefined)}
+            onCancel={labelModal.hide}
             labelColours={props.labelColours}
             confirmText={"Relabel"}
         />

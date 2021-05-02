@@ -11,6 +11,7 @@ import WorkingPage from "./WorkingPage";
 import {constantInitialiser} from "../../../util/typescript/initialisers";
 import RefineOrDoneModal from "./RefineOrDoneModal";
 import tryGetBehaviourSubjectValue from "../../../util/rx/tryGetBehaviourSubjectValue";
+import useLocalModal from "../../../util/react/hooks/useLocalModal";
 
 export type TheLoopPageProps = {
     onBack?: () => void
@@ -26,7 +27,7 @@ export default function TheLoopPage(
 
     const [labelColours, setLabelColours] = useStateSafe<LabelColours | undefined>(constantInitialiser(undefined));
 
-    const [modalPosition, setModalPosition] = useStateSafe<[number, number] | undefined>(constantInitialiser(undefined));
+    const refineOrDoneModal = useLocalModal();
 
     switch (stateMachine.state) {
         case "Selecting Primary Dataset":
@@ -79,15 +80,15 @@ export default function TheLoopPage(
                     nextLabel={"Next"}
                     onNext={(_, __, labelColours, position) => {
                         setLabelColours(labelColours);
-                        setModalPosition(position);
+                        refineOrDoneModal.show(...position);
                     }}
                     onBack={stateMachine.transitions.back}
                 />
                 <RefineOrDoneModal
-                    onRefine={() => {setModalPosition(undefined); stateMachine.transitions.goodEnough(false)}}
-                    onDone={() => {setModalPosition(undefined); stateMachine.transitions.goodEnough(true)}}
-                    position={modalPosition}
-                    onCancel={() => setModalPosition(undefined)}
+                    onRefine={() => {refineOrDoneModal.hide(); stateMachine.transitions.goodEnough(false)}}
+                    onDone={() => {refineOrDoneModal.hide(); stateMachine.transitions.goodEnough(true)}}
+                    position={refineOrDoneModal.position}
+                    onCancel={() => refineOrDoneModal.hide()}
                 />
             </>;
 
