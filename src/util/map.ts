@@ -226,3 +226,46 @@ export function mapReduce<K, V, T>(
     );
     return total;
 }
+
+/**
+ * Adds all [key, value] pairs yielded by the iterator to
+ * the [map], in the order yielded (i.e. subsequent values
+ * override prior values for the same key).
+ *
+ * @param map
+ *          The map to add the entries to.
+ * @param entries
+ *          An iterator over the entries to add.
+ */
+export function mapAddAll<K, V>(
+    map: Map<K, V>,
+    entries: Iterable<readonly [K, V]>
+): void {
+    for (const [key, value] of entries) {
+        map.set(key, value);
+    }
+}
+
+/**
+ * Maps a map from one key/value type to another.
+ *
+ * @param map
+ *          The source map.
+ * @param func
+ *          A function which yields a number of [key, value]
+ *          pairs for a given entry in the source map.
+ * @return
+ *          The generated map.
+ */
+export function mapMap<K, V, K2, V2>(
+    map: ReadonlyMap<K, V>,
+    func: (key: K, value: V) => [K2, V2][]
+): Map<K2, V2> {
+    const result: Map<K2, V2> = new Map()
+
+    for (const [key, value] of map.entries()) {
+        mapAddAll(result, func(key, value))
+    }
+
+    return result;
+}
