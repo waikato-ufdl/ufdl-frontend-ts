@@ -21,7 +21,7 @@ export type LoginPageProps = {
 
 export default function LoginPage(props: LoginPageProps) {
 
-    const [username, setUsername, usernameLocked] = useControllableState<string>(
+    const [username, setUsername] = useControllableState<string>(
         props.username,
         constantInitialiser("")
     );
