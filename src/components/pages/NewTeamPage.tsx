@@ -49,6 +49,7 @@ export default function NewTeamPage(
                 <input
                     value={name}
                     onChange={asChangeEventHandler(setName)}
+                    autoFocus
                 />
             </label>
             <input type={"submit"} value={"Submit"} disabled={!canSubmit(name)} />

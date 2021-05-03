@@ -65,6 +65,7 @@ export default function NewProjectPage(
                 <input
                     value={name}
                     onChange={(event) => setName(event.target.value)}
+                    autoFocus
                 />
             </label>
             <input type={"submit"} value={"Submit"} disabled={!canSubmit(teamPK, name)} />
