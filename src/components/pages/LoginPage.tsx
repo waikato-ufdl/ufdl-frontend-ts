@@ -3,7 +3,6 @@ import React, {useContext} from "react";
 import {UFDL_SERVER_REACT_CONTEXT} from "../../server/UFDLServerContextProvider";
 import Page from "./Page";
 import {Form} from "../../util/react/component/Form";
-import {ping} from "ufdl-ts-client/functional/core/nodes/node";
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import useStateSafe from "../../util/react/hooks/useStateSafe";
 import {DEFAULT_HANDLED_ERROR_RESPONSE, handleErrorResponse} from "../../server/util/responseError";
@@ -11,6 +10,7 @@ import logo from "../../logo.svg"
 import "../../logo.css";
 import {constantInitialiser} from "../../util/typescript/initialisers";
 import asChangeEventHandler from "../../util/react/asChangeEventHandler";
+import isPromise from "../../util/typescript/async/isPromise";
 
 export type LoginPageProps = {
     id: "Log In"
@@ -68,8 +68,11 @@ async function login(
     // Change the context to the specified user
     context.change_user(username, password);
 
+    // Get the record for the new user
+    const userRecord = context.record;
+
     // Ping the backend to validate the user
-    const success = (await handleErrorResponse(ping(context))) !== DEFAULT_HANDLED_ERROR_RESPONSE;
+    const success = !isPromise(userRecord) || (await handleErrorResponse(userRecord)) !== DEFAULT_HANDLED_ERROR_RESPONSE;
 
     // Run the success handler if succesfully
     if (success) onSuccess();
