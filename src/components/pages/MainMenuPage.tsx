@@ -9,6 +9,7 @@ import NewTeamPage from "./NewTeamPage";
 import TheLoopPage from "./loop/TheLoopPage";
 import ImageClassificationAnnotatorPage from "./icap/ImageClassificationAnnotatorPage";
 import {UNCONTROLLED_KEEP} from "../../util/react/hooks/useControllableState";
+import NewUserPage from "./NewUserPage";
 
 export function MainMenuPage() {
 
@@ -22,8 +23,9 @@ export function MainMenuPage() {
         />
     }
 
-    return <MenuPage titleGenerator={["Dummy Page", "New Team", "New Project", "New Dataset", "ICAP", "The Loop"]}>
+    return <MenuPage titleGenerator={["Dummy Page", "New User", "New Team", "New Project", "New Dataset", "ICAP", "The Loop"]}>
         <DummyPage pings={42} />
+        <NewUserPage />
         <NewTeamPage />
         <NewProjectPage teamPK={UNCONTROLLED_KEEP} />
         <NewDatasetPage domain={UNCONTROLLED_KEEP} licencePK={UNCONTROLLED_KEEP} isPublic={UNCONTROLLED_KEEP} from={UNCONTROLLED_KEEP}/>
