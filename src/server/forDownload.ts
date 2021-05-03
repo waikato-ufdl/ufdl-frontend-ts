@@ -1,4 +1,4 @@
-import {DataStream} from "../../../ufdl-ts-client/dist/types/base";
+import {DataStream} from "ufdl-ts-client/types/base";
 import withPromiseParameters, {PromiseParameters} from "../util/typescript/async/withPromiseParameters";
 import {blobSubject, BlobSubject} from "../util/rx/data/BlobSubject";
 import {dataStreamSubject} from "../util/rx/data/DataStreamSubject";
