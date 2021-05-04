@@ -1,6 +1,7 @@
 import {useNonUpdatingReducer} from "./useNonUpdatingReducer";
 import useUpdateTrigger from "./useUpdateTrigger";
 import useDerivedState from "./useDerivedState";
+import isPromise from "../../typescript/async/isPromise";
 
 type TaskWatcherAction = {
     add: boolean
@@ -30,7 +31,7 @@ function taskWatcherInitialiser(
 }
 
 export type TaskDispatch = <T>(
-    task: () => Promise<T>,
+    task: (() => Promise<T>) | Promise<T>,
     renderOnComplete?: boolean,
     renderOnError?: boolean
 ) => Promise<T>
@@ -58,7 +59,7 @@ export default function useTaskWatcher(
                 let render: boolean = renderOnComplete !== false;
 
                 try {
-                    return await task();
+                    return await (isPromise(task) ? task : task());
                 } catch (e) {
                     render = renderOnError !== false;
                     throw e;
