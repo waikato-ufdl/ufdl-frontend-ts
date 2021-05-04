@@ -1,4 +1,4 @@
-import {Result} from "../types/Result";
+import {Result} from "../result";
 
 /**
  * Returns a promise that never fails, but instead returns
