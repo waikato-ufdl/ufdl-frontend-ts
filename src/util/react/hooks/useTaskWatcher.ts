@@ -1,5 +1,4 @@
-import {useNonUpdatingReducer} from "./useNonUpdatingReducer";
-import useUpdateTrigger from "./useUpdateTrigger";
+import useControlledUpdateReducer from "./useControlledUpdateReducer";
 import useDerivedState from "./useDerivedState";
 import isPromise from "../../typescript/async/isPromise";
 
@@ -40,15 +39,13 @@ export default function useTaskWatcher(
     // No parameters
 ): [boolean, TaskDispatch] {
 
-    const [state, dispatch] = useNonUpdatingReducer(
+    const [state, dispatch] = useControlledUpdateReducer(
         taskWatcherReducer,
         taskWatcherInitialiser
     );
 
-    const updateTrigger = useUpdateTrigger();
-
-    const taskDispatch = useDerivedState<TaskDispatch, [typeof dispatch, typeof updateTrigger]>(
-        ([dispatch, updateTrigger]) => (
+    const taskDispatch: TaskDispatch = useDerivedState(
+        () => (
             task,
             renderOnComplete,
             renderOnError
@@ -64,18 +61,17 @@ export default function useTaskWatcher(
                     render = renderOnError !== false;
                     throw e;
                 } finally {
-                    dispatch({add: false, task: runningTask});
-                    if (render) updateTrigger();
+                    dispatch({add: false, task: runningTask}, render);
                 }
             }
 
             runningTask = taskActual();
 
-            dispatch({add: true, task: runningTask});
+            dispatch({add: true, task: runningTask}, false);
 
             return runningTask;
         },
-        [dispatch, updateTrigger]
+        [dispatch]
     );
 
     return [state.size === 0, taskDispatch];
