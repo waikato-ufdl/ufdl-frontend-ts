@@ -1,3 +1,6 @@
+import {SelfIterableIterator} from "./SelfIterableIterator";
+import asIterable from "./asIterable";
+
 /**
  * Returns an iterable iterator over the literal [items]
  * given in the order of declaration.
@@ -9,6 +12,8 @@
  */
 export default function iterateLiteral<T>(
     ...items: T[]
-): IterableIterator<T> {
-    return items[Symbol.iterator]()
+): SelfIterableIterator<T> {
+    return asIterable(
+        items[Symbol.iterator]()
+    )
 }

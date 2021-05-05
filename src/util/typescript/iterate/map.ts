@@ -1,3 +1,6 @@
+import {SelfIterableIterator} from "./SelfIterableIterator";
+import asIterable from "./asIterable";
+
 /**
  * Maps values yield from an iterator from one type to another.
  *
@@ -11,7 +14,7 @@
 export default function iteratorMap<T, R, TReturn = any, TNext = undefined>(
     iter: Iterator<T, TReturn, TNext>,
     yieldMap: (value: T) => R
-): Iterator<R, TReturn, TNext> {
+): SelfIterableIterator<R, TReturn, TNext> {
 
     const iterReturn = iter.return === undefined ? undefined : iter.return.bind(iter);
     const iterThrow = iter.throw === undefined ? undefined : iter.throw.bind(iter);
@@ -24,13 +27,15 @@ export default function iteratorMap<T, R, TReturn = any, TNext = undefined>(
         ? undefined
         : (e?: any) => iteratorMapResult(iterThrow(e), yieldMap)
 
-    return {
-        next(...args) {
-            return iteratorMapResult(iter.next(...args), yieldMap);
-        },
-        return: mappedReturn,
-        throw: mappedThrow,
-    }
+    return asIterable(
+        {
+            next(...args) {
+                return iteratorMapResult(iter.next(...args), yieldMap);
+            },
+            return: mappedReturn,
+            throw: mappedThrow,
+        }
+    );
 }
 
 /**
