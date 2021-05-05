@@ -5,7 +5,7 @@ import {dataStreamSubject} from "../util/rx/data/DataStreamSubject";
 import {immediateBehaviourSubject} from "../util/rx/immediate";
 
 /**
- * Converts the actions that download data from the server into
+ * Converts actions that download data from the server into
  * functions which return blob-subjects.
  *
  * @param action
