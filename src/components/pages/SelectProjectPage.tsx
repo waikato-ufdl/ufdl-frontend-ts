@@ -1,7 +1,6 @@
 import {ProjectPK, TeamPK} from "../../server/pk";
 import {FunctionComponentReturnType} from "../../util/react/types";
 import useStateSafe from "../../util/react/hooks/useStateSafe";
-import {Optional} from "ufdl-ts-client/util";
 import {Controllable, UNCONTROLLED_KEEP, useControllableState} from "../../util/react/hooks/useControllableState";
 import Page from "./Page";
 import SelectTeamPage from "./SelectTeamPage";
@@ -27,13 +26,13 @@ export default function SelectProjectPage(
     props: SelectProjectPageProps
 ): FunctionComponentReturnType {
 
-    const [team, setTeam, teamLocked] = useControllableState<Optional<TeamPK>>(
+    const [team, setTeam, teamLocked] = useControllableState<TeamPK | undefined>(
         props.team,
         constantInitialiser(undefined)
     );
 
     const projectTeamFilter = useDerivedState(
-        ([team]) => team === undefined ? undefined : exactFilter("team", team?.asNumber),
+        ([team]) => team === undefined ? undefined : exactFilter("team", team.asNumber),
         [team]
     );
 

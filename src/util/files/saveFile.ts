@@ -1,4 +1,4 @@
-import {DataStream} from "../../../../ufdl-ts-client/dist/types/base";
+import {DataStream} from "ufdl-ts-client/types/base";
 import {DataStreamSubject, dataStreamSubject} from "../rx/data/DataStreamSubject";
 import completionPromise from "../rx/completionPromise";
 import toBlob from "../typescript/data/toBlob";

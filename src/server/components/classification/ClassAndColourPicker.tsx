@@ -1,15 +1,17 @@
 import React from "react";
-import {LabelColour} from "./LabelColours";
+import {ClassColour} from "../../util/classification";
 
-export type LabelAndColourPickerProps = {
+export type ClassAndColourPickerProps = {
     label: string
-    colour: LabelColour
-    onColourChanged: (newColour: LabelColour) => void
+    colour: ClassColour
+    onColourChanged: (newColour: ClassColour) => void
     onLabelDeleted: () => void
 }
 
-export default function LabelAndColourPicker(props: LabelAndColourPickerProps) {
-    return <div className={"LabelAndColourPicker"}>
+export default function ClassAndColourPicker(
+    props: ClassAndColourPickerProps
+) {
+    return <div className={"ClassAndColourPicker"}>
         <label>
             {props.label + ": "}
             <input

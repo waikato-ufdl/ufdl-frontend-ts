@@ -1,4 +1,4 @@
-import {RawJSONElement} from "ufdl-ts-client/types/raw";
+import {RawJSONElement} from "ufdl-ts-client/json/types";
 
 /**
  * Logs produced by jobs are JSON objects with timestamps (as strings)

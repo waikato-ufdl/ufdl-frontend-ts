@@ -5,13 +5,13 @@ import SelectDatasetPage from "../SelectDatasetPage";
 import {FunctionComponentReturnType} from "../../../util/react/types";
 import ImageClassificationAnnotatorPage from "../icap/ImageClassificationAnnotatorPage";
 import Page from "../Page";
-import {LabelColours} from "../icap/labels/LabelColours";
 import useTheLoopStateMachine from "./hooks/useTheLoopStateMachine/useTheLoopStateMachine";
 import WorkingPage from "./WorkingPage";
 import {constantInitialiser} from "../../../util/typescript/initialisers";
 import RefineOrDoneModal from "./RefineOrDoneModal";
 import tryGetBehaviourSubjectValue from "../../../util/rx/tryGetBehaviourSubjectValue";
 import useLocalModal from "../../../util/react/hooks/useLocalModal";
+import {ClassColours} from "../../../server/util/classification";
 
 export type TheLoopPageProps = {
     onBack?: () => void
@@ -25,7 +25,7 @@ export default function TheLoopPage(
 
     const stateMachine = useTheLoopStateMachine(ufdlServerContext);
 
-    const [labelColours, setLabelColours] = useStateSafe<LabelColours | undefined>(constantInitialiser(undefined));
+    const [classColours, setClassColours] = useStateSafe<ClassColours | undefined>(constantInitialiser(undefined));
 
     const refineOrDoneModal = useLocalModal();
 
@@ -45,10 +45,10 @@ export default function TheLoopPage(
 
             return <ImageClassificationAnnotatorPage
                 lockedPK={stateMachine.data.targetDataset}
-                initialLabelColours={labelColours}
+                initialColours={classColours}
                 nextLabel={latestModelPresent ? "Prelabel" : "Train"}
                 onNext={(_, __, labelColours) => {
-                    setLabelColours(labelColours);
+                    setClassColours(labelColours);
                     stateMachine.transitions.finishedSelectingImages();
                 }}
                 onBack={stateMachine.transitions.back}
@@ -76,10 +76,10 @@ export default function TheLoopPage(
                 <ImageClassificationAnnotatorPage
                     lockedPK={stateMachine.data.evaluationDataset}
                     evalPK={stateMachine.data.primaryDataset}
-                    initialLabelColours={labelColours}
+                    initialColours={classColours}
                     nextLabel={"Next"}
                     onNext={(_, __, labelColours, position) => {
-                        setLabelColours(labelColours);
+                        setClassColours(labelColours);
                         refineOrDoneModal.show(...position);
                     }}
                     onBack={stateMachine.transitions.back}
@@ -100,10 +100,10 @@ export default function TheLoopPage(
         case "User Fixing Categories":
             return <ImageClassificationAnnotatorPage
                 lockedPK={stateMachine.data.additionDataset}
-                initialLabelColours={labelColours}
+                initialColours={classColours}
                 nextLabel={"Accept"}
                 onNext={(_, __, labelColours) => {
-                    setLabelColours(labelColours);
+                    setClassColours(labelColours);
                     stateMachine.transitions.finishedFixing();
                 }}
                 onBack={stateMachine.transitions.back}

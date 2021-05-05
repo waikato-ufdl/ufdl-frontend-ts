@@ -1,7 +1,6 @@
 import {DatasetPK, ProjectPK, TeamPK} from "../../server/pk";
 import {FunctionComponentReturnType} from "../../util/react/types";
 import useStateSafe from "../../util/react/hooks/useStateSafe";
-import {Optional} from "ufdl-ts-client/util";
 import {
     Controllable,
     UNCONTROLLED_KEEP,
@@ -35,7 +34,7 @@ export default function SelectDatasetPage(
     props: SelectDatasetPageProps
 ): FunctionComponentReturnType {
 
-    const [from, setFrom, fromLocked] = useControllableState<Optional<ProjectPK | TeamPK>>(
+    const [from, setFrom, fromLocked] = useControllableState<ProjectPK | TeamPK | undefined>(
         props.from,
         () => undefined
     );

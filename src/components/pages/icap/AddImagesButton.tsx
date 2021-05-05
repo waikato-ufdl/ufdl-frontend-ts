@@ -2,17 +2,18 @@ import CenterContent from "../../CenterContent";
 import React from "react";
 import {mapFromArray} from "../../../util/map";
 import "./AddImagesButton.css";
-import {LabelColours} from "./labels/LabelColours";
 import {FunctionComponentReturnType} from "../../../util/react/types";
-import PickLabelModal from "./labels/PickLabelModal";
 import selectFiles from "../../../util/files/selectFiles";
 import getPathFromFile from "../../../util/files/getPathFromFile";
 import useLocalModal from "../../../util/react/hooks/useLocalModal";
+import {Classification, NO_CLASSIFICATION} from "../../../server/types/annotations";
+import {ClassColours} from "../../../server/util/classification";
+import PickClassModal from "../../../server/components/classification/PickClassModal";
 
 export type AddImagesButtonProps = {
     disabled?: boolean
-    onSelected: (files: Map<string, [Blob, string | undefined]>) => void
-    labelColours: LabelColours
+    onSelected: (files: ReadonlyMap<string, [Blob, Classification]>) => void
+    colours: ClassColours
 }
 
 
@@ -35,7 +36,8 @@ export default function AddImagesButton(
             <button
                 className={"AddFoldersButton"}
                 onClick={() => {
-                    selectImages(selectFiles("folder"), undefined).then(
+                    selectImages(
+                        selectFiles("folder"), NO_CLASSIFICATION).then(
                         (images) => {
                             if (images !== undefined) props.onSelected(images);
                         }
@@ -46,18 +48,18 @@ export default function AddImagesButton(
                 Folders
             </button>
 
-            <PickLabelModal
+            <PickClassModal
                 position={pickLabelModal.position}
-                onSubmit={(label) => {
+                onSubmit={(classification) => {
                     pickLabelModal.hide();
-                    selectImages(selectFiles("multiple"), label).then(
+                    selectImages(selectFiles("multiple"), classification).then(
                         (images) => {
                             if (images !== undefined) props.onSelected(images);
                         }
                     );
                 }}
                 onCancel={pickLabelModal.hide}
-                labelColours={props.labelColours}
+                colours={props.colours}
                 confirmText={"Select files..."}
             />
         </div>
@@ -66,8 +68,8 @@ export default function AddImagesButton(
 
 async function selectImages(
     filesPromise: Promise<File[] | null>,
-    labelOverride: string | undefined
-): Promise<Map<string, [Blob, string | undefined]> | undefined> {
+    labelOverride: Classification
+): Promise<Map<string, [Blob, Classification]> | undefined> {
     const files = await filesPromise;
 
     if (files === null || files.length === 0) return;

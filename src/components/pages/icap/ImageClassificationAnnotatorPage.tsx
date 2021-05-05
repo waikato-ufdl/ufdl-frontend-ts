@@ -4,37 +4,40 @@ import Page from "../Page";
 import ICAPTopMenu from "./ICAPTopMenu";
 import ImagesDisplay from "./ImagesDisplay";
 import ICAPBottomMenu from "./ICAPBottomMenu";
-import {LabelColour, LabelColours} from "./labels/LabelColours";
-import LabelColourPickerPage from "./labels/LabelColourPickerPage";
-import {mapAny} from "../../../util/map";
-import useImageClassificationDataset, {ImageClassificationDatasetMutator} from "../../../server/hooks/useImageClassificationDataset/useImageClassificationDataset";
+import {mapAny, mapMap} from "../../../util/map";
+import useImageClassificationDataset
+    from "../../../server/hooks/useImageClassificationDataset/useImageClassificationDataset";
 import DataImage from "../../../util/react/component/DataImage";
 import {BehaviorSubject} from "rxjs";
-import useLabelColours from "./labels/useLabelColours";
 import useStateSafe from "../../../util/react/hooks/useStateSafe";
 import NewDatasetPage from "../NewDatasetPage";
 import "./ImageClassificationAnnotatorPage.css";
 import {DatasetPK, getDatasetPK, getProjectPK, getTeamPK, ProjectPK, TeamPK} from "../../../server/pk";
 import useDerivedReducer from "../../../util/react/hooks/useDerivedReducer";
 import {createSimpleStateReducer} from "../../../util/react/hooks/SimpleStateReducer";
-import {Optional} from "ufdl-ts-client/util";
 import {constantInitialiser} from "../../../util/typescript/initialisers";
 import {SORT_FUNCTIONS, SortOrder} from "./sorting";
-import {toggleSelection} from "../../../server/hooks/useImageClassificationDataset/actions/SELECTIONS";
 import {UNCONTROLLED_KEEP} from "../../../util/react/hooks/useControllableState";
-import {storeColoursInContext} from "./labels/storage";
+import ImageClassificationDatasetDispatch
+    from "../../../server/hooks/useImageClassificationDataset/ImageClassificationDatasetDispatch";
+import {IMAGE_CACHE_CONTEXT} from "../../../App";
+import {NO_CLASSIFICATION} from "../../../server/types/annotations";
+import {toggleSelection} from "../../../server/hooks/useDataset/selection/selections";
+import {ClassColour, ClassColours, storeColoursInContext} from "../../../server/util/classification";
+import useClassColours from "../../../server/hooks/useClassColours";
+import ClassColourPickerPage from "../ClassColourPickerPage";
 
 type AnyPK = DatasetPK | ProjectPK | TeamPK | undefined
 
 export type ICAPProps = {
     lockedPK?: AnyPK,
     evalPK?: DatasetPK,
-    initialLabelColours?: LabelColours
+    initialColours?: ClassColours
     nextLabel?: string
     onNext?: (
         selectedPK: AnyPK,
-        dataset: Optional<ImageClassificationDatasetMutator>,
-        labelColours: LabelColours,
+        dataset: ImageClassificationDatasetDispatch | undefined,
+        labelColours: ClassColours,
         position: [number, number]
     ) => void
     onBack?: () => void
@@ -53,11 +56,19 @@ export default function ImageClassificationAnnotatorPage(
         [props.lockedPK] as const
     );
 
-    const dataset = useImageClassificationDataset(ufdlServerContext, getDatasetPK(selectedPK));
+    const dataset = useImageClassificationDataset(
+        ufdlServerContext,
+        IMAGE_CACHE_CONTEXT,
+        getDatasetPK(selectedPK)
+    );
 
-    const evalDataset = useImageClassificationDataset(ufdlServerContext, props.evalPK);
+    const evalDataset = useImageClassificationDataset(
+        ufdlServerContext,
+        IMAGE_CACHE_CONTEXT,
+        props.evalPK
+    );
 
-    const labelColoursDispatch = useLabelColours(dataset?.state, props.initialLabelColours);
+    const classColoursDispatch = useClassColours(dataset?.items, props.initialColours);
 
     const [sortOrder, setSortOrder] = useStateSafe<SortOrder>(constantInitialiser("filename"));
 
@@ -76,31 +87,34 @@ export default function ImageClassificationAnnotatorPage(
             onBack={() => setShowNewDatasetPage(false)}
         />
     } else if (showLabelColourPickerPage) {
-        return <LabelColourPickerPage
-            labelColours={labelColoursDispatch.state}
+        return <ClassColourPickerPage
+            colours={classColoursDispatch.state}
             onColourChanged={
                 (changedLabel, _, newColour) => {
-                    const colourInUse = (label: string, colour: LabelColour) =>
+                    const colourInUse = (label: string, colour: ClassColour) =>
                         label !== changedLabel && colour === newColour;
 
-                    if (mapAny(labelColoursDispatch.state, colourInUse)) {
+                    if (mapAny(classColoursDispatch.state, colourInUse)) {
                         return;
                     }
 
-                    labelColoursDispatch.set(changedLabel, newColour);
+                    classColoursDispatch.set(changedLabel, newColour);
                 }
             }
-            onNewLabel={(label) => labelColoursDispatch.add(label)}
-            onLabelDeleted={(label) => {
-                labelColoursDispatch.delete(label);
-                if (dataset !== undefined) dataset.state.forEach(
-                    (item, filename) => {
-                        if (item.annotations === label) dataset.setLabel(filename, undefined);
-                    }
+            onNewClass={(classification) => classColoursDispatch.add(classification)}
+            onClassDeleted={(classification) => {
+                classColoursDispatch.delete(classification);
+                if (dataset !== undefined) dataset.setAnnotations(
+                    mapMap(
+                        dataset.items,
+                        (filename, item) => item.annotations === classification
+                            ? [[filename, NO_CLASSIFICATION]]
+                            : []
+                    )
                 )
             }}
             onBack={() => {
-                storeColoursInContext(labelColoursDispatch.state, ufdlServerContext);
+                storeColoursInContext(classColoursDispatch.state, ufdlServerContext);
                 setShowLabelColourPickerPage(false)
             }}
         />
@@ -140,24 +154,24 @@ export default function ImageClassificationAnnotatorPage(
             onRequestNewDataset={() => setShowNewDatasetPage(true)}
             nextLabel={props.nextLabel}
             onNext={(position) => {
-                if (props.onNext !== undefined) props.onNext(selectedPK, dataset, labelColoursDispatch.state, position)
+                if (props.onNext !== undefined) props.onNext(selectedPK, dataset, classColoursDispatch.state, position)
             }}
             nextDisabled={dataset === undefined || !dataset.synchronised}
             onBack={props.onBack}
         />
 
         <ImagesDisplay
-            dataset={dataset === undefined ? undefined : dataset.state}
-            evalDataset={evalDataset === undefined ? undefined: evalDataset.state}
+            dataset={dataset?.items}
+            evalDataset={evalDataset?.items}
             onFileSelected={(filename) => {if (dataset !== undefined) dataset.select(toggleSelection(filename))}}
-            onLabelChanged={
+            onReclassify={
                 (filename, _, newLabel) => {
-                    if (dataset !== undefined) dataset.setLabel(filename, newLabel);
+                    if (dataset !== undefined) dataset.setAnnotation(filename, newLabel);
                 }
             }
-            onFileClicked={(_, file) => setShowLargeImageOverlay(file.dataCache.getURL(file.dataHandle))}
+            onFileClicked={(_, file) => setShowLargeImageOverlay(file.dataCache.getConverted(file.dataHandle))}
             onAddFiles={(files) => {if (dataset !== undefined) dataset.addFiles(files)}}
-            labelColours={labelColoursDispatch.state}
+            colours={classColoursDispatch.state}
             sortFunction={SORT_FUNCTIONS[sortOrder]}
         />
 
@@ -165,11 +179,11 @@ export default function ImageClassificationAnnotatorPage(
             onDeleteSelect={dataset === undefined ? undefined : dataset.deleteSelectedFiles.bind(dataset)}
             onSelect={dataset === undefined ? undefined : dataset.select.bind(dataset)}
             onRequestLabelColourPickerOverlay={() => setShowLabelColourPickerPage(true)}
-            onRelabelSelected={dataset !== undefined ? dataset.relabelSelectedFiles.bind(dataset) : undefined}
+            onRelabelSelected={dataset?.setAnnotationsForSelected?.bind(dataset)}
             onSortChanged={setSortOrder}
-            labelColours={labelColoursDispatch.state}
-            evalDataset={evalDataset?.state}
-            numSelected={dataset === undefined ? [0, 0] : [dataset.selectedFiles.length, dataset.state.size]}
+            colours={classColoursDispatch.state}
+            evalDataset={evalDataset?.items}
+            numSelected={dataset === undefined ? [0, 0] : [dataset.numSelected, dataset.items.size]}
         />
     </Page>
 }

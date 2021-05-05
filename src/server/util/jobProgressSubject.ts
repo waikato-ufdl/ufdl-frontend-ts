@@ -1,5 +1,5 @@
 import {BehaviorSubject, Observable} from "rxjs";
-import {RawJSONObject} from "ufdl-ts-client/types/raw";
+import {RawJSONObject} from "ufdl-ts-client/json/types";
 import {filter, map} from "rxjs/operators";
 import behaviourSubjectFromSubscribable from "../../util/rx/behaviourSubjectFromSubscribable";
 

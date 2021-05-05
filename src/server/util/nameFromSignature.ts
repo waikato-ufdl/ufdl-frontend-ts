@@ -1,4 +1,4 @@
-import {RawJSONObject} from "ufdl-ts-client/types/raw";
+import {RawJSONObject} from "ufdl-ts-client/json/types";
 
 export default function nameFromSignature(
     json: RawJSONObject & { name: string, version: number }

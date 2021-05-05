@@ -1,22 +1,23 @@
 import React from "react";
-import {Optional} from "ufdl-ts-client/util";
-import PickLabelModal from "./labels/PickLabelModal";
-import {LabelColours} from "./labels/LabelColours";
 import {SORT_ORDERS, SortOrder} from "./sorting";
 import asChangeEventHandler from "../../../util/react/asChangeEventHandler";
-import {SelectFunction} from "../../../server/hooks/useImageClassificationDataset/actions/Select";
 import SelectionModal from "./SelectionModal";
-import {ImageClassificationDataset} from "../../../server/hooks/useImageClassificationDataset/ImageClassificationDataset";
 import useLocalModal from "../../../util/react/hooks/useLocalModal";
+import {SelectFunction} from "../../../server/hooks/useDataset/selection/SelectFunction";
+import {Image} from "../../../server/types/data";
+import {Classification} from "../../../server/types/annotations";
+import {Dataset} from "../../../server/types/Dataset";
+import {ClassColours} from "../../../server/util/classification";
+import PickClassModal from "../../../server/components/classification/PickClassModal";
 
 export type ICAPBottomMenuProps = {
     onDeleteSelect: (() => void) | undefined
-    onSelect: ((select: SelectFunction) => void) | undefined
-    onRelabelSelected: ((label: Optional<string>) => void) | undefined
+    onSelect: ((select: SelectFunction<Image, Classification>) => void) | undefined
+    onRelabelSelected: ((label: Classification) => void) | undefined
     onRequestLabelColourPickerOverlay: (() => void) | undefined
     onSortChanged: (order: SortOrder) => void
-    labelColours: LabelColours
-    evalDataset: ImageClassificationDataset | undefined
+    colours: ClassColours
+    evalDataset: Dataset<Image, Classification> | undefined
     numSelected: [number, number]
 }
 
@@ -51,7 +52,7 @@ export default function ICAPBottomMenu(props: ICAPBottomMenuProps) {
             position={selectModal.position}
             onSelect={props.onSelect!}
             onCancel={selectModal.hide}
-            labels={props.labelColours}
+            classColours={props.colours}
             evalDataset={props.evalDataset}
         />
 
@@ -62,11 +63,11 @@ export default function ICAPBottomMenu(props: ICAPBottomMenuProps) {
             Relabel
         </button>
 
-        <PickLabelModal
+        <PickClassModal
             position={labelModal.position}
             onSubmit={props.onRelabelSelected!}
             onCancel={labelModal.hide}
-            labelColours={props.labelColours}
+            colours={props.colours}
             confirmText={"Relabel"}
         />
 

@@ -1,30 +1,31 @@
 import {FunctionComponentReturnType} from "../../../util/react/types";
 import LocalModal from "../../../util/react/component/LocalModal";
-import {SelectFunction} from "../../../server/hooks/useImageClassificationDataset/actions/Select";
 import {
-    SELECT_ALL,
-    SELECT_NONE,
+    selectClassification,
     selectCorrect,
-    selectIncorrect,
-    selectLabel
-} from "../../../server/hooks/useImageClassificationDataset/actions/SELECTIONS";
-import {LabelColours} from "./labels/LabelColours";
-import LabelSelect from "./labels/LabelSelect";
-import {ImageClassificationDataset} from "../../../server/hooks/useImageClassificationDataset/ImageClassificationDataset";
+    selectIncorrect
+} from "../../../server/hooks/useImageClassificationDataset/selection/selections";
+import {SelectFunction} from "../../../server/hooks/useDataset/selection/SelectFunction";
+import {Image} from "../../../server/types/data";
+import {Classification, NO_CLASSIFICATION} from "../../../server/types/annotations";
+import {Dataset} from "../../../server/types/Dataset";
+import {SELECT_ALL, SELECT_NONE} from "../../../server/hooks/useDataset/selection/selections";
+import {ClassColours} from "../../../server/util/classification";
+import ClassSelect from "../../../server/components/classification/ClassSelect";
 
 export type SelectionModalProps = {
     position: [number, number] | undefined
-    onSelect: (func: SelectFunction) => void
+    onSelect: (func: SelectFunction<Image, Classification>) => void
     onCancel: () => void,
-    labels: LabelColours,
-    evalDataset: ImageClassificationDataset | undefined
+    classColours: ClassColours,
+    evalDataset: Dataset<Image, Classification> | undefined
 }
 
 export default function SelectionModal(
     props: SelectionModalProps
 ): FunctionComponentReturnType {
 
-    const onSelectActual = (func: SelectFunction) => {
+    const onSelectActual = (func: SelectFunction<Image, Classification>) => {
         props.onSelect(func);
         props.onCancel();
     };
@@ -39,12 +40,12 @@ export default function SelectionModal(
         <button onClick={() => onSelectActual(SELECT_NONE)}>
             None
         </button>
-        <LabelSelect
-            onRelabelled={(_, label) => {
-                onSelectActual(selectLabel(label))
+        <ClassSelect
+            onReclassify={(_, label) => {
+                onSelectActual(selectClassification(label))
             }}
-            label={undefined}
-            labelColours={props.labels}
+            classification={NO_CLASSIFICATION}
+            colours={props.classColours}
             allowSelectNone
         />
         <button

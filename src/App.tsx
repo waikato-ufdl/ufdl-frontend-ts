@@ -3,23 +3,18 @@ import './App.css';
 import Window from "./components/Window";
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import {MainMenuPage} from "./components/pages/MainMenuPage";
-import {FileCache, UFDLImageCacheProvider} from "./server/FileCacheContext";
-import useDerivedState from "./util/react/hooks/useDerivedState";
+import dataCacheContext from "./server/dataCacheContext";
+
+export const [IMAGE_CACHE_CONTEXT, IMAGE_CACHE_PROVIDER] = dataCacheContext(URL.createObjectURL);
 
 export default function App() {
     const context = UFDLServerContext.for_current_host("", "");
 
-    // Create a new file cache on server change
-    const fileCache = useDerivedState(
-        () => new FileCache(),
-        [context.host]
-    );
-
     return <div className="App fullScreen">
-        <UFDLImageCacheProvider context={fileCache}>
+        <IMAGE_CACHE_PROVIDER>
             <Window context={context}>
                 <MainMenuPage />
             </Window>
-        </UFDLImageCacheProvider>
+        </IMAGE_CACHE_PROVIDER>
     </div>
 }
