@@ -39,3 +39,12 @@ export function catchErrorAsResult<T, E = any>(
         return result(false, e);
     }
 }
+
+export function mapResult<T, T2, E = any>(
+    result: Result<T, E>,
+    func: (value: T) => T2
+): Result<T2, E> {
+    return result.success
+        ? { success: true, value: func(result.value) }
+        : result
+}
