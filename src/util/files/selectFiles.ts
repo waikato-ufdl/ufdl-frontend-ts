@@ -1,8 +1,10 @@
 import {rendezvous} from "../typescript/async/rendezvous";
 
+export type SelectFilesMethod = "folder" | "multiple" | "single"
+
 export default async function selectFiles(method: "folder" | "multiple"): Promise<File[] | null>;
 export default async function selectFiles(method: "single"): Promise<File | null>;
-export default async function selectFiles(method: "folder" | "multiple" | "single"): Promise<File[] | File | null>;
+export default async function selectFiles(method: SelectFilesMethod): Promise<File[] | File | null>;
 
 /**
  * Selects files from the user's file-system.
@@ -15,7 +17,7 @@ export default async function selectFiles(method: "folder" | "multiple" | "singl
  *          A promise of the files, or null if none were
  */
 export default async function selectFiles(
-    method: "folder" | "multiple" | "single"
+    method: SelectFilesMethod
 ): Promise<File[] | File | null> {
     // Create a rendezvous between the file-selector and the resulting files
     const [promise, resolve, reject] = rendezvous<File[] | File | null>();
