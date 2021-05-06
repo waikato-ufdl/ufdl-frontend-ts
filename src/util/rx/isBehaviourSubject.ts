@@ -8,8 +8,8 @@ import {BehaviorSubject} from "rxjs";
  * @return
  *          true if the argument is a behaviour subject, false if not.
  */
-export default function isBehaviourSubject(
-    value: any
-): value is BehaviorSubject<any> {
+export default function isBehaviourSubject<T>(
+    value: T
+): value is T extends BehaviorSubject<any> ? T : never {
     return value instanceof BehaviorSubject;
 }
