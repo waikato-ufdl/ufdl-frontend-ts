@@ -1,15 +1,15 @@
-import {FunctionComponentReturnType} from "../../../util/react/types";
-import {numberWithSuffix} from "../../../util/numberWithSuffix";
+import {FunctionComponentReturnType} from "../../../../util/react/types";
+import {numberWithSuffix} from "../../../../util/numberWithSuffix";
 import React, {CSSProperties} from "react";
-import CenterContent from "../../CenterContent";
-import DataImage from "../../../util/react/component/DataImage";
-import {DatasetItem} from "../../../server/types/DatasetItem";
-import {Classification, NO_CLASSIFICATION} from "../../../server/types/annotations";
-import {Image} from "../../../server/types/data";
-import {Absent, Possible} from "../../../util/typescript/types/Possible";
+import CenterContent from "../../../CenterContent";
+import DataImage from "../../../../util/react/component/DataImage";
+import {DatasetItem} from "../../../../server/types/DatasetItem";
+import {Classification, NO_CLASSIFICATION} from "../../../../server/types/annotations";
+import {Image} from "../../../../server/types/data";
+import {Absent, Possible} from "../../../../util/typescript/types/Possible";
 import "./ICDatasetItem.css";
-import {ClassColours} from "../../../server/util/classification";
-import ClassSelect from "../../../server/components/classification/ClassSelect";
+import {ClassColours} from "../../../../server/util/classification";
+import ClassSelect from "../../../../server/components/classification/ClassSelect";
 
 export const SELECTED_BORDER_WIDTH_PX: number = 3;
 export const UNSELECTED_BORDER_WIDTH_PX: number = 2;

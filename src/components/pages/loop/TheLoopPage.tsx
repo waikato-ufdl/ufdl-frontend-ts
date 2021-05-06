@@ -3,7 +3,7 @@ import {UFDL_SERVER_REACT_CONTEXT} from "../../../server/UFDLServerContextProvid
 import useStateSafe from "../../../util/react/hooks/useStateSafe";
 import SelectDatasetPage from "../SelectDatasetPage";
 import {FunctionComponentReturnType} from "../../../util/react/types";
-import ImageClassificationAnnotatorPage from "../icap/ImageClassificationAnnotatorPage";
+import ImageClassificationAnnotatorPage from "../annotation/icap/ImageClassificationAnnotatorPage";
 import Page from "../Page";
 import useTheLoopStateMachine from "./hooks/useTheLoopStateMachine/useTheLoopStateMachine";
 import WorkingPage from "./WorkingPage";

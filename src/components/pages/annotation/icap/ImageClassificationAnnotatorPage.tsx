@@ -1,31 +1,31 @@
 import React, {useContext} from "react";
-import {UFDL_SERVER_REACT_CONTEXT} from "../../../server/UFDLServerContextProvider";
-import Page from "../Page";
+import {UFDL_SERVER_REACT_CONTEXT} from "../../../../server/UFDLServerContextProvider";
+import Page from "../../Page";
 import ICAPTopMenu from "./ICAPTopMenu";
 import ImagesDisplay from "./ImagesDisplay";
 import ICAPBottomMenu from "./ICAPBottomMenu";
-import {mapAny, mapMap} from "../../../util/map";
+import {mapAny, mapMap} from "../../../../util/map";
 import useImageClassificationDataset
-    from "../../../server/hooks/useImageClassificationDataset/useImageClassificationDataset";
-import DataImage from "../../../util/react/component/DataImage";
+    from "../../../../server/hooks/useImageClassificationDataset/useImageClassificationDataset";
+import DataImage from "../../../../util/react/component/DataImage";
 import {BehaviorSubject} from "rxjs";
-import useStateSafe from "../../../util/react/hooks/useStateSafe";
-import NewDatasetPage from "../NewDatasetPage";
+import useStateSafe from "../../../../util/react/hooks/useStateSafe";
+import NewDatasetPage from "../../NewDatasetPage";
 import "./ImageClassificationAnnotatorPage.css";
-import {DatasetPK, getDatasetPK, getProjectPK, getTeamPK, ProjectPK, TeamPK} from "../../../server/pk";
-import useDerivedReducer from "../../../util/react/hooks/useDerivedReducer";
-import {createSimpleStateReducer} from "../../../util/react/hooks/SimpleStateReducer";
-import {constantInitialiser} from "../../../util/typescript/initialisers";
+import {DatasetPK, getDatasetPK, getProjectPK, getTeamPK, ProjectPK, TeamPK} from "../../../../server/pk";
+import useDerivedReducer from "../../../../util/react/hooks/useDerivedReducer";
+import {createSimpleStateReducer} from "../../../../util/react/hooks/SimpleStateReducer";
+import {constantInitialiser} from "../../../../util/typescript/initialisers";
 import {SORT_FUNCTIONS, SortOrder} from "./sorting";
-import {UNCONTROLLED_KEEP} from "../../../util/react/hooks/useControllableState";
+import {UNCONTROLLED_KEEP} from "../../../../util/react/hooks/useControllableState";
 import ImageClassificationDatasetDispatch
-    from "../../../server/hooks/useImageClassificationDataset/ImageClassificationDatasetDispatch";
-import {IMAGE_CACHE_CONTEXT} from "../../../App";
-import {NO_CLASSIFICATION} from "../../../server/types/annotations";
-import {toggleSelection} from "../../../server/hooks/useDataset/selection/selections";
-import {ClassColour, ClassColours, storeColoursInContext} from "../../../server/util/classification";
-import useClassColours from "../../../server/hooks/useClassColours";
-import ClassColourPickerPage from "../ClassColourPickerPage";
+    from "../../../../server/hooks/useImageClassificationDataset/ImageClassificationDatasetDispatch";
+import {IMAGE_CACHE_CONTEXT} from "../../../../App";
+import {NO_CLASSIFICATION} from "../../../../server/types/annotations";
+import {toggleSelection} from "../../../../server/hooks/useDataset/selection/selections";
+import {ClassColour, ClassColours, storeColoursInContext} from "../../../../server/util/classification";
+import useClassColours from "../../../../server/hooks/useClassColours";
+import ClassColourPickerPage from "../../ClassColourPickerPage";
 
 type AnyPK = DatasetPK | ProjectPK | TeamPK | undefined
 

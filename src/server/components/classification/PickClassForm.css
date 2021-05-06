@@ -1,13 +1,13 @@
-.PickLabelModal > * {
+.PickLabelForm > * {
     display: block;
     margin-top: 5px;
     margin-bottom: 5px;
 }
 
-.PickLabelModal > label {
+.PickLabelForm > label {
     margin-right: 5px;
 }
 
-.PickLabelModal > p {
+.PickLabelForm > p {
     font-weight: bold;
 }

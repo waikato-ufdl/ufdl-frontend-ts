@@ -1,9 +1,9 @@
-import {ElementType} from "../../../util/typescript/types/array/ElementType";
-import {localeCompareUndefined} from "../../../util/typescript/strings/localeCompareUndefined";
-import {DatasetItem} from "../../../server/types/DatasetItem";
-import {Image} from "../../../server/types/data";
-import {Classification} from "../../../server/types/annotations";
-import {asLabel} from "../../../server/util/classification";
+import {ElementType} from "../../../../util/typescript/types/array/ElementType";
+import {localeCompareUndefined} from "../../../../util/typescript/strings/localeCompareUndefined";
+import {DatasetItem} from "../../../../server/types/DatasetItem";
+import {Image} from "../../../../server/types/data";
+import {Classification} from "../../../../server/types/annotations";
+import {asLabel} from "../../../../server/util/classification";
 
 export type SortFunction = (
     a: DatasetItem<Image, Classification>,

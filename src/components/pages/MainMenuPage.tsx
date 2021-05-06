@@ -7,7 +7,7 @@ import useStateSafe from "../../util/react/hooks/useStateSafe";
 import NewDatasetPage from "./NewDatasetPage";
 import NewTeamPage from "./NewTeamPage";
 import TheLoopPage from "./loop/TheLoopPage";
-import ImageClassificationAnnotatorPage from "./icap/ImageClassificationAnnotatorPage";
+import ImageClassificationAnnotatorPage from "./annotation/icap/ImageClassificationAnnotatorPage";
 import {UNCONTROLLED_KEEP} from "../../util/react/hooks/useControllableState";
 import NewUserPage from "./NewUserPage";
 

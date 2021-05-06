@@ -1,17 +1,17 @@
-import {FunctionComponentReturnType} from "../../../util/react/types";
-import LocalModal from "../../../util/react/component/LocalModal";
+import {FunctionComponentReturnType} from "../../../../util/react/types";
+import LocalModal from "../../../../util/react/component/LocalModal";
 import {
     selectClassification,
     selectCorrect,
     selectIncorrect
-} from "../../../server/hooks/useImageClassificationDataset/selection/selections";
-import {SelectFunction} from "../../../server/hooks/useDataset/selection/SelectFunction";
-import {Image} from "../../../server/types/data";
-import {Classification, NO_CLASSIFICATION} from "../../../server/types/annotations";
-import {Dataset} from "../../../server/types/Dataset";
-import {SELECT_ALL, SELECT_NONE} from "../../../server/hooks/useDataset/selection/selections";
-import {ClassColours} from "../../../server/util/classification";
-import ClassSelect from "../../../server/components/classification/ClassSelect";
+} from "../../../../server/hooks/useImageClassificationDataset/selection/selections";
+import {SelectFunction} from "../../../../server/hooks/useDataset/selection/SelectFunction";
+import {Image} from "../../../../server/types/data";
+import {Classification, NO_CLASSIFICATION} from "../../../../server/types/annotations";
+import {Dataset} from "../../../../server/types/Dataset";
+import {SELECT_ALL, SELECT_NONE} from "../../../../server/hooks/useDataset/selection/selections";
+import {ClassColours} from "../../../../server/util/classification";
+import ClassSelect from "../../../../server/components/classification/ClassSelect";
 
 export type SelectionModalProps = {
     position: [number, number] | undefined

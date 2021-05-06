@@ -1,14 +1,15 @@
 import React from "react";
 import {SORT_ORDERS, SortOrder} from "./sorting";
-import asChangeEventHandler from "../../../util/react/asChangeEventHandler";
+import asChangeEventHandler from "../../../../util/react/asChangeEventHandler";
 import SelectionModal from "./SelectionModal";
-import useLocalModal from "../../../util/react/hooks/useLocalModal";
-import {SelectFunction} from "../../../server/hooks/useDataset/selection/SelectFunction";
-import {Image} from "../../../server/types/data";
-import {Classification} from "../../../server/types/annotations";
-import {Dataset} from "../../../server/types/Dataset";
-import {ClassColours} from "../../../server/util/classification";
-import PickClassModal from "../../../server/components/classification/PickClassModal";
+import useLocalModal from "../../../../util/react/hooks/useLocalModal";
+import {SelectFunction} from "../../../../server/hooks/useDataset/selection/SelectFunction";
+import {Image} from "../../../../server/types/data";
+import {Classification} from "../../../../server/types/annotations";
+import {Dataset} from "../../../../server/types/Dataset";
+import {ClassColours} from "../../../../server/util/classification";
+import LocalModal from "../../../../util/react/component/LocalModal";
+import PickClassForm from "../../../../server/components/classification/PickClassForm";
 
 export type ICAPBottomMenuProps = {
     onDeleteSelect: (() => void) | undefined
@@ -63,13 +64,16 @@ export default function ICAPBottomMenu(props: ICAPBottomMenuProps) {
             Relabel
         </button>
 
-        <PickClassModal
+        <LocalModal
             position={labelModal.position}
-            onSubmit={props.onRelabelSelected!}
             onCancel={labelModal.hide}
-            colours={props.colours}
-            confirmText={"Relabel"}
-        />
+        >
+            <PickClassForm
+                onSubmit={props.onRelabelSelected!}
+                colours={props.colours}
+                confirmText={"Relabel"}
+            />
+        </LocalModal>
 
         <button
             onClick={props.onRequestLabelColourPickerOverlay}

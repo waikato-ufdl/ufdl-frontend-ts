@@ -1,16 +1,16 @@
-import {TeamSelect} from "../../TeamSelect";
-import {ProjectSelect} from "../../ProjectSelect";
-import {ListSelect} from "../../ListSelect";
+import {TeamSelect} from "../../../TeamSelect";
+import {ProjectSelect} from "../../../ProjectSelect";
+import {ListSelect} from "../../../ListSelect";
 import * as ICDataset from "ufdl-ts-client/functional/image_classification/dataset";
 import React from "react";
-import {BackButton} from "../../BackButton";
-import {exactFilter} from "../../../server/util/exactFilter";
+import {BackButton} from "../../../BackButton";
+import {exactFilter} from "../../../../server/util/exactFilter";
 import {DatasetInstance} from "ufdl-ts-client/types/core/dataset";
 import {TeamInstance} from "ufdl-ts-client/types/core/team";
 import {ProjectInstance} from "ufdl-ts-client/types/core/project";
-import useDerivedState from "../../../util/react/hooks/useDerivedState";
-import {DatasetPK, getDatasetPK, getProjectPK, getTeamPK, ProjectPK, TeamPK} from "../../../server/pk";
-import nameFromSignature from "../../../server/util/nameFromSignature";
+import useDerivedState from "../../../../util/react/hooks/useDerivedState";
+import {DatasetPK, getDatasetPK, getProjectPK, getTeamPK, ProjectPK, TeamPK} from "../../../../server/pk";
+import nameFromSignature from "../../../../server/util/nameFromSignature";
 
 export type ICAPTopMenuProps = {
     selectedPK: DatasetPK | ProjectPK | TeamPK | undefined

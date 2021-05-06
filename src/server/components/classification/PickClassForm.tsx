@@ -1,26 +1,24 @@
-import "./PickClassModal.css";
-import {Classification, NO_CLASSIFICATION} from "../../types/annotations";
-import {ClassColours} from "../../util/classification";
 import {FunctionComponentReturnType} from "../../../util/react/types";
+import {Form} from "../../../util/react/component/Form";
+import {Classification, NO_CLASSIFICATION} from "../../types/annotations";
+import asChangeEventHandler from "../../../util/react/asChangeEventHandler";
+import ClassSelect from "./ClassSelect";
+import React from "react";
 import useStateSafe from "../../../util/react/hooks/useStateSafe";
 import {constantInitialiser} from "../../../util/typescript/initialisers";
-import LocalModal from "../../../util/react/component/LocalModal";
-import {Form} from "../../../util/react/component/Form";
-import asChangeEventHandler from "../../../util/react/asChangeEventHandler";
-import React from "react";
-import ClassSelect from "./ClassSelect";
+import {ClassColours} from "../../util/classification";
+import "./PickClassForm.css";
 
-export type PickClassModalProps = {
-    position: [number, number] | undefined
+export type PickClassFormProps = {
     onSubmit: (label: Classification) => void
-    onCancel: () => void
     colours: ClassColours
     confirmText: string
 }
 
-export default function PickClassModal(
-    props: PickClassModalProps
+export default function PickClassForm(
+    props: PickClassFormProps
 ): FunctionComponentReturnType {
+
     // The contents of the label text box
     const [label, setLabel] = useStateSafe<Classification>(constantInitialiser(NO_CLASSIFICATION));
 
@@ -29,16 +27,7 @@ export default function PickClassModal(
         setLabel(NO_CLASSIFICATION);
     };
 
-    const onCancel = () => {
-        setLabel(NO_CLASSIFICATION);
-        props.onCancel()
-    };
-
-    return <LocalModal
-        className={"PickLabelModal"}
-        position={props.position}
-        onCancel={onCancel}
-    >
+    return <div>
         <p>Enter new or select existing label,</p>
         <p>leave empty for no label</p>
         <Form onSubmit={onSubmit}>
@@ -69,6 +58,5 @@ export default function PickClassModal(
         >
             {props.confirmText}
         </button>
-
-    </LocalModal>
+    </div>
 }

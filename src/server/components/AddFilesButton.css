@@ -1,10 +1,10 @@
-.AddImagesButton {
+.AddFilesButton {
     width: 80%;
     height: 80%;
     position: relative;
 }
 
-.AddFilesButton {
+.AddFilesByFileButton {
     width: 50%;
     height: 100%;
     top: 0;
@@ -13,7 +13,7 @@
     border-radius: 6px 0 0 6px;
 }
 
-.AddFoldersButton {
+.AddFilesByFolderButton {
     width: 50%;
     height: 100%;
     top: 0;
