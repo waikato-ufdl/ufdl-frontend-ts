@@ -50,6 +50,7 @@ export default function PickClassForm(
                 style={{
                     border: "1px solid black"
                 }}
+                allowSelectNone
             />
         </label>
 
