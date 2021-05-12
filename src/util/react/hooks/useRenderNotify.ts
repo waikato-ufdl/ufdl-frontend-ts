@@ -1,26 +1,85 @@
 import {constantInitialiser} from "../../typescript/initialisers";
 import useNonUpdatingState from "./useNonUpdatingState";
+import forEachOwnProperty from "../../typescript/forEachOwnProperty";
 
-export default function useRenderNotify<D extends {[name: string]: any}>(
+/**
+ * Helper hook which can be used to log when a component is rendered. Useful
+ * for debugging unnecessary renders.
+ *
+ * @param name
+ *          A title to log to differentiate from other components.
+ * @param props
+ *          The props of the component.
+ */
+export default function useRenderNotify<P extends object>(
     name: string,
-    dependencies: D
+    props: P
 ): void {
+    // Remember the last set of prop values the component received
+    const [lastProps, setLastProps] = useNonUpdatingState<P | undefined>(
+        constantInitialiser(undefined)
+    );
 
-    const [last, setLast] = useNonUpdatingState(constantInitialiser(dependencies));
+    // Create a group for the prop-change messages
+    console.group(
+        lastProps === undefined
+            ? `Initial render of ${name}`
+            : `Change in props to ${name}`
+    );
 
-    let anyChanges: boolean = false;
+    forEachOwnProperty(
+        props,
+        (propName, propValue) => {
+            // Have to format differently for first render
+            if (lastProps === undefined) return logInitial(propName, propValue);
 
-    for (const key in dependencies) {
-        if (!dependencies.hasOwnProperty(key)) continue;
+            // Get the previous value of the prop
+            const lastPropValue = lastProps[propName];
 
-        if (last[key] !== dependencies[key]) {
-            if (!anyChanges) console.log(`Changes in dependencies for ${name}:`);
-            console.log(`${key} (from, to):`);
-            console.log(last[key]);
-            console.log(dependencies[key]);
-            anyChanges = true;
+            // Log it if it has changed
+            if (!Object.is(propValue, lastProps[propName])) logChange(propName, propValue, lastPropValue);
         }
-    }
+    )
 
-    setLast(dependencies);
+    // Close the group
+    console.groupEnd()
+
+    // Save the props for next render
+    setLastProps(props);
+}
+
+/**
+ * Logs a prop-value on the initial render of a component.
+ *
+ * @param propName
+ *          The name of the prop.
+ * @param propValue
+ *          The value of the prop.
+ */
+function logInitial<P extends object, K extends keyof P>(
+    propName: K,
+    propValue: P[K]
+): void {
+    console.log(propName, propValue);
+}
+
+/**
+ * Logs a change in value to a prop.
+ *
+ * @param propName
+ *          The name of the prop.
+ * @param propValue
+ *          The new value of the prop.
+ * @param lastPropValue
+ *          The old value of the prop.
+ */
+function logChange<P extends object, K extends keyof P>(
+    propName: K,
+    propValue: P[K],
+    lastPropValue: P[K]
+): void {
+    console.group(propName);
+    console.log("FROM", lastPropValue);
+    console.log("TO", propValue);
+    console.groupEnd()
 }
