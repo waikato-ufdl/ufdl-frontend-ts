@@ -1,5 +1,5 @@
 import {OmitNever} from "./types/OmitNever";
-import forEachOwnProperty from "./forEachOwnProperty";
+import {forEachOwnProperty} from "./object";
 import {IndexType} from "./types/array/IndexType";
 import {If} from "./types/conditional/If";
 

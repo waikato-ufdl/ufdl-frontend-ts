@@ -4,7 +4,7 @@ import {DataCache} from "../../DataCache";
 import React, {Reducer, useContext, useEffect, useReducer} from "react";
 import useTaskWatcher from "../../../util/react/hooks/useTaskWatcher";
 import * as DatasetCore from "ufdl-ts-client/functional/core/dataset";
-import forEachOwnProperty from "../../../util/typescript/forEachOwnProperty";
+import {forEachOwnProperty} from "../../../util/typescript/object";
 import forDownload from "../../forDownload";
 import {mapGetDefault} from "../../../util/map";
 import promiseAsResult from "../../../util/typescript/async/promiseAsResult";

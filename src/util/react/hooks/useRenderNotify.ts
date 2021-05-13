@@ -1,6 +1,6 @@
 import {constantInitialiser} from "../../typescript/initialisers";
 import useNonUpdatingState from "./useNonUpdatingState";
-import forEachOwnProperty from "../../typescript/forEachOwnProperty";
+import {forEachOwnProperty} from "../../typescript/object";
 
 /**
  * Helper hook which can be used to log when a component is rendered. Useful
