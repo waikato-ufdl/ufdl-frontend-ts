@@ -21,7 +21,6 @@ export default function FlexContainer(
     props: FlexContainerProps
 ): FunctionComponentReturnType {
     let {
-        className,
         children,
         ...divProps
     } = props;
