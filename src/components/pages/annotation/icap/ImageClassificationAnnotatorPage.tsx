@@ -83,7 +83,7 @@ export default function ImageClassificationAnnotatorPage(
     const [showLabelColourPickerPage, setShowLabelColourPickerPage] = useStateSafe<boolean>(() => false);
     const [showLargeImageOverlay, setShowLargeImageOverlay] = useStateSafe<BehaviorSubject<string> | string | undefined>(() => undefined);
 
-    const onReclassify = useDerivedState(
+    const ICDatasetOverviewOnReclassify = useDerivedState(
         () => (filename: string, _: Classification, newLabel: Classification) => {
             if (dataset !== undefined) dataset.setAnnotation(filename, newLabel);
         },
@@ -236,7 +236,7 @@ export default function ImageClassificationAnnotatorPage(
             dataset={dataset?.items}
             evalDataset={evalDataset?.items}
             onFileSelected={imagesDisplayOnFileSelected}
-            onReclassify={onReclassify}
+            onReclassify={ICDatasetOverviewOnReclassify}
             onFileClicked={imagesDisplayOnFileClicked}
             onAddFiles={imagesDisplayOnAddFiles}
             colours={classColoursDispatch.state}
