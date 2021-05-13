@@ -15,7 +15,7 @@ export type StateAndData<
 
 export type StateTransition<
     States extends StatesBase
-> = (current: StateAndData<States>) => (StateAndData<States> | void)
+> = (current: StateAndData<States>) => (StateAndData<States> | undefined)
 
 export type ManualStateTransition<
     States extends StatesBase

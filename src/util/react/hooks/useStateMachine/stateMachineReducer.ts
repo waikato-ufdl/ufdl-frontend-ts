@@ -3,7 +3,6 @@ import {
     StatesBase,
     StatesTransitionsBase, StateTransition
 } from "./types";
-import isVoid from "../../../typescript/types/predicates/isVoid";
 import {AUTOMATIC} from "./AUTOMATIC";
 import doAsync from "../../../typescript/async/doAsync";
 
@@ -26,7 +25,7 @@ export default function stateMachineReducer<
     const newState = action(prevState.state);
 
     // If no new state was returned, remain in the same state
-    if (isVoid(newState)) return prevState;
+    if (newState === undefined) return prevState;
 
     // See if the new state has an automatic transition
     const automaticTransitionForNewState = prevState[AUTOMATIC][newState.state as any];
