@@ -2,8 +2,8 @@ import React, {MouseEventHandler, useContext} from "react";
 import {UFDL_SERVER_REACT_CONTEXT} from "../../../../server/UFDLServerContextProvider";
 import Page from "../../Page";
 import ICAPTopMenu from "./ICAPTopMenu";
-import ImagesDisplay from "./ImagesDisplay";
-import ICAPBottomMenu from "./ICAPBottomMenu";
+import ICDatasetOverview from "./ICDatasetOverview";
+import ICAPBottomMenu, {SORT_ORDERS} from "./ICAPBottomMenu";
 import {mapAny, mapMap} from "../../../../util/map";
 import useImageClassificationDataset
     from "../../../../server/hooks/useImageClassificationDataset/useImageClassificationDataset";
@@ -16,7 +16,6 @@ import {DatasetPK, getDatasetPK, getProjectPK, getTeamPK, ProjectPK, TeamPK} fro
 import useDerivedReducer from "../../../../util/react/hooks/useDerivedReducer";
 import {createSimpleStateReducer} from "../../../../util/react/hooks/SimpleStateReducer";
 import {constantInitialiser} from "../../../../util/typescript/initialisers";
-import {SORT_FUNCTIONS, SortOrder} from "./sorting";
 import {UNCONTROLLED_KEEP} from "../../../../util/react/hooks/useControllableState";
 import ImageClassificationDatasetDispatch
     from "../../../../server/hooks/useImageClassificationDataset/ImageClassificationDatasetDispatch";
@@ -48,7 +47,7 @@ export type ICAPProps = {
     onBack?: () => void
 }
 
-const selectedPKReducer = createSimpleStateReducer<AnyPK>();
+const SELECTED_PK_REDUCER = createSimpleStateReducer<AnyPK>();
 
 export default function ImageClassificationAnnotatorPage(
     props: ICAPProps
@@ -58,7 +57,7 @@ export default function ImageClassificationAnnotatorPage(
     const ufdlServerContext = useContext(UFDL_SERVER_REACT_CONTEXT);
 
     const [selectedPK, setSelectedPK] = useDerivedReducer(
-        selectedPKReducer,
+        SELECTED_PK_REDUCER,
         ([pk]) => pk,
         [props.lockedPK] as const
     );
@@ -77,7 +76,7 @@ export default function ImageClassificationAnnotatorPage(
 
     const classColoursDispatch = useClassColours(dataset?.items, props.initialColours);
 
-    const [sortOrder, setSortOrder] = useStateSafe<SortOrder>(constantInitialiser("filename"));
+    const [sortOrder, setSortOrder] = useStateSafe<keyof typeof SORT_ORDERS>(constantInitialiser("filename"));
 
     // Sub-page displays
     const [showNewDatasetPage, setShowNewDatasetPage] = useStateSafe<boolean>(() => false);
@@ -233,7 +232,7 @@ export default function ImageClassificationAnnotatorPage(
             onBack={props.onBack}
         />
 
-        <ImagesDisplay
+        <ICDatasetOverview
             dataset={dataset?.items}
             evalDataset={evalDataset?.items}
             onFileSelected={imagesDisplayOnFileSelected}
@@ -241,7 +240,7 @@ export default function ImageClassificationAnnotatorPage(
             onFileClicked={imagesDisplayOnFileClicked}
             onAddFiles={imagesDisplayOnAddFiles}
             colours={classColoursDispatch.state}
-            sortFunction={SORT_FUNCTIONS[sortOrder]}
+            sortFunction={SORT_ORDERS[sortOrder]}
         />
 
         <ICAPBottomMenu

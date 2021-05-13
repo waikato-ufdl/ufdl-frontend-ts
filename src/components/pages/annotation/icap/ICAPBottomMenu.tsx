@@ -1,5 +1,4 @@
 import React from "react";
-import {SORT_ORDERS, SortOrder} from "./sorting";
 import asChangeEventHandler from "../../../../util/react/asChangeEventHandler";
 import SelectionModal from "./SelectionModal";
 import useLocalModal from "../../../../util/react/hooks/useLocalModal";
@@ -10,19 +9,28 @@ import {Dataset} from "../../../../server/types/Dataset";
 import {ClassColours} from "../../../../server/util/classification";
 import LocalModal from "../../../../util/react/component/LocalModal";
 import PickClassForm from "../../../../server/components/classification/PickClassForm";
+import {BY_FILENAME} from "../../../../server/sorting";
+import {BY_CLASSIFICATION} from "../../../../server/components/classification/sorting";
+
+export const SORT_ORDERS = {
+    "filename": BY_FILENAME,
+    "label": BY_CLASSIFICATION
+} as const
 
 export type ICAPBottomMenuProps = {
     onDeleteSelect: (() => void) | undefined
     onSelect: ((select: ItemSelector<Image, Classification>) => void) | undefined
     onRelabelSelected: ((label: Classification) => void) | undefined
     onRequestLabelColourPickerOverlay: (() => void) | undefined
-    onSortChanged: (order: SortOrder) => void
+    onSortChanged: (order: keyof typeof SORT_ORDERS) => void
     colours: ClassColours
     evalDataset: Dataset<Image, Classification> | undefined
     numSelected: [number, number]
 }
 
-export default function ICAPBottomMenu(props: ICAPBottomMenuProps) {
+export default function ICAPBottomMenu(
+    props: ICAPBottomMenuProps
+) {
 
     const labelModal = useLocalModal();
 
@@ -83,9 +91,9 @@ export default function ICAPBottomMenu(props: ICAPBottomMenuProps) {
         </button>
 
         <select
-            onChange={asChangeEventHandler((order) => props.onSortChanged(order as SortOrder))}
+            onChange={asChangeEventHandler((order) => props.onSortChanged(order as keyof typeof SORT_ORDERS))}
         >
-            {SORT_ORDERS.map(
+            {Object.getOwnPropertyNames(SORT_ORDERS).map(
                 (order) => {
                     return <option
                         value={order}

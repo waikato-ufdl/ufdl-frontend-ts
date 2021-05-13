@@ -13,7 +13,7 @@ import LocalModal from "../../util/react/component/LocalModal";
 
 export type OnSubmitFunction<A> = (getAnnotation: (file: File) => A) => void
 
-export type AnnotationModalContentGenerator<A> = (
+export type AnnotationModalRenderer<A> = (
     method: SelectFilesMethod,
     onSubmit: OnSubmitFunction<A>,
     onCancel: () => void
@@ -22,7 +22,7 @@ export type AnnotationModalContentGenerator<A> = (
 export type AddFilesButtonProps<A> = {
     disabled?: boolean
     onSelected: (files: ReadonlyMap<string, [Blob, A]>) => void
-    annotationModal: AnnotationModalContentGenerator<A>
+    annotationModal: AnnotationModalRenderer<A>
 }
 
 export default function AddFilesButton<A>(
