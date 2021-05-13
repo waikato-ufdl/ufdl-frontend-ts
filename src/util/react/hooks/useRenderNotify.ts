@@ -24,7 +24,7 @@ export default function useRenderNotify<P extends object>(
     console.group(
         lastProps === undefined
             ? `Initial render of ${name}`
-            : `Change in props to ${name}`
+            : `Change in props of ${name}`
     );
 
     forEachOwnProperty(
