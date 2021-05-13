@@ -11,7 +11,7 @@ import DatasetOverview from "../../../../server/components/DatasetOverview";
 import {ImageRenderer} from "../../../../server/components/image/ImageRenderer";
 import createClassificationRenderer from "../../../../server/components/classification/createClassificationRenderer";
 import "./ICDatasetItem.css";
-import createClassificationModalRenderer
+import createFileClassificationModalRenderer
     from "../../../../server/components/classification/createClassificationModalRenderer";
 
 export type ICDatasetOverviewProps = {
@@ -28,8 +28,8 @@ export type ICDatasetOverviewProps = {
 export default function ICDatasetOverview(
     props: ICDatasetOverviewProps
 ) {
-    const modalGenerator = useDerivedState(
-        createClassificationModalRenderer,
+    const fileClassificationModalRenderer = useDerivedState(
+        createFileClassificationModalRenderer,
         [props.colours]
     )
 
@@ -49,6 +49,6 @@ export default function ICDatasetOverview(
         onAddFiles={props.onAddFiles}
         sortFunction={props.sortFunction}
         itemClass={"ICDatasetItem"}
-        annotationModal={modalGenerator}
+        fileAnnotationModalRenderer={fileClassificationModalRenderer}
     />
 }

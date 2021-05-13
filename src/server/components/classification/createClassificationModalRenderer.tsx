@@ -1,5 +1,5 @@
 import {ClassColours} from "../../util/classification";
-import {AnnotationModalRenderer} from "../AddFilesButton";
+import {FileAnnotationModalRenderer} from "../AddFilesButton";
 import {Classification, NO_CLASSIFICATION} from "../../types/annotations";
 import getPathFromFile from "../../../util/files/getPathFromFile";
 import PickClassForm from "./PickClassForm";
@@ -8,7 +8,7 @@ import React from "react";
 
 export default function createClassificationModalRenderer(
     colours: [ClassColours]
-): AnnotationModalRenderer<Classification> {
+): FileAnnotationModalRenderer<Classification> {
     return (method, onSubmit) => {
         if (method === "folder") {
             return (file) => {
