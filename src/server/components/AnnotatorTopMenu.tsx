@@ -11,12 +11,12 @@ import {BackButton} from "../../components/BackButton";
 import {TeamSelect} from "../../components/TeamSelect";
 import {ProjectSelect} from "../../components/ProjectSelect";
 import {ListSelect} from "../../components/ListSelect";
-import {AvailableDomainsType, DOMAIN_DATASET_METHODS} from "../domains";
+import {Domain, DOMAIN_DATASET_METHODS} from "../domains";
 import nameFromSignature from "../util/nameFromSignature";
 import {augmentClassName} from "../../util/augmentClass";
 
-export type AnnotatorTopMenuProps = {
-    domain: AvailableDomainsType
+export type AnnotatorTopMenuProps<D extends Domain> = {
+    domain: D
     selectedPK: Controllable<DatasetPK | ProjectPK | TeamPK | undefined>
     lockedPK: DatasetPK | ProjectPK | TeamPK | undefined
     onTeamChanged: (team?: TeamInstance, pk?: number) => void
@@ -30,8 +30,8 @@ export type AnnotatorTopMenuProps = {
     className?: string
 }
 
-export default function AnnotatorTopMenu(
-    props: AnnotatorTopMenuProps
+export default function AnnotatorTopMenu<D extends Domain>(
+    props: AnnotatorTopMenuProps<D>
 ) {
     const [selectedPK] = useControllableState(
         props.selectedPK,
