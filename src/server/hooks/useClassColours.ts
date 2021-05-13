@@ -7,6 +7,7 @@ import {useContext} from "react";
 import {UFDL_SERVER_REACT_CONTEXT} from "../UFDLServerContextProvider";
 import useDerivedReducer from "../../util/react/hooks/useDerivedReducer";
 import useDerivedState from "../../util/react/hooks/useDerivedState";
+import useStaticStateAccessor from "../../util/react/hooks/useStaticStateAccessor";
 
 
 const CLASS_COLOURS_REDUCER = createMapStateReducer<string, ClassColour>();
@@ -19,16 +20,21 @@ function initialiseClassColours(
         ? new Map()
         : copyMap(currentState);
 
+    let noneSet = true;
+
     if (dataset[0] !== undefined) {
         dataset[0].forEach(
             (item) => {
-                const classification = item.annotations;
+                const classification = item.annotations.success ? item.annotations.value : NO_CLASSIFICATION;
                 if (classification === NO_CLASSIFICATION) return;
                 if (classColours.has(classification)) return;
                 classColours.set(classification, pickNewRandomColour(classColours));
+                noneSet = false;
             }
         );
     }
+
+    if (currentState !== undefined && noneSet) return currentState;
 
     return classColours;
 }
@@ -63,9 +69,11 @@ export default function useClassColours(
         initialColours
     );
 
+    const reducerStateAccessor = useStaticStateAccessor(reducerState);
+
     // Wrap the dispatch in an object
     return useDerivedState(
-        ([reducerState, dispatch]) => new ClassColoursDispatch(reducerState, dispatch),
-        [reducerState, dispatch] as const
+        () => new ClassColoursDispatch(reducerStateAccessor, dispatch),
+        [reducerStateAccessor, dispatch] as const
     );
 }

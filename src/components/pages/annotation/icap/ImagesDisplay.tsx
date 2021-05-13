@@ -15,13 +15,15 @@ import AddFilesButton, {AnnotationModalContentGenerator} from "../../../../serve
 import PickClassForm from "../../../../server/components/classification/PickClassForm";
 import {constantInitialiser} from "../../../../util/typescript/initialisers";
 import getPathFromFile from "../../../../util/files/getPathFromFile";
+import useDerivedState from "../../../../util/react/hooks/useDerivedState";
+import useRenderNotify from "../../../../util/react/hooks/useRenderNotify";
 
 export type ImagesDisplayProps = {
     dataset: Dataset<Image, Classification> | undefined
     evalDataset: Dataset<Image, Classification> | undefined
-    onFileSelected: (filename: string) => void
+    onFileSelected: (item: DatasetItem<Image, Classification>) => void
     onReclassify: (filename: string, oldLabel: Classification, newLabel: Classification) => void
-    onFileClicked: (filename: string, file: DatasetItem<Image, Classification>) => void
+    onFileClicked: (item: DatasetItem<Image, Classification>) => void
     onAddFiles: (files: ReadonlyMap<string, [Blob, Classification]>) => void
     colours: ClassColours
     sortFunction: WithDefault<SortFunction>
@@ -31,20 +33,56 @@ const IMAGES_DISPLAY_DEFAULT_HANDLERS: PropsDefaultHandlers<ImagesDisplayProps> 
     sortFunction: () => SORT_FUNCTIONS.filename
 };
 
+const ITEM_STYLE: FlexItemProps["style"] = {
+    margin: "1.25%",
+    border: 0,
+    padding: 0,
+    height: "16.3125%",
+    overflow: "hidden",
+    flexGrow: 0,
+    width: "22.5%"
+};
+
+const ITEM_PROPS = {style: ITEM_STYLE};
+
+const GET_ITEM_PROPS = constantInitialiser(ITEM_PROPS);
+
+const FLEX_CONTAINER_STYLE = {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "flex-start",
+    justifyContent: "initial",
+    alignContent: "flex-start"
+} as const
+
+function createAnnotationModalContentGenerator(
+    colours: [ClassColours]
+): AnnotationModalContentGenerator<Classification> {
+    return (method, onSubmit) => {
+        if (method === "folder") {
+            return (file) => {
+                const pathElements = getPathFromFile(file);
+
+                return pathElements.length > 1 ?
+                    pathElements[pathElements.length - 2] :
+                    NO_CLASSIFICATION;
+            };
+        }
+
+        return <PickClassForm
+            onSubmit={(classification) => onSubmit(constantInitialiser(classification))}
+            colours={colours[0]}
+            confirmText={"Select files..."}
+        />
+    }
+}
+
 export default function ImagesDisplay(
     props: ImagesDisplayProps
 ) {
-    const defaultHandledProps = handleDefaults(props, IMAGES_DISPLAY_DEFAULT_HANDLERS);
+    useRenderNotify("ImagesDisplay", props)
 
-    const itemStyle: FlexItemProps["style"] = {
-        margin: "1.25%",
-        border: 0,
-        padding: 0,
-        height: "16.3125%",
-        overflow: "hidden",
-        flexGrow: 0,
-        width: "22.5%"
-    };
+    const defaultHandledProps = handleDefaults(props, IMAGES_DISPLAY_DEFAULT_HANDLERS);
 
     // Extract the dataset items, if any
     const items: DatasetItem<Image, Classification>[]
@@ -62,42 +100,23 @@ export default function ImagesDisplay(
                 key={item.filename}
                 item={item}
                 evalClass={undefinedAsAbsent(props.evalDataset?.get(item.filename)?.annotations)}
-                onReclassify={(oldLabel, newLabel) => props.onReclassify(item.filename, oldLabel, newLabel)}
-                onSelect={() => props.onFileSelected(item.filename)}
-                onImageClick={() => props.onFileClicked(item.filename, item)}
+                onReclassify={props.onReclassify}
+                onSelect={props.onFileSelected}
+                onClick={props.onFileClicked}
                 colours={props.colours}
             />
         }
     );
 
-    const modalGenerator: AnnotationModalContentGenerator<Classification> = (method, onSubmit) => {
-        if (method === "folder") {
-            return (file) => {
-                const pathElements = getPathFromFile(file);
-
-                return pathElements.length > 1 ?
-                    pathElements[pathElements.length - 2] :
-                    NO_CLASSIFICATION;
-            };
-        }
-
-        return <PickClassForm
-            onSubmit={(classification) => onSubmit(constantInitialiser(classification))}
-            colours={props.colours}
-            confirmText={"Select files..."}
-        />
-    }
+    const modalGenerator: AnnotationModalContentGenerator<Classification> = useDerivedState(
+        createAnnotationModalContentGenerator,
+        [props.colours]
+    )
 
     return <FlexContainer
         id={"images"}
-        itemProps={() => {return {style: itemStyle};}}
-        style={{
-            flexDirection: "row",
-            flexWrap: "wrap",
-            alignItems: "flex-start",
-            justifyContent: "initial",
-            alignContent: "flex-start"
-        }}
+        itemProps={GET_ITEM_PROPS}
+        style={FLEX_CONTAINER_STYLE}
     >
         <AddFilesButton<Classification>
             disabled={props.dataset === undefined}

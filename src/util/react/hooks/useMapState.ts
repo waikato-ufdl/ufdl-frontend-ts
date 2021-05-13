@@ -1,6 +1,7 @@
 import {Dispatch, Reducer, useReducer} from "react";
 import {copyMap} from "../../map";
 import useDerivedState from "./useDerivedState";
+import useStaticStateAccessor, {StateAccessor} from "./useStaticStateAccessor";
 
 export const CLEAR = Symbol("clear");
 
@@ -57,9 +58,10 @@ export function createMapStateReducer<K, V>(): MapStateReducer<K, V> {
 
 export class MapStateDispatch<K, V> {
     constructor(
-        readonly state: ReadonlyMap<K, V>,
+        private readonly _state: StateAccessor<ReadonlyMap<K, V>>,
         private dispatch: Dispatch<MapStateReducerAction<K, V>>
     ) {}
+    get state() {return this._state()}
     clear(): void {this.dispatch({action: CLEAR})}
     delete(key: K): void {this.dispatch({action: DELETE, key: key});}
     set(key: K, value: V): void {this.dispatch({action: SET, key: key, value: value});}
@@ -75,8 +77,10 @@ export default function useMapState<K, V>(
         () => new Map()
     );
 
-    return useDerivedState<MapStateDispatch<K, V>, [ReadonlyMap<K, V>, Dispatch<MapStateReducerAction<K, V>>]>(
-        ([reducerState, dispatch]) => new MapStateDispatch<K, V>(reducerState, dispatch),
-        [reducerState, dispatch]
+    const reducerStateAccessor = useStaticStateAccessor(reducerState);
+
+    return useDerivedState(
+        () => new MapStateDispatch<K, V>(reducerStateAccessor, dispatch),
+        [reducerStateAccessor, dispatch]
     );
 }

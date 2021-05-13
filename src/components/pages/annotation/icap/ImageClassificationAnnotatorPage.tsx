@@ -1,4 +1,4 @@
-import React, {useContext} from "react";
+import React, {MouseEventHandler, useContext} from "react";
 import {UFDL_SERVER_REACT_CONTEXT} from "../../../../server/UFDLServerContextProvider";
 import Page from "../../Page";
 import ICAPTopMenu from "./ICAPTopMenu";
@@ -21,11 +21,16 @@ import {UNCONTROLLED_KEEP} from "../../../../util/react/hooks/useControllableSta
 import ImageClassificationDatasetDispatch
     from "../../../../server/hooks/useImageClassificationDataset/ImageClassificationDatasetDispatch";
 import {IMAGE_CACHE_CONTEXT} from "../../../../App";
-import {NO_CLASSIFICATION} from "../../../../server/types/annotations";
-import {toggleSelection} from "../../../../server/hooks/useDataset/selection/selections";
+import {Classification, NO_CLASSIFICATION} from "../../../../server/types/annotations";
 import {ClassColour, ClassColours, storeColoursInContext} from "../../../../server/util/classification";
 import useClassColours from "../../../../server/hooks/useClassColours";
 import ClassColourPickerPage from "../../ClassColourPickerPage";
+import {IC_SELECTIONS} from "../../../../server/hooks/useImageClassificationDataset/selection";
+import doAsync from "../../../../util/typescript/async/doAsync";
+import useDerivedState from "../../../../util/react/hooks/useDerivedState";
+import useRenderNotify from "../../../../util/react/hooks/useRenderNotify";
+import {DatasetItem} from "../../../../server/types/DatasetItem";
+import {Image} from "../../../../server/types/data";
 
 type AnyPK = DatasetPK | ProjectPK | TeamPK | undefined
 
@@ -48,6 +53,8 @@ const selectedPKReducer = createSimpleStateReducer<AnyPK>();
 export default function ImageClassificationAnnotatorPage(
     props: ICAPProps
 ) {
+    useRenderNotify("ImageClassificationAnnotatorPage", props);
+
     const ufdlServerContext = useContext(UFDL_SERVER_REACT_CONTEXT);
 
     const [selectedPK, setSelectedPK] = useDerivedReducer(
@@ -77,56 +84,131 @@ export default function ImageClassificationAnnotatorPage(
     const [showLabelColourPickerPage, setShowLabelColourPickerPage] = useStateSafe<boolean>(() => false);
     const [showLargeImageOverlay, setShowLargeImageOverlay] = useStateSafe<BehaviorSubject<string> | string | undefined>(() => undefined);
 
+    const onReclassify = useDerivedState(
+        () => (filename: string, _: Classification, newLabel: Classification) => {
+            if (dataset !== undefined) dataset.setAnnotation(filename, newLabel);
+        },
+        [dataset]
+    )
+
+    const newDatasetPageOnCreate = useDerivedState(
+        () => (pk: DatasetPK) => {setSelectedPK(pk); setShowNewDatasetPage(false)},
+        [setSelectedPK, setShowNewDatasetPage]
+    )
+
+    const newDatasetPageOnBack = useDerivedState(
+        () => () => setShowNewDatasetPage(false),
+        [setShowNewDatasetPage]
+    )
+
+    const classColourPickerPageOnColourChanged = useDerivedState(
+        () => (changedLabel: string, _: ClassColour, newColour: ClassColour) => {
+            const colourInUse = (label: string, colour: ClassColour) =>
+                label !== changedLabel && colour === newColour;
+
+            if (mapAny(classColoursDispatch.state, colourInUse)) {
+                return;
+            }
+
+            classColoursDispatch.set(changedLabel, newColour);
+        },
+        [classColoursDispatch]
+    )
+
+    const classColourPickerPageOnNewClass = useDerivedState(
+        () => (classification: string) => classColoursDispatch.add(classification),
+        [classColoursDispatch]
+    )
+
+    const classColourPickerPageOnClassDeleted = useDerivedState(
+        () => (classification: string) => {
+            classColoursDispatch.delete(classification);
+            if (dataset !== undefined) dataset.setAnnotations(
+                mapMap(
+                    dataset.items,
+                    (filename, item) => item.annotations.success && item.annotations.value === classification
+                        ? [[filename, NO_CLASSIFICATION]]
+                        : []
+                )
+            )
+        },
+        [classColoursDispatch, dataset]
+    )
+
+    const classColourPickerPageOnBack = useDerivedState(
+        () => () => {
+            storeColoursInContext(classColoursDispatch.state, ufdlServerContext);
+            setShowLabelColourPickerPage(false)
+        },
+        [classColoursDispatch, ufdlServerContext, setShowLabelColourPickerPage]
+    )
+
+    const largeImageOverlayOnClick: MouseEventHandler<HTMLImageElement> = useDerivedState(
+        () => (event) => {
+            setShowLargeImageOverlay(undefined);
+            event.stopPropagation()
+        },
+        [setShowLargeImageOverlay]
+    )
+
+    const icapTopMenuOnTeamChanged = useDerivedState(
+        () => (_: any, pk: number | undefined) => {
+            setSelectedPK(pk === undefined ? undefined : new TeamPK(pk));
+        },
+        [setSelectedPK]
+    )
+
+    const icapTopMenuOnProjectChanged = useDerivedState(
+        () => (_: any, pk: number | undefined) => {
+            const teamPK = getTeamPK(selectedPK);
+            setSelectedPK(pk === undefined ? teamPK : teamPK?.project(pk));
+        },
+        [selectedPK, setSelectedPK]
+    )
+
+    const imagesDisplayOnFileClicked = useDerivedState(
+        () => (item: DatasetItem<Image, Classification>) => {
+            const data = item.data.value?.cache?.getConverted(item.data.value.handle);
+            if (data !== undefined) setShowLargeImageOverlay(data)
+        },
+        [setShowLargeImageOverlay]
+    )
+
+    const imagesDisplayOnFileSelected = useDerivedState(
+        () => (item: DatasetItem<Image, Classification>) => {
+            if (dataset !== undefined) dataset.toggleSelection(IC_SELECTIONS.isFile(item.filename))
+        },
+        [dataset]
+    )
+
+    const imagesDisplayOnAddFiles = useDerivedState(
+        () => (files: ReadonlyMap<string, [Blob, Classification]>) => {
+            if (dataset !== undefined) doAsync(() => dataset.addFiles(files))
+        },
+        [dataset]
+    )
+
     if (showNewDatasetPage) {
         return <NewDatasetPage
             domain={"ic"}
             licencePK={UNCONTROLLED_KEEP}
             isPublic={UNCONTROLLED_KEEP}
             from={props.lockedPK instanceof DatasetPK ? undefined : props.lockedPK}
-            onCreate={(pk) => {setSelectedPK(pk); setShowNewDatasetPage(false)}}
-            onBack={() => setShowNewDatasetPage(false)}
+            onCreate={newDatasetPageOnCreate}
+            onBack={newDatasetPageOnBack}
         />
     } else if (showLabelColourPickerPage) {
         return <ClassColourPickerPage
             colours={classColoursDispatch.state}
-            onColourChanged={
-                (changedLabel, _, newColour) => {
-                    const colourInUse = (label: string, colour: ClassColour) =>
-                        label !== changedLabel && colour === newColour;
-
-                    if (mapAny(classColoursDispatch.state, colourInUse)) {
-                        return;
-                    }
-
-                    classColoursDispatch.set(changedLabel, newColour);
-                }
-            }
-            onNewClass={(classification) => classColoursDispatch.add(classification)}
-            onClassDeleted={(classification) => {
-                classColoursDispatch.delete(classification);
-                if (dataset !== undefined) dataset.setAnnotations(
-                    mapMap(
-                        dataset.items,
-                        (filename, item) => item.annotations === classification
-                            ? [[filename, NO_CLASSIFICATION]]
-                            : []
-                    )
-                )
-            }}
-            onBack={() => {
-                storeColoursInContext(classColoursDispatch.state, ufdlServerContext);
-                setShowLabelColourPickerPage(false)
-            }}
+            onColourChanged={classColourPickerPageOnColourChanged}
+            onNewClass={classColourPickerPageOnNewClass}
+            onClassDeleted={classColourPickerPageOnClassDeleted}
+            onBack={classColourPickerPageOnBack}
         />
     } else if (showLargeImageOverlay !== undefined) {
         return <DataImage
             src={showLargeImageOverlay}
-            onClick={
-                (event) => {
-                    setShowLargeImageOverlay(undefined);
-                    event.stopPropagation()
-                }
-            }
+            onClick={largeImageOverlayOnClick}
         />
     }
 
@@ -134,17 +216,8 @@ export default function ImageClassificationAnnotatorPage(
         <ICAPTopMenu
             selectedPK={selectedPK}
             lockedPK={props.lockedPK}
-            onTeamChanged={
-                (_, pk) => {
-                    setSelectedPK(pk === undefined ? undefined : new TeamPK(pk));
-                }
-            }
-            onProjectChanged={
-                (_, pk) => {
-                    const teamPK = getTeamPK(selectedPK);
-                    setSelectedPK(pk === undefined ? teamPK : teamPK?.project(pk));
-                }
-            }
+            onTeamChanged={icapTopMenuOnTeamChanged}
+            onProjectChanged={icapTopMenuOnProjectChanged}
             onDatasetChanged={
                 (_, pk) => {
                     const projectPK = getProjectPK(selectedPK);
@@ -163,21 +236,17 @@ export default function ImageClassificationAnnotatorPage(
         <ImagesDisplay
             dataset={dataset?.items}
             evalDataset={evalDataset?.items}
-            onFileSelected={(filename) => {if (dataset !== undefined) dataset.select(toggleSelection(filename))}}
-            onReclassify={
-                (filename, _, newLabel) => {
-                    if (dataset !== undefined) dataset.setAnnotation(filename, newLabel);
-                }
-            }
-            onFileClicked={(_, file) => setShowLargeImageOverlay(file.dataCache.getConverted(file.dataHandle))}
-            onAddFiles={(files) => {if (dataset !== undefined) dataset.addFiles(files)}}
+            onFileSelected={imagesDisplayOnFileSelected}
+            onReclassify={onReclassify}
+            onFileClicked={imagesDisplayOnFileClicked}
+            onAddFiles={imagesDisplayOnAddFiles}
             colours={classColoursDispatch.state}
             sortFunction={SORT_FUNCTIONS[sortOrder]}
         />
 
         <ICAPBottomMenu
             onDeleteSelect={dataset === undefined ? undefined : dataset.deleteSelectedFiles.bind(dataset)}
-            onSelect={dataset === undefined ? undefined : dataset.select.bind(dataset)}
+            onSelect={dataset === undefined ? undefined : dataset.selectOnly.bind(dataset)}
             onRequestLabelColourPickerOverlay={() => setShowLabelColourPickerPage(true)}
             onRelabelSelected={dataset?.setAnnotationsForSelected?.bind(dataset)}
             onSortChanged={setSortOrder}

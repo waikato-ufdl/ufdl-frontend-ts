@@ -1,18 +1,20 @@
-/** Represents a single item in a dataset, with data of type D and annotations of type A. */
 import {DataCache} from "../DataCache";
-import {Result} from "../../util/typescript/result";
+import {PartialResult} from "../../util/typescript/result";
 
+export type DataCacheEntry<D> = {
+    readonly handle: string
+    readonly cache: DataCache<D>
+}
 
+export type DataPartialResult<D> = DataCacheEntry<D> | readonly [DataCache<D>, Blob]
+
+/** Represents a single item in a dataset, with data of type D and annotations of type A. */
 export type DatasetItem<D, A> = Readonly<{
-
     filename: string
 
-    dataHandle: string
-    dataCache: DataCache<D>
-    dataResident: Result<void>
+    data: PartialResult<DataCacheEntry<D>, DataPartialResult<D>>
 
-    annotations: A
-    annotationsResident: Result<void>
+    annotations: PartialResult<A>
 
     selected: boolean
 }>

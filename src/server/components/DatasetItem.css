@@ -1,0 +1,24 @@
+.DatasetItem {
+    width: 100%;
+    height: 100%;
+
+    position: relative;
+
+    background-color: darkgray;
+    border-radius: 6px;
+
+    overflow: hidden;
+}
+
+.DatasetItem > .DatasetItemSelectBox {
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin: 3px;
+}
+
+.DatasetItem > .DatasetItemRenderedData {
+    position: absolute;
+    top: 0;
+    left: 0;
+}

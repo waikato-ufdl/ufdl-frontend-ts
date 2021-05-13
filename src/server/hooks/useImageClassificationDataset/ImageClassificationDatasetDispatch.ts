@@ -4,13 +4,14 @@ import {Classification, NO_CLASSIFICATION} from "../../types/annotations";
 import {mapMap} from "../../../util/map";
 import * as ICDataset from "ufdl-ts-client/functional/image_classification/dataset";
 import {CategoriesFile} from "ufdl-ts-client/functional/image_classification/mixin_actions";
+import {constantInitialiser} from "../../../util/typescript/initialisers";
 
 export default class ImageClassificationDatasetDispatch
-    extends DatasetDispatch<Image, Classification, never> {
+    extends DatasetDispatch<Image, Classification> {
 
-    protected addAnnotationsInternal(
+    protected uploadAnnotationsForDataset(
         annotations: ReadonlyMap<string, Classification>
-    ): Map<string, Promise<any>> {
+    ): Map<string, Promise<Classification>> {
         const categoriesFile: CategoriesFile = {}
 
         annotations.forEach(
@@ -29,10 +30,10 @@ export default class ImageClassificationDatasetDispatch
 
         return mapMap(
             annotations,
-            (filename) => {
+            (filename, classification) => {
                 return [[
                     filename,
-                    promise
+                    promise.then(constantInitialiser(classification))
                 ]]
             }
         );

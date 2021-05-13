@@ -1,79 +1,87 @@
 import "./DatasetItem.css";
-import {DatasetItem} from "../types/DatasetItem";
+import {DatasetItem as DatasetItemInfo} from "../types/DatasetItem";
 import {FunctionComponentReturnType} from "../../util/react/types";
-/*
-export const SELECTED_BORDER_WIDTH_PX: number = 3;
-export const UNSELECTED_BORDER_WIDTH_PX: number = 2;
+import {Possible} from "../../util/typescript/types/Possible";
+import {ReactElement, ReactNode} from "react";
+import CenterContent from "../../components/CenterContent";
+import {augmentClassName} from "../../util/augmentClass";
+import useDerivedState from "../../util/react/hooks/useDerivedState";
+import useRenderNotify from "../../util/react/hooks/useRenderNotify";
 
-export type DatasetItemFileRenderer<D, A> = (
-    props: {
-        item: DatasetItem<D, A>
-    }
-) => FunctionComponentReturnType;
+export type DataRenderer<D> = (
+    filename: string,
+    selected: boolean,
+    data: DatasetItemInfo<D, unknown>['data']
+) => ReactElement;
 
-export type DatasetItemProps = {
-    filename: string
-    imageData: BehaviorSubject<Blob> | BehaviorSubject<string> | Blob | string
-    label: string | undefined,
-    evalLabel: EvalLabel,
-    onRelabelled: (oldLabel?: string, newLabel?: string) => void
-    selected: boolean
-    onSelect: (selected: boolean) => void,
-    onImageClick: () => void
-    labelColours: LabelColours
+export type AnnotationRenderer<A> = (
+    filename: string,
+    selected: boolean,
+    annotation: DatasetItemInfo<unknown, A>['annotations'],
+    evalAnnotation: Possible<DatasetItemInfo<unknown, A>['annotations']>
+) => ReactNode
+
+export type DatasetItemProps<D, A> = {
+    item: DatasetItemInfo<D, A>,
+    evalAnnotation: Possible<DatasetItemInfo<unknown, A>['annotations']>,
+    renderData: DataRenderer<D>
+    renderAnnotation: AnnotationRenderer<A>
+    onSelect: (item: DatasetItemInfo<D, A>) => void,
+    onClick: (item: DatasetItemInfo<D, A>) => void
+    children?: undefined
+    className?: string
 }
 
-export default function ICDatasetItem(
-    props: ICDatasetItemProps
+export default function DatasetItem<D, A>(
+    props: DatasetItemProps<D, A>
 ): FunctionComponentReturnType {
 
-    const borderWidth = numberWithSuffix(
-        props.selected ? SELECTED_BORDER_WIDTH_PX : UNSELECTED_BORDER_WIDTH_PX,
-        "px"
-    );
+    useRenderNotify("DatasetItem", props)
 
-    const labelColour = props.label !== undefined ? props.labelColours.get(props.label) : "white";
+    const renderedData = useDerivedState(
+        () => props.renderData(
+            props.item.filename,
+            props.item.selected,
+            props.item.data
+        ),
+        [props.renderData, props.item.filename, props.item.selected, props.item.data]
+    )
 
-    const borderStyle: CSSProperties = {
-        borderStyle: "solid",
-        borderColor: props.evalLabel === NO_EVAL_LABEL ?
-            labelColour :
-            props.evalLabel === props.label ?
-                "limegreen" :
-                "red"
-        ,
-        borderWidth: borderWidth + (props.evalLabel !== NO_EVAL_LABEL ? 2 : 0)
-    };
+    const renderedAnnotation = useDerivedState(
+        () => props.renderAnnotation(
+            props.item.filename,
+            props.item.selected,
+            props.item.annotations,
+            props.evalAnnotation
+        ),
+    [props.renderAnnotation, props.item.filename, props.item.selected, props.item.annotations, props.evalAnnotation]
+    )
 
-    return <div className={"ICDatasetItem"}>
-        <CenterContent className={"ICDatasetItemBackgroundImage"}>
-            <DataImage
-                src={props.imageData}
-                onClick={props.onImageClick}
-                title={props.filename}
-            />
+    const onClickContent = useDerivedState(
+        () => () => props.onClick(props.item),
+        [props.onClick, props.item]
+    )
+
+    const onSelect = useDerivedState(
+        () => () => props.onSelect(props.item),
+        [props.onSelect, props.item]
+    )
+
+    return <div className={augmentClassName(props.className, "DatasetItem")}>
+        <CenterContent
+            className={"DatasetItemRenderedData"}
+            onClick={onClickContent}
+        >
+            {renderedData}
         </CenterContent>
 
+        {renderedAnnotation}
+
         <input
-            className={"ICDatasetItemCheckBox"}
+            className={"DatasetItemSelectBox"}
             type={"checkbox"}
-            checked={props.selected}
-            onClick={
-                () => {
-                    props.onSelect(!props.selected)
-                }
-            }
-        />
-
-        <LabelSelect
-            onRelabelled={props.onRelabelled}
-            label={props.label}
-            labelColours={props.labelColours}
-        />
-
-        <div
-            className={"ICDatasetItemBorder"}
-            style={borderStyle}
+            checked={props.item.selected}
+            onClick={onSelect}
         />
     </div>
-}*/
+}

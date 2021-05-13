@@ -2,19 +2,20 @@ import {mapGetDefault} from "../util/map";
 import behaviourSubjectOperatorFunction from "../util/rx/behaviourSubjectOperatorFunction";
 import {map} from "rxjs/operators";
 import {BehaviorSubject} from "rxjs";
+import isBehaviourSubject from "../util/rx/isBehaviourSubject";
 
-type InTransit<D> = D | BehaviorSubject<D>
+export type InTransit<D> = D | BehaviorSubject<D>
 
 export class DataCache<D> extends Map<string, InTransit<Blob>> {
     private readonly _convertedMap: Map<string, InTransit<D>>;
-    private readonly _convert: (blob: Blob) => D
+    readonly convert: (blob: Blob) => D
 
     constructor(
         convert: (blob: Blob) => D
     ) {
         super();
         this._convertedMap = new Map();
-        this._convert = convert;
+        this.convert = convert;
     }
 
     clear(): void {
@@ -36,10 +37,10 @@ export class DataCache<D> extends Map<string, InTransit<Blob>> {
 
                 if (data === undefined)
                     return undefined;
-                else if (data instanceof Blob)
-                    return this._convert(data);
+                else if (isBehaviourSubject(data))
+                    return behaviourSubjectOperatorFunction(map(this.convert))(data);
                 else
-                    return behaviourSubjectOperatorFunction(map(this._convert))(data);
+                    return this.convert(data);
             },
             this.has(key)
         );

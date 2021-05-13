@@ -3,7 +3,7 @@ import {SORT_ORDERS, SortOrder} from "./sorting";
 import asChangeEventHandler from "../../../../util/react/asChangeEventHandler";
 import SelectionModal from "./SelectionModal";
 import useLocalModal from "../../../../util/react/hooks/useLocalModal";
-import {SelectFunction} from "../../../../server/hooks/useDataset/selection/SelectFunction";
+import {ItemSelector} from "../../../../server/hooks/useDataset/selection";
 import {Image} from "../../../../server/types/data";
 import {Classification} from "../../../../server/types/annotations";
 import {Dataset} from "../../../../server/types/Dataset";
@@ -13,7 +13,7 @@ import PickClassForm from "../../../../server/components/classification/PickClas
 
 export type ICAPBottomMenuProps = {
     onDeleteSelect: (() => void) | undefined
-    onSelect: ((select: SelectFunction<Image, Classification>) => void) | undefined
+    onSelect: ((select: ItemSelector<Image, Classification>) => void) | undefined
     onRelabelSelected: ((label: Classification) => void) | undefined
     onRequestLabelColourPickerOverlay: (() => void) | undefined
     onSortChanged: (order: SortOrder) => void

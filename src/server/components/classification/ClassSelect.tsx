@@ -56,7 +56,7 @@ export default function ClassSelect(
             props.colours.get(classification);
 
     return <select
-        className={"LabelSelect"}
+        className={"ClassSelect"}
         value={asLabel(classification, "")}
         onChange={asChangeEventHandler(onChange)}
         style={style}
