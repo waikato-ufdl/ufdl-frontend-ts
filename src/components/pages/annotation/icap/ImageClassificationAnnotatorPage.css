@@ -16,11 +16,11 @@
     flex-shrink: 0;
 }
 
-.ImageClassificationAnnotatorPage > #topMenu {
+.ImageClassificationAnnotatorPage > .AnnotatorTopMenu {
     top: 0;
 }
 
-.ImageClassificationAnnotatorPage > #topMenu > .MenuButton {
+.ImageClassificationAnnotatorPage > .AnnotatorTopMenu > .MenuButton {
     position: absolute;
     left: 0;
 }

@@ -1,7 +1,7 @@
 import React, {MouseEventHandler, useContext} from "react";
 import {UFDL_SERVER_REACT_CONTEXT} from "../../../../server/UFDLServerContextProvider";
 import Page from "../../Page";
-import ICAPTopMenu from "./ICAPTopMenu";
+import AnnotatorTopMenu from "../../../../server/components/AnnotatorTopMenu";
 import ICDatasetOverview from "./ICDatasetOverview";
 import ICAPBottomMenu, {SORT_ORDERS} from "./ICAPBottomMenu";
 import {mapAny, mapMap} from "../../../../util/map";
@@ -212,7 +212,8 @@ export default function ImageClassificationAnnotatorPage(
     }
 
     return <Page className={"ImageClassificationAnnotatorPage"}>
-        <ICAPTopMenu
+        <AnnotatorTopMenu
+            domain={"ic"}
             selectedPK={selectedPK}
             lockedPK={props.lockedPK}
             onTeamChanged={icapTopMenuOnTeamChanged}
@@ -228,8 +229,9 @@ export default function ImageClassificationAnnotatorPage(
             onNext={(position) => {
                 if (props.onNext !== undefined) props.onNext(selectedPK, dataset, classColoursDispatch.state, position)
             }}
-            nextDisabled={dataset === undefined || !dataset.synchronised}
+            nextDisabled={dataset === undefined || !dataset.synchronised || props.onNext === undefined}
             onBack={props.onBack}
+            className={"menuBar"}
         />
 
         <ICDatasetOverview

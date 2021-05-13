@@ -1,19 +1,23 @@
-import {TeamSelect} from "../../../TeamSelect";
-import {ProjectSelect} from "../../../ProjectSelect";
-import {ListSelect} from "../../../ListSelect";
-import * as ICDataset from "ufdl-ts-client/functional/image_classification/dataset";
 import React from "react";
-import {BackButton} from "../../../BackButton";
-import {exactFilter} from "../../../../server/util/exactFilter";
-import {DatasetInstance} from "ufdl-ts-client/types/core/dataset";
+import {DatasetPK, getDatasetPK, getProjectPK, getTeamPK, ProjectPK, TeamPK} from "../pk";
 import {TeamInstance} from "ufdl-ts-client/types/core/team";
 import {ProjectInstance} from "ufdl-ts-client/types/core/project";
-import useDerivedState from "../../../../util/react/hooks/useDerivedState";
-import {DatasetPK, getDatasetPK, getProjectPK, getTeamPK, ProjectPK, TeamPK} from "../../../../server/pk";
-import nameFromSignature from "../../../../server/util/nameFromSignature";
+import {DatasetInstance} from "ufdl-ts-client/types/core/dataset";
+import {Controllable, useControllableState} from "../../util/react/hooks/useControllableState";
+import {constantInitialiser} from "../../util/typescript/initialisers";
+import useDerivedState from "../../util/react/hooks/useDerivedState";
+import {exactFilter} from "../util/exactFilter";
+import {BackButton} from "../../components/BackButton";
+import {TeamSelect} from "../../components/TeamSelect";
+import {ProjectSelect} from "../../components/ProjectSelect";
+import {ListSelect} from "../../components/ListSelect";
+import {AvailableDomainsType, DOMAIN_DATASET_METHODS} from "../domains";
+import nameFromSignature from "../util/nameFromSignature";
+import {augmentClassName} from "../../util/augmentClass";
 
-export type ICAPTopMenuProps = {
-    selectedPK: DatasetPK | ProjectPK | TeamPK | undefined
+export type AnnotatorTopMenuProps = {
+    domain: AvailableDomainsType
+    selectedPK: Controllable<DatasetPK | ProjectPK | TeamPK | undefined>
     lockedPK: DatasetPK | ProjectPK | TeamPK | undefined
     onTeamChanged: (team?: TeamInstance, pk?: number) => void
     onProjectChanged: (project?: ProjectInstance, pk?: number) => void
@@ -23,13 +27,20 @@ export type ICAPTopMenuProps = {
     onNext?: (position: [number, number]) => void
     nextDisabled?: boolean
     onBack?: () => void
+    className?: string
 }
 
-export default function ICAPTopMenu(props: ICAPTopMenuProps) {
+export default function AnnotatorTopMenu(
+    props: AnnotatorTopMenuProps
+) {
+    const [selectedPK] = useControllableState(
+        props.selectedPK,
+        constantInitialiser(undefined)
+    )
 
-    const teamPK = getTeamPK(props.selectedPK);
-    const projectPK = getProjectPK(props.selectedPK);
-    const datasetPK = getDatasetPK(props.selectedPK);
+    const teamPK = getTeamPK(selectedPK);
+    const projectPK = getProjectPK(selectedPK);
+    const datasetPK = getDatasetPK(selectedPK);
 
     const lockTeam = getTeamPK(props.lockedPK) !== undefined;
     const lockProject = getProjectPK(props.lockedPK) !== undefined;
@@ -45,7 +56,7 @@ export default function ICAPTopMenu(props: ICAPTopMenuProps) {
         [projectPK]
     );
 
-    return <div id={"topMenu"} className={"menuBar"}>
+    return <div className={augmentClassName(props.className, "AnnotatorTopMenu")}>
         {props.onBack && <BackButton onBack={props.onBack} />}
         <label>
             Team:
@@ -68,7 +79,7 @@ export default function ICAPTopMenu(props: ICAPTopMenuProps) {
         <label>
             Dataset:
             <ListSelect<DatasetInstance>
-                list={ICDataset.list}
+                list={DOMAIN_DATASET_METHODS[props.domain].list}
                 labelFunction={nameFromSignature}
                 onChange={props.onDatasetChanged}
                 filter={datasetProjectFilter}
@@ -85,14 +96,14 @@ export default function ICAPTopMenu(props: ICAPTopMenuProps) {
         </button>
         {
             props.onNext &&
-                <button
-                    onClick={(event) => {
-                        if (props.onNext !== undefined) props.onNext([event.clientX, event.clientY])
-                    }}
-                    disabled={props.nextDisabled}
-                >
-                    {props.nextLabel === undefined ? "Next" : props.nextLabel}
-                </button>
+            <button
+                onClick={(event) => {
+                    if (props.onNext !== undefined) props.onNext([event.clientX, event.clientY])
+                }}
+                disabled={props.nextDisabled}
+            >
+                {props.nextLabel === undefined ? "Next" : props.nextLabel}
+            </button>
 
         }
     </div>;
