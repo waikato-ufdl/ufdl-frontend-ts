@@ -18,7 +18,6 @@ import {LicenceSelect} from "../LicenceSelect";
 import useStateSafe from "../../util/react/hooks/useStateSafe";
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import {DatasetInstance} from "ufdl-ts-client/types/core/dataset";
-import {CreateDatasetFunction} from "../../server/util/types";
 import asChangeEventHandler from "../../util/react/asChangeEventHandler";
 import {DatasetPK, ProjectPK, TeamPK} from "../../server/pk";
 import {
@@ -26,13 +25,10 @@ import {
     WithErrorResponseHandler,
     withErrorResponseHandler
 } from "../../server/util/responseError";
-
-const AVAILABLE_DOMAINS = ["ic", "od", "is", "sp"] as const;
-
-export type Domain = (typeof AVAILABLE_DOMAINS)[number];
+import {Domain, DOMAIN_DATASET_METHODS, DOMAINS} from "../../server/domains";
 
 const createFunctions: {
-    [key in Domain]: WithErrorResponseHandler<Parameters<CreateDatasetFunction>, DatasetInstance>
+    [key in Domain]: WithErrorResponseHandler<Parameters<typeof DOMAIN_DATASET_METHODS[key]['create']>, DatasetInstance>
 } = {
     ic: withErrorResponseHandler(ICDataset.create),
     od: withErrorResponseHandler(ODDataset.create),
@@ -43,7 +39,7 @@ const createFunctions: {
 export type NewDatasetPageProps = {
     domain: Controllable<Domain>
     lockDomain?: boolean
-    from: Controllable<TeamPK | ProjectPK | undefined>
+    from?: TeamPK | ProjectPK
     lockFrom?: "team" | "project"
     licencePK: Controllable<number>
     lockLicence?: boolean
@@ -58,7 +54,7 @@ export default function NewDatasetPage(props: NewDatasetPageProps) {
     const ufdlServerContext = useContext(UFDL_SERVER_REACT_CONTEXT);
 
     const [domain, setDomain, domainLocked] = useControllableState<Domain | undefined>(props.domain, constantInitialiser(undefined));
-    const [from, setFrom, fromLocked] = useControllableState<ProjectPK | TeamPK | undefined>(props.from, constantInitialiser(undefined));
+    const [from, setFrom] = useStateSafe<ProjectPK | TeamPK | undefined>(constantInitialiser(props.from));
     const [licencePK, setLicencePK, licencePKLocked] = useControllableState<number | undefined>(props.licencePK, constantInitialiser(undefined));
     const [isPublic, setIsPublic, isPublicLocked] = useControllableState<boolean>(props.isPublic, constantInitialiser(false));
 
@@ -105,7 +101,7 @@ export default function NewDatasetPage(props: NewDatasetPageProps) {
                 Domain:
                 <DomainSelect
                     onChange={setDomain}
-                    values={AVAILABLE_DOMAINS}
+                    values={DOMAINS}
                     value={domain}
                     disabled={props.lockDomain}
                 />
