@@ -31,10 +31,20 @@ export type DefaultHandler<T> = () => WithoutDefault<T>
 export type FunctionDefaultHandlers<P extends readonly any[]>
     = OmitNever<{ [index in IndexType<P>]: If<HasDefault<P[index]>, DefaultHandler<P[index]>, never>}>
 
+/** The prop keys which require default handlers. */
+export type PropsDefaultHandlersKeys<P extends {}> = {
+    [K in keyof P]: typeof DEFAULT extends P[K] ? K : never
+}[keyof P]
+
 /** The type of a set of default handlers for a given props type. */
-export type PropsDefaultHandlers<P extends {}> = OmitNever<{
-    [K in keyof P]: typeof DEFAULT extends P[K] ? DefaultHandler<P[K]> : never
-}>
+export type PropsDefaultHandlers<P extends {}> = {
+    [K in PropsDefaultHandlersKeys<P>]: DefaultHandler<P[K]>
+}
+
+/** The props which require default handling. */
+export type PropsRequiringDefaultHandling<P extends {}> = {
+    [K in PropsDefaultHandlersKeys<P>]: P[K]
+}
 
 /** The type of the props with all default arguments applied their default values. */
 export type DefaultHandled<P extends {}> = {
@@ -42,17 +52,17 @@ export type DefaultHandled<P extends {}> = {
 }
 
 /**
- * Checks if the value is specified as default.
+ * Checks if the value is specified (i.e. not defaulted).
  *
  * @param value
  *          The value to check.
  * @return
- *          Whether the parameter should take it's default value.
+ *          Whether the parameter has been specified.
  */
-export function isDefault<T>(
+export function isSpecified<T>(
     value: WithDefault<T>
-): value is typeof DEFAULT {
-    return value === DEFAULT;
+): value is T extends typeof DEFAULT ? never : T {
+    return value !== DEFAULT;
 }
 
 /**
@@ -90,11 +100,33 @@ export function handleDefaults<P extends {}>(
     forEachOwnProperty(
         props,
         (property, value) => {
-            handled[property] = isDefault(value) && hasHandler(handlers, property) ?
-                handlers[property]() :
-                value as any;
+            handled[property] = !hasHandler(handlers, property)
+                ? value as any
+                : handleDefault(handlers, props, property)
         }
-    );
+    )
 
     return handled as any;
+}
+
+/**
+ * Gets the value of a prop after handling the default value.
+ *
+ * @param props
+ *          The props.
+ * @param key
+ *          The key of the prop to get.
+ * @param handlers
+ *          The default handlers for props.
+ * @return
+ *          The default-handled value of the prop.
+ */
+export function handleDefault<P extends {}, K extends PropsDefaultHandlersKeys<P>>(
+    handlers: PropsDefaultHandlers<P>,
+    props: PropsRequiringDefaultHandling<P>,
+    key: K
+): WithoutDefault<P[K]> {
+    const value = props[key];
+    if (isSpecified(value)) return value;
+    return handlers[key]()
 }
