@@ -4,6 +4,8 @@ import * as ISDataset from "ufdl-ts-client/functional/image_segmentation/dataset
 import * as SPDataset from "ufdl-ts-client/functional/speech/dataset";
 import {Image} from "./types/data";
 import {Classification} from "./types/annotations";
+import {ownPropertyIterator} from "../util/typescript/object";
+import iteratorMap from "../util/typescript/iterate/map";
 
 export const DOMAIN_DATASET_METHODS = {
     ic: ICDataset,
@@ -12,7 +14,7 @@ export const DOMAIN_DATASET_METHODS = {
     sp: SPDataset
 } as const;
 
-export type DomainDataAndAnnotationTypes = {
+type DomainDataAndAnnotationTypes = {
     ic: [Image, Classification]
     od: [Image, never]
     is: [Image, never]
@@ -31,3 +33,10 @@ export const DOMAIN_NAMES: {[key in Domain]: string} = {
     is: "Image Segmentation",
     sp: "Speech"
 };
+
+export const DOMAINS = [
+    ...iteratorMap(
+        ownPropertyIterator(DOMAIN_DATASET_METHODS),
+        ([property]) => property
+    )
+]
