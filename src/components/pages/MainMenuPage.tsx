@@ -10,6 +10,7 @@ import TheLoopPage from "./loop/TheLoopPage";
 import ImageClassificationAnnotatorPage from "./annotation/icap/ImageClassificationAnnotatorPage";
 import {UNCONTROLLED_KEEP} from "../../util/react/hooks/useControllableState";
 import NewUserPage from "./NewUserPage";
+import {DEFAULT} from "../../util/typescript/default";
 
 export function MainMenuPage() {
 
@@ -28,8 +29,8 @@ export function MainMenuPage() {
         <NewUserPage />
         <NewTeamPage />
         <NewProjectPage teamPK={UNCONTROLLED_KEEP} />
-        <NewDatasetPage domain={UNCONTROLLED_KEEP} licencePK={UNCONTROLLED_KEEP} isPublic={UNCONTROLLED_KEEP} from={UNCONTROLLED_KEEP}/>
-        <ImageClassificationAnnotatorPage />
+        <NewDatasetPage domain={UNCONTROLLED_KEEP} licencePK={UNCONTROLLED_KEEP} isPublic={UNCONTROLLED_KEEP}/>
+        <ImageClassificationAnnotatorPage nextLabel={DEFAULT} />
         <TheLoopPage />
     </MenuPage>
 }
