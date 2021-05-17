@@ -1,0 +1,53 @@
+.ObjectDetectionAnnotatorPage {
+    position: relative;
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+}
+
+.ObjectDetectionAnnotatorPage > .menuBar {
+    width: 100%;
+    position: relative;
+    left: 0;
+    background-color: aquamarine;
+    flex-shrink: 0;
+}
+
+.ObjectDetectionAnnotatorPage > .AnnotatorTopMenu {
+    top: 0;
+}
+
+.ObjectDetectionAnnotatorPage > .AnnotatorTopMenu > .MenuButton {
+    position: absolute;
+    left: 0;
+}
+
+.ObjectDetectionAnnotatorPage > .ODDatasetOverview {
+    width: 100%;
+    flex-grow: 1;
+    overflow: auto;
+}
+
+.Overlay .DataImage {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.ODDatasetItem > .ODDatasetItemBorder {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+.ODDatasetItem .DataImage {
+    max-width: 100%;
+    max-height: 100%;
+}
