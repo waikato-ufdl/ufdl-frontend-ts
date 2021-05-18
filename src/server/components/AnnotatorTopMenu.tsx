@@ -13,7 +13,7 @@ import {ProjectSelect} from "../../components/ProjectSelect";
 import {ListSelect} from "../../components/ListSelect";
 import {Domain, DOMAIN_DATASET_METHODS, DomainAnnotationType, DomainDataType} from "../domains";
 import nameFromSignature from "../util/nameFromSignature";
-import {augmentClassName} from "../../util/augmentClass";
+import {augmentClassName} from "../../util/react/augmentClass";
 import {ItemSelector} from "../hooks/useDataset/selection";
 import {handleDefault, PropsDefaultHandlers, WithDefault} from "../../util/typescript/default";
 import {CompareFunction} from "../../util/typescript/sort/CompareFunction";

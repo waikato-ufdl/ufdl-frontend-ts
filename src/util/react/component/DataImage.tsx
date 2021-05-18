@@ -1,7 +1,7 @@
 import {FunctionComponentReturnType} from "../types";
 import React, {ImgHTMLAttributes} from "react";
 import {BehaviorSubject} from "rxjs";
-import {augmentClassName} from "../../augmentClass";
+import {augmentClassName} from "../augmentClass";
 import {useObservable} from "../hooks/useObservable";
 import useDerivedState from "../hooks/useDerivedState";
 import isBehaviourSubject from "../../rx/isBehaviourSubject";

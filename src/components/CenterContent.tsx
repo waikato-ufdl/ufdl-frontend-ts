@@ -1,5 +1,5 @@
 import React, {CSSProperties, ReactElement} from "react";
-import {augmentClass} from "../util/augmentClass";
+import {augmentClass} from "../util/react/augmentClass";
 import {FunctionComponentReturnType} from "../util/react/types";
 
 const CENTER_CONTENT_CONSTANT_STYLE = {

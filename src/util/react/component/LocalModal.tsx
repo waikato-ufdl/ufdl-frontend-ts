@@ -1,7 +1,7 @@
 import React, {PropsWithChildren} from "react";
 import ReactModal from "react-modal";
 import {FunctionComponentReturnType} from "../types";
-import {augmentClassName} from "../../augmentClass";
+import {augmentClassName} from "../augmentClass";
 import "./LocalModal.css";
 
 export type LocalModalProps = {

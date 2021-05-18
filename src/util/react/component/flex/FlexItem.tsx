@@ -1,6 +1,6 @@
 import {FunctionComponentReturnType} from "../../types";
 import {CSSProperties} from "react";
-import {augmentClass} from "../../../augmentClass";
+import {augmentClass} from "../../augmentClass";
 
 export type FlexItemProps = JSX.IntrinsicElements["div"] & {
     style?: Omit<CSSProperties, "position">

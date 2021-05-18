@@ -1,6 +1,6 @@
 import React, {CSSProperties, ReactNode} from "react";
 import {FunctionComponentReturnType} from "../../types";
-import {augmentClass} from "../../../augmentClass";
+import {augmentClass} from "../../augmentClass";
 import {SemiRequired} from "../../../typescript/types/SemiRequired";
 import {nodeIsElement} from "../../node/nodeIsElement";
 import FlexItem, {FlexItemProps} from "./FlexItem";

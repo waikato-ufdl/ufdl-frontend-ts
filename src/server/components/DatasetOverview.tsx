@@ -10,7 +10,7 @@ import FlexContainer from "../../util/react/component/flex/FlexContainer";
 import AddFilesButton, {FileAnnotationModalRenderer} from "./AddFilesButton";
 import {undefinedAsAbsent} from "../../util/typescript/types/Possible";
 import DatasetItem, {AnnotationRenderer, DataRenderer} from "./DatasetItem";
-import {augmentClassName} from "../../util/augmentClass";
+import {augmentClassName} from "../../util/react/augmentClass";
 
 export type DatasetOverviewProps<D, A> = {
     dataset: Dataset<D, A> | undefined

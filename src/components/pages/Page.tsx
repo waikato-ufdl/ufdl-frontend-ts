@@ -1,6 +1,6 @@
 import React from "react";
 import "./Page.css";
-import {augmentClass} from "../../util/augmentClass";
+import {augmentClass} from "../../util/react/augmentClass";
 
 export type PageProps = React.HTMLAttributes<HTMLDivElement>
 

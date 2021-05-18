@@ -4,7 +4,7 @@ import {FunctionComponentReturnType} from "../../util/react/types";
 import {Possible} from "../../util/typescript/types/Possible";
 import {ReactElement, ReactNode} from "react";
 import CenterContent from "../../components/CenterContent";
-import {augmentClassName} from "../../util/augmentClass";
+import {augmentClassName} from "../../util/react/augmentClass";
 import useDerivedState from "../../util/react/hooks/useDerivedState";
 import useRenderNotify from "../../util/react/hooks/useRenderNotify";
 
