@@ -29,6 +29,7 @@ import useObjectDetectionDataset from "../../../../server/hooks/useObjectDetecti
 import {ReactPictureAnnotation} from "react-picture-annotation";
 import {IAnnotation} from "react-picture-annotation/dist/types/src/Annotation";
 import isBehaviourSubject from "../../../../util/rx/isBehaviourSubject";
+import delayFunction from "../../../../util/typescript/delayFunction";
 
 type AnyPK = DatasetPK | ProjectPK | TeamPK | undefined
 
@@ -191,12 +192,22 @@ export default function ObjectDetectionAnnotatorPage(
         [dataset, annotating]
     )
 
+    // Create a delayed version of the annotation change function which doesn't
+    // update the server until the user has stopped making changes for at least
+    // half a second
+    const delayedDatasetSetAnnotation = useDerivedState(
+        () => dataset === undefined
+            ? undefined
+            : delayFunction(dataset.setAnnotation.bind(dataset), 500),
+        [dataset]
+    )
+
     const pictureAnnotatorOnChange = useDerivedState(
         () => (annotationData: IAnnotation[]) => {
             console.log(annotationData);
-            if (dataset === undefined || annotating === undefined) return;
+            if (delayedDatasetSetAnnotation === undefined || annotating === undefined) return;
             setIAnnotations(annotationData);
-            dataset.setAnnotation(
+            delayedDatasetSetAnnotation(
                 annotating,
                 annotationData.map(
                     (value) => {
@@ -211,7 +222,7 @@ export default function ObjectDetectionAnnotatorPage(
                 )
             )
         },
-        [dataset, annotating]
+        [delayedDatasetSetAnnotation, annotating]
     )
 
     const pictureAnnotatorOnSelect = useDerivedState(
