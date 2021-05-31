@@ -43,6 +43,8 @@ import LocalModal from "../../../../util/react/component/LocalModal";
 import PickClassForm from "../../../../server/components/classification/PickClassForm";
 import {Dataset} from "../../../../server/types/Dataset";
 import ClassSelect from "../../../../server/components/classification/ClassSelect";
+import * as ICDataset from "ufdl-ts-client/functional/image_classification/dataset";
+import iteratorMap from "../../../../util/typescript/iterate/map";
 
 type AnyPK = DatasetPK | ProjectPK | TeamPK | undefined
 
@@ -269,6 +271,27 @@ export default function ImageClassificationAnnotatorPage(
         [dataset?.items]
     )
 
+    const onExtractSelected = useDerivedState(
+        () => dataset !== undefined
+            ? async () => {
+                const newDataset = await ICDataset.copy(
+                    ufdlServerContext,
+                    dataset!.pk.asNumber,
+                    undefined,
+                    Array(
+                        ...iteratorMap(
+                            dataset!.selected,
+                            (value) => value[0]
+                        )
+                    )
+                )
+
+                setSelectedPK(dataset!.pk.project.dataset(newDataset.pk))
+            }
+            :undefined,
+        [dataset]
+    )
+
     if (showNewDatasetPage) {
         return <NewDatasetPage
             domain={"ic"} lockDomain
@@ -315,6 +338,7 @@ export default function ImageClassificationAnnotatorPage(
             onDeleteSelected={dataset === undefined ? undefined : dataset.deleteSelectedFiles.bind(dataset)}
             extraControls={extraControls}
             numSelected={annotatorTopMenuNumSelected}
+            onExtractSelected={onExtractSelected}
         />
 
         <DatasetOverview<Image, Classification>

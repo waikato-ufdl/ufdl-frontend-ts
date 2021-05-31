@@ -287,6 +287,7 @@ export default function ObjectDetectionAnnotatorPage(
             onDeleteSelected={dataset === undefined ? undefined : dataset.deleteSelectedFiles.bind(dataset)}
             extraControls={extraControls}
             numSelected={annotatorTopMenuNumSelected}
+            onExtractSelected={undefined}
         />
 
         <DatasetOverview<Image, DetectedObjects>

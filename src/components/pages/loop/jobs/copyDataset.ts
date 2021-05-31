@@ -11,7 +11,7 @@ export default async function copyDataset(
         context,
         base.asNumber,
         undefined,
-        clearFiles
+        clearFiles ? [] : undefined
     );
 
     return base.project.dataset(newDataset['pk'] as number);

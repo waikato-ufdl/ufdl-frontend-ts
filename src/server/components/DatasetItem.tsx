@@ -36,7 +36,7 @@ export default function DatasetItem<D, A>(
     props: DatasetItemProps<D, A>
 ): FunctionComponentReturnType {
 
-    useRenderNotify("DatasetItem", props)
+    //useRenderNotify("DatasetItem", props)
 
     const renderedData = useDerivedState(
         () => props.renderData(

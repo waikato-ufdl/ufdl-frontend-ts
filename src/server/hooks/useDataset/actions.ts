@@ -41,7 +41,7 @@ export function getActionsDispatch<D, A>(
                 (currentState) => {
                     return copyMap(
                         currentState,
-                        (_, item) => !itemSelection(item)
+                        (filename, item) => !itemSelection(item, filename, currentState)
                     )
                 }
             )
@@ -55,7 +55,7 @@ export function getActionsDispatch<D, A>(
                 (currentState) => {
                     return copyMap(
                         currentState,
-                        (filename, item) => itemSelection(item)
+                        (filename, item) => itemSelection(item, filename, currentState)
                             ? [
                                 filename,
                                 {...item, ...update(item)}

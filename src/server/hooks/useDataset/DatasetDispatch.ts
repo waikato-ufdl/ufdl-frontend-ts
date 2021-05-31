@@ -106,7 +106,7 @@ export default abstract class DatasetDispatch<D, A> {
         this.dispatch.updateItems(
             (item) => {
                 return {
-                    selected: itemSelection(item)
+                    selected: itemSelection(item, item.filename, this.items)
                 }
             },
             SELECTIONS.ALL

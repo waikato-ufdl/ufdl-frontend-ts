@@ -50,6 +50,7 @@ export type AnnotatorTopMenuProps<D extends Domain> = {
     onDeleteSelected: (() => void) | undefined
     extraControls: AnnotatorTopMenuExtraControlsRenderer | undefined
     numSelected: readonly [number, number]
+    onExtractSelected: (() => void) | undefined
 }
 
 const DEFAULT_HANDLERS: PropsDefaultHandlers<AnnotatorTopMenuProps<Domain>> = {
@@ -169,6 +170,7 @@ export default function AnnotatorTopMenu<D extends Domain>(
             onSelect={props.onSelect!}
             onCancel={selectModal.hide}
             itemSelectFragmentRenderer={props.itemSelectFragmentRenderer}
+            numItems={props.numSelected[1]}
         />
 
         <button
@@ -176,6 +178,13 @@ export default function AnnotatorTopMenu<D extends Domain>(
             disabled={props.onDeleteSelected === undefined}
         >
             Delete
+        </button>
+
+        <button
+            onClick={props.onExtractSelected}
+            disabled={props.onExtractSelected === undefined}
+        >
+            Extract
         </button>
 
         {props.extraControls !== undefined ? props.extraControls() : undefined}
