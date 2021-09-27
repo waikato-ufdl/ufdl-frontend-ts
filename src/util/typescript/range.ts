@@ -53,6 +53,8 @@ export abstract class Range<T extends number | bigint> implements Iterable<T> {
 
     protected abstract incr(value: T): T;
 
+    public abstract reversed(): Range<T>;
+
     private Iterator = class implements Iterator<T> {
         private source: Range<T>;
         private nextValue: T;
@@ -83,10 +85,34 @@ export class NumberRange extends Range<number> {
     protected incr(value: number): number {
         return value + this.step;
     }
+
+    reversed(): Range<number> {
+        if (this.step === 0) return this;
+
+        const numSteps = Math.floor((this.end - this.start) / this.step)
+
+        return new NumberRange(
+            this.start + this.step * numSteps,
+            this.start - this.step,
+            -this.step
+        )
+    }
 }
 
 export class BigIntRange extends Range<bigint> {
     protected incr(value: bigint): bigint {
         return value + this.step;
+    }
+
+    reversed(): Range<bigint> {
+        if (this.step === BIG_INT_ZERO) return this;
+
+        const numSteps = (this.end - this.start) / this.step
+
+        return new BigIntRange(
+            this.start + this.step * numSteps,
+            this.start - this.step,
+            -this.step
+        )
     }
 }
