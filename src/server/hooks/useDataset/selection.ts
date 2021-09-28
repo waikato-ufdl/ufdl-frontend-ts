@@ -2,12 +2,7 @@ import {DatasetItem} from "../../types/DatasetItem";
 import {Dataset} from "../../types/Dataset";
 import getRandom from "../../../util/typescript/random/getRandom";
 import randomBool from "../../../util/typescript/random/randomBool";
-import nChooseM from "../../../util/typescript/math/nChooseM";
-import randomBigInt from "../../../util/typescript/random/randomBigInt";
-import {BIG_INT_ONE} from "../../../util/typescript/bigint/constants";
-import enumerate from "../../../util/typescript/iterate/enumerate";
-import iteratorFilter from "../../../util/typescript/iterate/filter";
-import iteratorMap from "../../../util/typescript/iterate/map";
+import randomSubset from "../../../util/typescript/random/randomSubset";
 
 export type ItemSelector<D, A> = (
     item: DatasetItem<D, A>,
@@ -33,29 +28,13 @@ export const SELECTIONS = {
         function initSelectorSet(
             dataset: Dataset<any, any>
         ): Set<string> {
-            let n = BigInt(dataset.size)
-            const prng = getRandom(seed)
-            const numChoices = nChooseM(n, m, true)
-            let choice = randomBigInt(prng, numChoices)
-            const result: Set<bigint> = new Set()
-            while (m > 0) {
-                let nextChoice = choice % n
-                while (result.has(nextChoice)) nextChoice++
-                result.add(nextChoice)
-                choice /= n
-                n -= BIG_INT_ONE
-                m -= 1
-            }
-
-            return new Set<string>(
-                iteratorMap(
-                    iteratorFilter(
-                        enumerate(
-                            dataset.keys()
-                        ),
-                        ([index]) => result.has(BigInt(index))
-                    ),
-                    (value) => value[1]
+            return new Set(
+                randomSubset(
+                    [...dataset.keys()],
+                    BigInt(m),
+                    false,
+                    false,
+                    seed
                 )
             )
         }
