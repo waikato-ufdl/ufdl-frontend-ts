@@ -4,6 +4,7 @@ import completionPromise from "../rx/completionPromise";
 import toBlob from "../typescript/data/toBlob";
 import {BehaviorSubject} from "rxjs";
 import isPromise from "../typescript/async/isPromise";
+import saveURL from "./saveURL";
 
 /**
  * Saves a file to disk with the given filename.
@@ -29,15 +30,8 @@ export default async function saveFile(
     if (isPromise(fileData)) fileData = await fileData;
     if (fileData instanceof Uint8Array) fileData = toBlob(fileData);
 
-    // Create a dummy anchor link to download the file-data
-    const dummyLink: HTMLAnchorElement = document.createElement("a");
+    // Create a URL for the data
+    const url = URL.createObjectURL(fileData);
 
-    // Add a URL to the file-data
-    dummyLink.href = URL.createObjectURL(fileData);
-
-    // Add the name to give the file
-    dummyLink.download = filename;
-
-    // Click the link to initiate download of the data
-    dummyLink.click();
+    await saveURL(filename, url);
 }
