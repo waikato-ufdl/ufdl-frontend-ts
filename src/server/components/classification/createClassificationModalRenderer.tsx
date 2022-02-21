@@ -1,5 +1,5 @@
 import {ClassColours} from "../../util/classification";
-import {FileAnnotationModalRenderer} from "../AddFilesButton";
+import {addFilesRenderer, FileAnnotationModalRenderer} from "../AddFilesButton";
 import {Classification, NO_CLASSIFICATION} from "../../types/annotations";
 import getPathFromFile from "../../../util/files/getPathFromFile";
 import PickClassForm from "./PickClassForm";
@@ -9,19 +9,9 @@ import React from "react";
 export default function createClassificationModalRenderer(
     colours: [ClassColours]
 ): FileAnnotationModalRenderer<Classification> {
-    return (method, onSubmit) => {
-        if (method === "folder") {
-            return (file) => {
-                const pathElements = getPathFromFile(file);
-
-                return pathElements.length > 1 ?
-                    pathElements[pathElements.length - 2] :
-                    NO_CLASSIFICATION;
-            };
-        }
-
+    return (onSubmit, onCancel) => {
         return <PickClassForm
-            onSubmit={(classification) => onSubmit(constantInitialiser(classification))}
+            onSubmit={(classification) => addFilesRenderer("multiple", () => classification)(onSubmit, onCancel)}
             colours={colours[0]}
             confirmText={"Select files..."}
         />

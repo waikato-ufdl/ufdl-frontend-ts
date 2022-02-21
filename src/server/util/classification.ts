@@ -4,6 +4,8 @@ import {toHexString} from "ufdl-ts-client/util";
 import {pseudoRandomBytes} from "crypto";
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import {Classification, NO_CLASSIFICATION} from "../types/annotations";
+import {Dataset} from "../types/Dataset";
+import {DatasetItem} from "../types/DatasetItem";
 
 export type ClassColour = CSS.Property.BackgroundColor & CSS.Property.BorderColor
 
@@ -117,4 +119,30 @@ export function storeColoursInContext(
     );
 
     context.store_item(CLASS_COLOURS_STORAGE_KEY, JSON.stringify(serialised), false);
+}
+
+export function groupByClassification<T>(
+    dataset: Dataset<T, Classification>
+): Map<Classification | undefined, Dataset<T, Classification>> {
+    const result: Map<Classification | undefined, Map<string, DatasetItem<T, Classification>>> = new Map()
+
+    dataset.forEach(
+        (item) => {
+            const classification = item.annotations.success === undefined
+                ? item.annotations.partialResult
+                : item.annotations.success
+                    ? item.annotations.value
+                    : undefined
+
+            let classDataset = result.get(classification)
+            if (classDataset === undefined) {
+                classDataset = new Map()
+                result.set(classification, classDataset)
+            }
+
+            classDataset.set(item.filename, item)
+        }
+    )
+
+    return result
 }

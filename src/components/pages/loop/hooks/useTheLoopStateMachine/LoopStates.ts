@@ -1,23 +1,45 @@
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import {DatasetPK, ProjectPK, TeamPK} from "../../../../../server/pk";
 import {BehaviorSubject} from "rxjs";
+import {Domain} from "../../../../../server/domains";
+import {ParameterValue} from "../../../../../../../ufdl-ts-client/dist/json/generated/CreateJobSpec";
 
 export type LoopStates = {
     "Selecting Primary Dataset": {
         context: UFDLServerContext
         from: TeamPK | ProjectPK | undefined
     }
-    "Selecting Images": {
+    "Selecting Initial Images": {
         context: UFDLServerContext
         primaryDataset: DatasetPK
-        modelOutputPK: number | undefined
         targetDataset: DatasetPK
+        domain: Domain
+    }
+    "Selecting Prelabel Images": {
+        context: UFDLServerContext
+        primaryDataset: DatasetPK
+        modelOutputPK: number
+        targetDataset: DatasetPK
+        domain: Domain
+        framework: [string, string]
+        modelType: string
+        trainTemplatePK: number
+        trainParameters: { [name: string]: ParameterValue }
+        evalTemplatePK: number
+        evalParameters: { [name: string]: ParameterValue }
     }
     "Training": {
         context: UFDLServerContext
         primaryDataset: DatasetPK
         jobPK: Promise<number>
         progress: BehaviorSubject<number>
+        domain: Domain
+        framework: [string, string]
+        modelType: string
+        trainTemplatePK: number
+        trainParameters: { [name: string]: ParameterValue }
+        evalTemplatePK: number
+        evalParameters: { [name: string]: ParameterValue }
     }
     "Evaluating": {
         context: UFDLServerContext
@@ -26,18 +48,39 @@ export type LoopStates = {
         progress: BehaviorSubject<number>
         evaluationDataset: DatasetPK
         modelOutputPK: number
+        domain: Domain
+        framework: [string, string]
+        modelType: string
+        trainTemplatePK: number
+        trainParameters: { [name: string]: ParameterValue }
+        evalTemplatePK: number
+        evalParameters: { [name: string]: ParameterValue }
     }
     "Checking": {
         context: UFDLServerContext
         primaryDataset: DatasetPK
         evaluationDataset: DatasetPK
         modelOutputPK: number
+        domain: Domain
+        framework: [string, string]
+        modelType: string
+        trainTemplatePK: number
+        trainParameters: { [name: string]: ParameterValue }
+        evalTemplatePK: number
+        evalParameters: { [name: string]: ParameterValue }
     }
     "Creating Addition Dataset": {
         context: UFDLServerContext
         primaryDataset: DatasetPK
         additionDataset: Promise<DatasetPK>
         modelOutputPK: number
+        domain: Domain
+        framework: [string, string]
+        modelType: string
+        trainTemplatePK: number
+        trainParameters: { [name: string]: ParameterValue }
+        evalTemplatePK: number
+        evalParameters: { [name: string]: ParameterValue }
     }
     "Prelabel": {
         context: UFDLServerContext
@@ -46,18 +89,39 @@ export type LoopStates = {
         additionDataset: DatasetPK
         jobPK: Promise<number>
         progress: BehaviorSubject<number>
+        domain: Domain
+        framework: [string, string]
+        modelType: string
+        trainTemplatePK: number
+        trainParameters: { [name: string]: ParameterValue }
+        evalTemplatePK: number
+        evalParameters: { [name: string]: ParameterValue }
     }
     "User Fixing Categories": {
         context: UFDLServerContext
         primaryDataset: DatasetPK
         modelOutputPK: number
         additionDataset: DatasetPK
+        domain: Domain
+        framework: [string, string]
+        modelType: string
+        trainTemplatePK: number
+        trainParameters: { [name: string]: ParameterValue }
+        evalTemplatePK: number
+        evalParameters: { [name: string]: ParameterValue }
     }
     "Merging Additional Images": {
         context: UFDLServerContext
         primaryDataset: DatasetPK
         modelOutputPK: number
         mergeJobPK: Promise<void>
+        domain: Domain
+        framework: [string, string]
+        modelType: string
+        trainTemplatePK: number
+        trainParameters: { [name: string]: ParameterValue }
+        evalTemplatePK: number
+        evalParameters: { [name: string]: ParameterValue }
     }
     "Finished": {
         context: UFDLServerContext

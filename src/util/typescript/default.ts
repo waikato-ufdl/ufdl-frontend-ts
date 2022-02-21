@@ -127,6 +127,15 @@ export function handleDefault<P extends {}, K extends PropsDefaultHandlersKeys<P
     key: K
 ): WithoutDefault<P[K]> {
     const value = props[key];
-    if (isSpecified(value)) return value;
-    return handlers[key]()
+    return handleSingleDefault(value, handlers[key]);
+}
+
+export function handleSingleDefault<T>(
+    value: WithDefault<T>,
+    defaultValue: () => WithoutDefault<T>
+): WithoutDefault<T> {
+    if (isSpecified(value))
+        return value
+    else
+        return defaultValue()
 }

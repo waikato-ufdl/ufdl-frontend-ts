@@ -18,21 +18,17 @@ export default function cancelJobTransition(
             case "Evaluating":
             case "Merging Additional Images":
                 return createNewLoopState(
-                    "Selecting Images",
+                    "Selecting Initial Images",
                     {
-                        context: current.data.context,
-                        primaryDataset: current.data.primaryDataset,
-                        modelOutputPK: undefined,
+                        ...current.data,
                         targetDataset: current.data.primaryDataset
                     }
                 );
             case "Prelabel":
                 return createNewLoopState(
-                    "Selecting Images",
+                    "Selecting Prelabel Images",
                     {
-                        context: current.data.context,
-                        primaryDataset: current.data.primaryDataset,
-                        modelOutputPK: current.data.modelOutputPK,
+                        ...current.data,
                         targetDataset: current.data.additionDataset
                     }
                 );

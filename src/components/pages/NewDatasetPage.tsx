@@ -27,25 +27,26 @@ import {
 } from "../../server/util/responseError";
 import {Domain, DOMAIN_DATASET_METHODS, DOMAINS} from "../../server/domains";
 
+// TODO: Automate.
 const createFunctions: {
     [key in Domain]: WithErrorResponseHandler<Parameters<typeof DOMAIN_DATASET_METHODS[key]['create']>, DatasetInstance>
 } = {
-    ic: withErrorResponseHandler(ICDataset.create),
-    od: withErrorResponseHandler(ODDataset.create),
-    is: withErrorResponseHandler(ISDataset.create),
-    sp: withErrorResponseHandler(SPDataset.create)
+    'Image Classification': withErrorResponseHandler(ICDataset.create),
+    'Object Detection': withErrorResponseHandler(ODDataset.create),
+    'Image Segmentation': withErrorResponseHandler(ISDataset.create),
+    'Speech': withErrorResponseHandler(SPDataset.create)
 } as const;
 
 export type NewDatasetPageProps = {
     domain: Controllable<Domain>
     lockDomain?: boolean
-    from?: TeamPK | ProjectPK
+    from?: Controllable<TeamPK | ProjectPK>
     lockFrom?: "team" | "project"
     licencePK: Controllable<number>
     lockLicence?: boolean
     isPublic: Controllable<boolean>
     lockIsPublic?: boolean
-    onCreate?: (pk: DatasetPK) => void
+    onCreate?: (pk: DatasetPK, domain: Domain) => void
     onBack?: () => void
 }
 
@@ -54,7 +55,7 @@ export default function NewDatasetPage(props: NewDatasetPageProps) {
     const ufdlServerContext = useContext(UFDL_SERVER_REACT_CONTEXT);
 
     const [domain, setDomain, domainLocked] = useControllableState<Domain | undefined>(props.domain, constantInitialiser(undefined));
-    const [from, setFrom] = useStateSafe<ProjectPK | TeamPK | undefined>(constantInitialiser(props.from));
+    const [from, setFrom, fromLocked] = useControllableState<ProjectPK | TeamPK | undefined>(props.from, constantInitialiser(undefined));
     const [licencePK, setLicencePK, licencePKLocked] = useControllableState<number | undefined>(props.licencePK, constantInitialiser(undefined));
     const [isPublic, setIsPublic, isPublicLocked] = useControllableState<boolean>(props.isPublic, constantInitialiser(false));
 
@@ -88,7 +89,7 @@ export default function NewDatasetPage(props: NewDatasetPageProps) {
         domain,
         (dataset) => {
             if (props.onCreate !== undefined) {
-                props.onCreate((from as ProjectPK).dataset(dataset['pk'] as number));
+                props.onCreate((from as ProjectPK).dataset(dataset['pk'] as number), domain as Domain);
             }
             clearForm();
         }

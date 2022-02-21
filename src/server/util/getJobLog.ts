@@ -12,7 +12,7 @@ export async function getJobLog(
 ): Promise<JobLog> {
     // Request the data from the job's log output
     const logDataStream: DataStream
-        = await get_output(context, jobPK, "log", "json");
+        = await get_output(context, jobPK, "log", "Compressed<JSON, 8>");
 
     // Buffer the log data into memory
     const logDataZipped: Uint8Array

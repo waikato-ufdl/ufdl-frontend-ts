@@ -11,6 +11,7 @@ export type ArraySelectProps<T extends readonly unknown[]> = {
     labelFunction?: (item: ElementType<T>, index: number) => string
     onChange?: (value: Possible<ElementType<T>>, index: number) => void
     disabled?: boolean
+    disableFirstEmptyOption?: boolean
 }
 
 function defaultLabelFunction<T extends readonly unknown[]>(
@@ -52,12 +53,18 @@ export function ArraySelect<T extends readonly unknown[]>(
         (index) => {
             setValue(index);
 
-            const value = index !== -1 ? props.values[index] : Absent;
+            const value = index in props.values ? props.values[index] : Absent;
 
             if (onChange !== undefined) onChange(value, index);
         },
         Number.parseInt
     );
+
+    const firstEmptyOption = props.disableFirstEmptyOption
+        ? undefined
+        : <option value={(-1).toString()}>
+            {""}
+        </option>
 
     return <select
         className={"ArraySelect"}
@@ -65,9 +72,7 @@ export function ArraySelect<T extends readonly unknown[]>(
         value={value.toString()}
         disabled={disabled}
     >
-        <option value={(-1).toString()}>
-            {""}
-        </option>
+        {firstEmptyOption}
         {valueOptions}
     </select>
 }

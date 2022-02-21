@@ -30,6 +30,9 @@ import {ReactPictureAnnotation} from "react-picture-annotation";
 import {IAnnotation} from "react-picture-annotation/dist/types/src/Annotation";
 import isBehaviourSubject from "../../../../util/rx/isBehaviourSubject";
 import delayFunction from "../../../../util/typescript/delayFunction";
+import {AddedFiles, addFilesRenderer, FileAnnotationModalRenderer} from "../../../../server/components/AddFilesButton";
+import DataVideoWithFrameExtractor from "../../../../util/react/component/DataVideoWithFrameExtractor";
+import selectFiles from "../../../../util/files/selectFiles";
 
 type AnyPK = DatasetPK | ProjectPK | TeamPK | undefined
 
@@ -149,8 +152,30 @@ export default function ObjectDetectionAnnotatorPage(
         []
     )
 
-    const fileDetectedObjectsModalRenderer = useDerivedState(
-        () => () => () => [],
+    const filesDetectedObjectsModalRenderer: FileAnnotationModalRenderer<DetectedObjects> = useDerivedState(
+        () => addFilesRenderer("multiple", () => []),
+        []
+    )
+
+    const folderDetectedObjectsModalRenderer: FileAnnotationModalRenderer<DetectedObjects> = useDerivedState(
+        () => addFilesRenderer("folder", () => []),
+        []
+    )
+
+    const videoDetectedObjectsModalRenderer: FileAnnotationModalRenderer<DetectedObjects> = useDerivedState(
+        () => async (onSubmit) => {
+            const file = await selectFiles("single");
+            if (file === null) return null;
+            return <DataVideoWithFrameExtractor
+                controls
+                src={file}
+                type={"jpeg"}
+                onExtract={(image, time) => {
+                    const filename = `${file?.name}.${time}.jpeg`;
+                    onSubmit(new Map([[filename, [image, []]]]))
+                }}
+            />
+        },
         []
     )
 
@@ -243,7 +268,7 @@ export default function ObjectDetectionAnnotatorPage(
 
     if (showNewDatasetPage) {
         return <NewDatasetPage
-            domain={"od"} lockDomain
+            domain={"Object Detection"} lockDomain
             licencePK={UNCONTROLLED_KEEP}
             isPublic={UNCONTROLLED_KEEP}
             from={selectedPK instanceof DatasetPK ? selectedPK.project : selectedPK}
@@ -268,7 +293,7 @@ export default function ObjectDetectionAnnotatorPage(
 
     return <Page className={"ObjectDetectionAnnotatorPage"}>
         <AnnotatorTopMenu
-            domain={"od"}
+            domain={"Object Detection"}
             selectedPK={selectedPK}
             lockedPK={props.lockedPK}
             onTeamChanged={topMenuOnTeamChanged}
@@ -301,7 +326,11 @@ export default function ObjectDetectionAnnotatorPage(
             onAddFiles={imagesDisplayOnAddFiles}
             sortFunction={sortFunction}
             itemClass={"ODDatasetItem"}
-            fileAnnotationModalRenderer={fileDetectedObjectsModalRenderer}
+            addFilesSubMenus={{
+                files: filesDetectedObjectsModalRenderer,
+                folders: folderDetectedObjectsModalRenderer,
+                video: videoDetectedObjectsModalRenderer
+            }}
         />
     </Page>
 }

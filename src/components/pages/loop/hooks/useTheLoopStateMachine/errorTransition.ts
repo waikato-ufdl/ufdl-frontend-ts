@@ -23,21 +23,26 @@ export function createErrorState(
     );
 }
 
+export function createErrorStateTransition(
+    current: LoopStateAndData,
+    reason: any
+): LoopStateTransition {
+    return (newCurrent) => {
+        if (newCurrent === current) {
+            return createErrorState(current.data.context, reason);
+        } else {
+            console.log("Encountered error response in state transition", reason);
+            return undefined;
+        }
+    }
+}
+
 export function tryTransitionToErrorState(
     current: LoopStateAndData,
     changeState: Dispatch<LoopStateTransition>,
     reason: any
 ): void {
-    changeState(
-        (newCurrent) => {
-            if (newCurrent === current) {
-                return createErrorState(current.data.context, reason);
-            } else {
-                console.log("Encountered error response in state transition", reason);
-                return undefined;
-            }
-        }
-    );
+    changeState(createErrorStateTransition(current, reason));
 }
 
 export function errorResponseTransition(

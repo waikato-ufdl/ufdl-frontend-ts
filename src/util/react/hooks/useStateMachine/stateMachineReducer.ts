@@ -5,6 +5,7 @@ import {
 } from "./types";
 import {AUTOMATIC} from "./AUTOMATIC";
 import doAsync from "../../../typescript/async/doAsync";
+import isPromise from "../../../typescript/async/isPromise";
 
 /**
  * Reducer function which handles transitions for a state machine.
@@ -26,6 +27,23 @@ export default function stateMachineReducer<
 
     // If no new state was returned, remain in the same state
     if (newState === undefined) return prevState;
+
+    // If a new state is promised, schedule the state change to happen in future
+    if (isPromise(newState)) {
+        const state = prevState.state;
+        newState.then(
+            (newState) => {
+                prevState.dispatch(
+                    (prevState) => {
+                        if (prevState !== state) return;
+                        return newState;
+                    }
+                )
+            }
+        )
+
+        return prevState;
+    }
 
     // See if the new state has an automatic transition
     const automaticTransitionForNewState = prevState[AUTOMATIC][newState.state as any];

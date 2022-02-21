@@ -1,15 +1,11 @@
 import {DatasetPK, ProjectPK, TeamPK} from "../../server/pk";
 import {FunctionComponentReturnType} from "../../util/react/types";
 import useStateSafe from "../../util/react/hooks/useStateSafe";
-import {
-    Controllable,
-    UNCONTROLLED_KEEP,
-    useControllableState
-} from "../../util/react/hooks/useControllableState";
+import {Controllable, UNCONTROLLED_KEEP, useControllableState} from "../../util/react/hooks/useControllableState";
 import Page from "./Page";
 import SelectProjectPage from "./SelectProjectPage";
 import NewDatasetPage from "./NewDatasetPage";
-import * as ICDataset from "ufdl-ts-client/functional/image_classification/dataset";
+import * as Dataset from "ufdl-ts-client/functional/core/dataset";
 import {ListSelect} from "../ListSelect";
 import React from "react";
 import useDerivedState from "../../util/react/hooks/useDerivedState";
@@ -17,12 +13,12 @@ import {exactFilter} from "../../server/util/exactFilter";
 import nameFromSignature from "../../server/util/nameFromSignature";
 import {BackButton} from "../BackButton";
 import RenderSelectedChildren from "../../util/react/component/RenderSelectedChildren";
-import ignoreFirstNArgs from "../../util/typescript/ignoreFirstNArgs";
 import {constantInitialiser} from "../../util/typescript/initialisers";
 import {DatasetInstance} from "ufdl-ts-client/types/core/dataset";
+import {Domain} from "../../server/domains";
 
 export type SelectDatasetPageProps = {
-    onDatasetSelected: (pk: DatasetPK) => void
+    onDatasetSelected: (pk: DatasetPK, domain: Domain) => void
     onProjectSelected?: (pk: ProjectPK) => void
     onTeamSelected?: (pk: TeamPK) => void
     onBack?: () => void
@@ -57,9 +53,9 @@ export default function SelectDatasetPage(
             onBack={props.onBack}
         />
         <NewDatasetPage
-            domain={"ic"} lockDomain
+            domain={UNCONTROLLED_KEEP}
             from={from} lockFrom={props.lock}
-            onCreate={(pk) => {props.onDatasetSelected(pk); setShowNewDatasetPage(false)} }
+            onCreate={(pk, domain) => {props.onDatasetSelected(pk, domain); setShowNewDatasetPage(false)} }
             onBack={() => setShowNewDatasetPage(false)}
             licencePK={UNCONTROLLED_KEEP}
             isPublic={UNCONTROLLED_KEEP}
@@ -76,12 +72,12 @@ export default function SelectDatasetPage(
             />
             Dataset:
             <ListSelect<DatasetInstance>
-                list={ICDataset.list}
+                list={Dataset.list}
                 labelFunction={nameFromSignature}
-                onChange={ignoreFirstNArgs(1, (pk?: number) => {
-                    if (pk !== undefined && from instanceof ProjectPK)
-                        props.onDatasetSelected(from.dataset(pk))
-                })}
+                onChange={(item, pk) => {
+                    if (pk !== undefined && item !== undefined && from instanceof ProjectPK)
+                        props.onDatasetSelected(from.dataset(pk), item.domain as Domain)
+                }}
                 filter={datasetProjectFilter}
                 value={UNCONTROLLED_KEEP}
             />

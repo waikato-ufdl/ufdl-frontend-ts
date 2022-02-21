@@ -1,4 +1,8 @@
 import {rendezvous} from "./typescript/async/rendezvous";
+import {DEFAULT, handleSingleDefault, WithDefault} from "./typescript/default";
+import {constantInitialiser} from "./typescript/initialisers";
+
+export type SupportedImageTypes = "png" | "jpeg"
 
 /**
  * Extracts the current frame as an image from the given
@@ -15,10 +19,13 @@ import {rendezvous} from "./typescript/async/rendezvous";
  */
 export default async function getImageFromVideo(
     video: HTMLVideoElement,
-    type: "png" | "jpeg" = "png",
+    type: WithDefault<SupportedImageTypes> = DEFAULT,
     width: number = video.videoWidth,
     height: number = video.videoHeight
 ): Promise<Blob> {
+    // Handle default type (png)
+    type = handleSingleDefault(type, constantInitialiser("png"));
+
     // Create a canvas of the desired width and height
     const dummyCanvas = document.createElement("canvas")
     dummyCanvas.width = width

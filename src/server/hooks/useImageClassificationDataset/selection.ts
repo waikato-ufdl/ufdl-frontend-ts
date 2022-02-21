@@ -2,6 +2,7 @@ import {Dataset} from "../../types/Dataset";
 import {ItemSelector, SELECTIONS} from "../useDataset/selection";
 import {Classification} from "../../types/annotations";
 import {Image} from "../../types/data";
+import randomSubset from "../../../util/typescript/random/randomSubset";
 
 export const IC_SELECTIONS = {
     ...SELECTIONS,
@@ -43,5 +44,30 @@ export const IC_SELECTIONS = {
                 return item.annotations.value !== evalItem.annotations.value;
             }
         )
+    },
+    chooseRandomMFromEachClass(
+        m: number,
+        seed?: string
+    ): ItemSelector<any, Classification> {
+        let selectorSet: Set<string> | undefined = undefined
+
+        function initSelectorSet(
+            dataset: Dataset<any, any>
+        ): Set<string> {
+            return new Set(
+                randomSubset(
+                    [...dataset.keys()],
+                    BigInt(m),
+                    false,
+                    false,
+                    seed
+                )
+            )
+        }
+
+        return (_, filename, dataset) => {
+            if (selectorSet === undefined) selectorSet = initSelectorSet(dataset)
+            return selectorSet.has(filename)
+        }
     }
 } as const;

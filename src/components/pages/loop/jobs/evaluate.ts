@@ -1,38 +1,38 @@
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
-import {CreateJobSpec} from "ufdl-ts-client/json/generated/CreateJobSpec";
+import {CreateJobSpec, ParameterValue} from "ufdl-ts-client/json/generated/CreateJobSpec";
 import {BehaviorSubject} from "rxjs";
 import {DatasetPK} from "../../../../server/pk";
 import webSocketNotificationOverride from "../webSocketNotificationOverride";
 import createJob from "../../../../server/createJob";
 import jobProgressSubject from "../../../../server/util/jobProgressSubject";
+import {Domain} from "../../../../server/domains";
 
 export default function evaluate(
     context: UFDLServerContext,
+    templatePK: number,
     datasetPK: DatasetPK,
-    modelOutputPK: number
+    modelOutputPK: number,
+    parameter_values: { [name: string]: ParameterValue },
+    domain: Domain,
+    framework: [string, string]
 ): [Promise<number>, BehaviorSubject<number>] {
     const createJobSpec: CreateJobSpec = {
-        description: `Evaluate-job created for dataset ${datasetPK.asNumber}`,
+        description: `Evaluate-job created for ${domain} dataset ${datasetPK.asNumber}`,
         input_values: {
             model: {
-                value: modelOutputPK.toString(),
-                type: "job_output<tficmodeltflite>"
+                value: modelOutputPK,
+                type: `JobOutput<Model<Domain<'${domain}'>, Framework<'${framework[0]}', '${framework[1]}'>>>`
             },
-            data: {
-                value: datasetPK.asNumber.toString(),
-                type: "dataset"
+            dataset: {
+                value: datasetPK.asNumber,
+                type: `PK<Dataset<Domain<'${domain}'>>>`
             }
         },
-        parameter_values: {
-            docker_image: "2",
-            "clear-dataset": "true",
-            "store-predictions": "true",
-            "confidence-scores": "ufdl.joblauncher.classify.confidence.TopScore"
-        },
+        parameter_values: parameter_values,
         notification_override: webSocketNotificationOverride()
     };
 
-    const [pk, subject] = createJob(context, 2, createJobSpec);
+    const [pk, subject] = createJob(context, templatePK, createJobSpec);
 
     return [pk, jobProgressSubject(subject)];
 }

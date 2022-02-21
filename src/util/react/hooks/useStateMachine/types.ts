@@ -1,5 +1,6 @@
 import {AUTOMATIC} from "./AUTOMATIC";
 import {Dispatch, Reducer} from "react";
+import {PossiblePromise} from "../../../typescript/types/promise";
 
 export type StatesBase = { readonly [state in PropertyKey]: any }
 
@@ -15,7 +16,7 @@ export type StateAndData<
 
 export type StateTransition<
     States extends StatesBase
-> = (current: StateAndData<States>) => (StateAndData<States> | void)
+> = (current: StateAndData<States>) => (PossiblePromise<StateAndData<States>> | void)
 
 export type ManualStateTransition<
     States extends StatesBase

@@ -45,6 +45,8 @@ import {Dataset} from "../../../../server/types/Dataset";
 import ClassSelect from "../../../../server/components/classification/ClassSelect";
 import * as ICDataset from "ufdl-ts-client/functional/image_classification/dataset";
 import iteratorMap from "../../../../util/typescript/iterate/map";
+import getPathFromFile from "../../../../util/files/getPathFromFile";
+import {addFilesRenderer, FileAnnotationModalRenderer} from "../../../../server/components/AddFilesButton";
 
 type AnyPK = DatasetPK | ProjectPK | TeamPK | undefined
 
@@ -234,9 +236,23 @@ export default function ImageClassificationAnnotatorPage(
         [dataset, classColoursDispatch.state, setShowLabelColourPickerPage]
     )
 
-    const fileClassificationModalRenderer = useDerivedState(
+    const filesClassificationModalRenderer = useDerivedState(
         createFileClassificationModalRenderer,
         [classColoursDispatch.state]
+    )
+
+    const folderClassificationModalRenderer: FileAnnotationModalRenderer<Classification> = useDerivedState(
+        () => addFilesRenderer(
+            "folder",
+            (file) => {
+                const pathElements = getPathFromFile(file);
+
+                return pathElements.length > 1 ?
+                    pathElements[pathElements.length - 2] :
+                    NO_CLASSIFICATION;
+            }
+        ),
+        []
     )
 
     const classificationRenderer = useDerivedState(
@@ -294,7 +310,7 @@ export default function ImageClassificationAnnotatorPage(
 
     if (showNewDatasetPage) {
         return <NewDatasetPage
-            domain={"ic"} lockDomain
+            domain={"Image Classification"} lockDomain
             licencePK={UNCONTROLLED_KEEP}
             isPublic={UNCONTROLLED_KEEP}
             from={selectedPK instanceof DatasetPK ? selectedPK.project : selectedPK}
@@ -319,7 +335,7 @@ export default function ImageClassificationAnnotatorPage(
 
     return <Page className={"ImageClassificationAnnotatorPage"}>
         <AnnotatorTopMenu
-            domain={"ic"}
+            domain={"Image Classification"}
             selectedPK={selectedPK}
             lockedPK={props.lockedPK}
             onTeamChanged={icapTopMenuOnTeamChanged}
@@ -352,7 +368,10 @@ export default function ImageClassificationAnnotatorPage(
             onAddFiles={imagesDisplayOnAddFiles}
             sortFunction={sortFunction}
             itemClass={"ICDatasetItem"}
-            fileAnnotationModalRenderer={fileClassificationModalRenderer}
+            addFilesSubMenus={{
+                files: filesClassificationModalRenderer,
+                folders: folderClassificationModalRenderer
+            }}
         />
     </Page>
 }

@@ -3,6 +3,11 @@ import {UFDL_SERVER_REACT_CONTEXT} from "../../server/UFDLServerContextProvider"
 import Page from "./Page";
 import {BackButton} from "../BackButton";
 import PingButton from "../PingButton";
+import useStateSafe from "../../util/react/hooks/useStateSafe";
+import DataVideo from "../../util/react/component/DataVideo";
+import selectFiles from "../../util/files/selectFiles";
+import DataVideoWithFrameExtractor from "../../util/react/component/DataVideoWithFrameExtractor";
+import saveFile from "../../util/files/saveFile";
 
 export type DummyPageProps = {
     pings: number
@@ -19,7 +24,28 @@ export default function DummyPage(
         () => props.pings
     );
 
+    const [video, setVideo] = useStateSafe<Blob | undefined>(
+        () => undefined
+    )
+
     const context = useContext(UFDL_SERVER_REACT_CONTEXT);
+
+    const videoElement = video === undefined ?
+        <button
+            onClick={
+                async () => {
+                    const file = await selectFiles("single")
+                    if (file !== null) setVideo(file)
+                }
+            }>
+            Select video
+        </button> :
+        <DataVideoWithFrameExtractor
+            controls
+            src={video}
+            type={"jpeg"}
+            onExtract={(image, time) => saveFile(`image-${time}.jpeg`, image)}
+        />
 
     return <Page className={"DummyPage"}>
         {`Logged in to ${context.host} as ${context.username}`}
@@ -32,6 +58,9 @@ export default function DummyPage(
             >
                 {`Pings: ${pings.toString()}`}
             </PingButton>
+        </div>
+        <div>
+            {videoElement}
         </div>
     </Page>
 

@@ -8,17 +8,17 @@ import {ownPropertyIterator} from "../util/typescript/object";
 import iteratorMap from "../util/typescript/iterate/map";
 
 export const DOMAIN_DATASET_METHODS = {
-    ic: ICDataset,
-    od: ODDataset,
-    is: ISDataset,
-    sp: SPDataset
+    'Image Classification': ICDataset,
+    'Object Detection': ODDataset,
+    'Image Segmentation': ISDataset,
+    'Speech': SPDataset
 } as const;
 
 type DomainDataAndAnnotationTypes = {
-    ic: [Image, Classification]
-    od: [Image, DetectedObjects]
-    is: [Image, never]
-    sp: [string, never]
+    'Image Classification': [Image, Classification]
+    'Object Detection': [Image, DetectedObjects]
+    'Image Segmentation': [Image, never]
+    'Speech': [string, never]
 }
 
 export type Domain = keyof typeof DOMAIN_DATASET_METHODS & keyof DomainDataAndAnnotationTypes;
@@ -26,13 +26,6 @@ export type Domain = keyof typeof DOMAIN_DATASET_METHODS & keyof DomainDataAndAn
 export type DomainDataType<D extends Domain> = DomainDataAndAnnotationTypes[D][0]
 
 export type DomainAnnotationType<D extends Domain> = DomainDataAndAnnotationTypes[D][1]
-
-export const DOMAIN_NAMES: {[key in Domain]: string} = {
-    ic: "Image Classification",
-    od: "Image Object Detection",
-    is: "Image Segmentation",
-    sp: "Speech"
-};
 
 export const DOMAINS = [
     ...iteratorMap(

@@ -1,15 +1,16 @@
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import {DatasetPK} from "../../../../server/pk";
-import * as ICDataset from "ufdl-ts-client/functional/image_classification/dataset";
 import {throwOnError, handleErrorResponse} from "../../../../server/util/responseError";
+import {Domain, DOMAIN_DATASET_METHODS} from "../../../../server/domains";
 
 export default async function merge(
     context: UFDLServerContext,
     primaryDatasetPK: DatasetPK,
-    preLabelDatasetPK: DatasetPK
+    preLabelDatasetPK: DatasetPK,
+    domain: Domain
 ): Promise<void> {
     await handleErrorResponse(
-        ICDataset.merge(context, primaryDatasetPK.asNumber, preLabelDatasetPK.asNumber, true),
+        DOMAIN_DATASET_METHODS[domain].merge(context, primaryDatasetPK.asNumber, preLabelDatasetPK.asNumber, true),
         throwOnError
     );
 }

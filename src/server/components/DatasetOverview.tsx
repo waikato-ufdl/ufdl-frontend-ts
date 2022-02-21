@@ -7,7 +7,7 @@ import {FlexItemProps} from "../../util/react/component/flex/FlexItem";
 import {constantInitialiser} from "../../util/typescript/initialisers";
 import {mapToArray} from "../../util/map";
 import FlexContainer from "../../util/react/component/flex/FlexContainer";
-import AddFilesButton, {FileAnnotationModalRenderer} from "./AddFilesButton";
+import AddFilesButton, {FileAnnotationModalRenderer, addFilesRenderer, SubMenus} from "./AddFilesButton";
 import {undefinedAsAbsent} from "../../util/typescript/types/Possible";
 import DatasetItem, {AnnotationRenderer, DataRenderer} from "./DatasetItem";
 import {augmentClassName} from "../../util/react/augmentClass";
@@ -22,7 +22,7 @@ export type DatasetOverviewProps<D, A> = {
     onAddFiles: (files: ReadonlyMap<string, [Blob, A]>) => void
     sortFunction: WithDefault<CompareFunction<DatasetItemInfo<D, A>> | undefined>
     itemClass: WithDefault<string | undefined>
-    fileAnnotationModalRenderer: FileAnnotationModalRenderer<A>
+    addFilesSubMenus: SubMenus<A>
     className?: string
 }
 
@@ -95,7 +95,7 @@ export default function DatasetOverview<D, A>(
         <AddFilesButton<A>
             disabled={props.dataset === undefined}
             onSelected={props.onAddFiles}
-            annotationModal={props.fileAnnotationModalRenderer}
+            subMenus={props.addFilesSubMenus}
         />
         {renderedItems}
     </FlexContainer>
