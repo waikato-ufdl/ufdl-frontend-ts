@@ -10,6 +10,7 @@ import ParameterEditorButton from "./ParameterEditorButton";
 import {any} from "../../../util/typescript/any";
 import {ParameterValue} from "../../../../../ufdl-ts-client/dist/json/generated/CreateJobSpec";
 import {Reducer, useReducer} from "react";
+import iterate from "../../../util/typescript/iterate/iterate";
 
 export type ParameterSpec = {
     types: { [type_string: string]: any}
@@ -39,18 +40,18 @@ export default function EditParametersModal(
 
     const [required_parameter_specs, optional_parameter_specs, const_parameter_specs] = useDerivedState(
         () => {
-            const required_parameter_specs: ParameterSpecs = {}
-            const optional_parameter_specs: ParameterSpecs = {}
-            const const_parameter_specs: ParameterSpecs = {}
+            const required_parameter_specs: string[] = []
+            const optional_parameter_specs: string[] = []
+            const const_parameter_specs: string[] = []
 
             for (const parameter_name in props.parameter_specs) {
                 const spec = props.parameter_specs[parameter_name]
                 if (spec.default === undefined)
-                    required_parameter_specs[parameter_name] = spec
+                    required_parameter_specs.push(parameter_name)
                 else if (spec.default.const)
-                    const_parameter_specs[parameter_name] = spec
+                    const_parameter_specs.push(parameter_name)
                 else
-                    optional_parameter_specs[parameter_name] = spec
+                    optional_parameter_specs.push(parameter_name)
             }
 
             return [required_parameter_specs, optional_parameter_specs, const_parameter_specs]
@@ -75,29 +76,11 @@ export default function EditParametersModal(
                 case "none":
                     return []
                 case "optional":
-                    return [
-                        ...iteratorMap(
-                            ownPropertyIterator(optional_parameter_specs),
-                            ([name, spec]) => <ParameterEditorButton
-                                parameter_spec={spec}
-                                name={name as string}
-                                onChange={(value, type) => setValues([name as string, {value: value, type: type}])}
-                            />
-                        )
-                    ]
+                    return optional_parameter_specs
                 case "all":
                     return [
-                        ...iteratorMap(
-                            iteratorConcat(
-                                ownPropertyIterator(optional_parameter_specs),
-                                ownPropertyIterator(const_parameter_specs)
-                            ),
-                            ([name, spec]) => <ParameterEditorButton
-                                parameter_spec={spec}
-                                name={name as string}
-                                onChange={(value, type) => setValues([name as string, {value: value, type: type}])}
-                            />
-                        )
+                        ...optional_parameter_specs,
+                        ...const_parameter_specs
                     ]
             }
         },
@@ -145,17 +128,19 @@ export default function EditParametersModal(
         () => {
             return [
                 ...iteratorMap(
-                    ownPropertyIterator(required_parameter_specs),
-                    ([name, spec]) => <ParameterEditorButton
-                        parameter_spec={spec}
-                        name={name as string}
-                        onChange={(value, type) => setValues([name as string, { value: value, type: type}])}
-                    />
-                ),
-                ...extra
+                    iteratorConcat(iterate(required_parameter_specs), iterate(extra)),
+                    (name) => {
+                        return <ParameterEditorButton
+                            parameter_spec={props.parameter_specs[name]}
+                            name={name as string}
+                            hasValue={values.hasOwnProperty(name)}
+                            onChange={(value, type) => setValues([name as string, {value: value, type: type}])}
+                        />
+                    }
+                )
             ]
         },
-        [required_parameter_specs, extra]
+        [required_parameter_specs, extra, values]
     )
 
     return <LocalModal

@@ -6,7 +6,8 @@ import ParameterEditor from "./ParameterEditor";
 export type ParameterEditorButtonProps = {
     onChange: (parameter_value: any, parameter_type: string) => void
     parameter_spec: ParameterSpec,
-    name: string
+    name: string,
+    hasValue: boolean
 }
 
 export default function ParameterEditorButton(
@@ -20,7 +21,7 @@ export default function ParameterEditorButton(
             title={props.parameter_spec.help}
             onClick={(event) => editor_modal.show(event.clientX, event.clientY)}
         >
-            {props.name}
+            {props.name}{props.hasValue ? " ✓" : ""}
         </button>
         <ParameterEditor
             onChange={(parameter_value, parameter_type) => {props.onChange(parameter_value, parameter_type); editor_modal.hide()}}
