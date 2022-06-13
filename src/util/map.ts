@@ -269,3 +269,24 @@ export function mapMap<K, V, K2, V2>(
 
     return result;
 }
+
+/**
+ * Creates an object containing the same properties as the
+ * keys of the given map.
+ *
+ * @param map
+ *          The source map.
+ * @return
+ *          The generated object.
+ */
+export function mapToObject<V>(
+    map: ReadonlyMap<string, V>
+): { [key: string]: V } {
+    const result: { [key: string]: V } = {}
+
+    for (const [key, value] of map.entries()) {
+        result[key] = value
+    }
+
+    return result;
+}
