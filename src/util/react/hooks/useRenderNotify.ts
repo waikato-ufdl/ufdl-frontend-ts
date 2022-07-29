@@ -20,28 +20,38 @@ export default function useRenderNotify<P extends object>(
         constantInitialiser(undefined)
     );
 
-    // Create a group for the prop-change messages
-    console.group(
-        lastProps === undefined
-            ? `Initial render of ${name}`
-            : `Change in props of ${name}`
-    );
+    // Special case for the first time rendering the component
+    if (lastProps === undefined) {
+        console.group(`Initial render of ${name}`);
+        forEachOwnProperty(props, logInitial)
+        console.groupEnd()
+        setLastProps(props);
+        return
+    }
 
+    // Get the set of all changed properties
+    const changedProperties: Set<[keyof P, P[keyof P], P[keyof P]]> = new Set()
     forEachOwnProperty(
         props,
         (propName, propValue) => {
-            // Have to format differently for first render
-            if (lastProps === undefined) return logInitial(propName, propValue);
-
             // Get the previous value of the prop
             const lastPropValue = lastProps[propName];
 
             // Log it if it has changed
-            if (!Object.is(propValue, lastProps[propName])) logChange(propName, propValue, lastPropValue);
+            if (propValue !== lastProps[propName]) changedProperties.add([propName, propValue, lastPropValue]);
         }
     )
 
-    // Close the group
+    // Special case for when no properties changed
+    if (changedProperties.size === 0) {
+        console.group(`Rerender without change in props of ${name}`)
+        console.groupEnd()
+        return
+    }
+
+    // Create a group for the prop-change messages
+    console.group(`Change in props of ${name}`);
+    changedProperties.forEach(args => logChange(...args))
     console.groupEnd()
 
     // Save the props for next render

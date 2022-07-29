@@ -1,9 +1,9 @@
 import React, {CSSProperties} from "react";
 import {asLabel, ClassColour} from "../../util/classification";
-import {Classification} from "../../types/annotations";
+import {Classification, OptionalAnnotations} from "../../types/annotations";
 
 export type ClassSelectOptionProps = {
-    classification: Classification,
+    classification: OptionalAnnotations<Classification>,
     colour: ClassColour
     onClick?: () => void
 }

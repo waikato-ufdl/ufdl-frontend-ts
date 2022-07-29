@@ -1,7 +1,6 @@
 import React, {MouseEventHandler, useContext} from "react";
 import {UFDL_SERVER_REACT_CONTEXT} from "../../../../server/UFDLServerContextProvider";
-import Page from "../../Page";
-import AnnotatorTopMenu, {
+import {
     AnnotatorTopMenuExtraControlsRenderer,
     ItemSelectFragmentRenderer
 } from "../../../../server/components/AnnotatorTopMenu";
@@ -11,51 +10,46 @@ import useImageClassificationDataset
 import DataImage from "../../../../util/react/component/DataImage";
 import {BehaviorSubject} from "rxjs";
 import useStateSafe from "../../../../util/react/hooks/useStateSafe";
-import NewDatasetPage from "../../NewDatasetPage";
 import "./ImageClassificationAnnotatorPage.css";
-import {DatasetPK, getDatasetPK, getProjectPK, getTeamPK, ProjectPK, TeamPK} from "../../../../server/pk";
-import useDerivedReducer from "../../../../util/react/hooks/useDerivedReducer";
-import {createSimpleStateReducer} from "../../../../util/react/hooks/SimpleStateReducer";
-import {UNCONTROLLED_KEEP} from "../../../../util/react/hooks/useControllableState";
+import {AnyPK, DatasetPK, getDatasetPK} from "../../../../server/pk";
 import ImageClassificationDatasetDispatch
     from "../../../../server/hooks/useImageClassificationDataset/ImageClassificationDatasetDispatch";
-import {IMAGE_CACHE_CONTEXT} from "../../../../App";
-import {Classification, NO_CLASSIFICATION} from "../../../../server/types/annotations";
+import {Classification, NO_ANNOTATION, OptionalAnnotations} from "../../../../server/types/annotations";
 import {ClassColour, ClassColours, storeColoursInContext} from "../../../../server/util/classification";
 import useClassColours from "../../../../server/hooks/useClassColours";
 import ClassColourPickerPage from "../../ClassColourPickerPage";
 import {IC_SELECTIONS} from "../../../../server/hooks/useImageClassificationDataset/selection";
-import doAsync from "../../../../util/typescript/async/doAsync";
 import useDerivedState from "../../../../util/react/hooks/useDerivedState";
-import {DatasetItem} from "../../../../server/types/DatasetItem";
 import {Image} from "../../../../server/types/data";
 import {WithDefault} from "../../../../util/typescript/default";
 import {BY_FILENAME} from "../../../../server/sorting";
 import {BY_CLASSIFICATION} from "../../../../server/components/classification/sorting";
-import {ItemSelector} from "../../../../server/hooks/useDataset/selection";
 import createFileClassificationModalRenderer
     from "../../../../server/components/classification/createClassificationModalRenderer";
 import createClassificationRenderer from "../../../../server/components/classification/createClassificationRenderer";
-import {ImageRenderer} from "../../../../server/components/image/ImageRenderer";
-import DatasetOverview from "../../../../server/components/DatasetOverview";
 import useLocalModal from "../../../../util/react/hooks/useLocalModal";
 import LocalModal from "../../../../util/react/component/LocalModal";
 import PickClassForm from "../../../../server/components/classification/PickClassForm";
-import {Dataset} from "../../../../server/types/Dataset";
 import ClassSelect from "../../../../server/components/classification/ClassSelect";
-import * as ICDataset from "ufdl-ts-client/functional/image_classification/dataset";
-import iteratorMap from "../../../../util/typescript/iterate/map";
 import getPathFromFile from "../../../../util/files/getPathFromFile";
-import {addFilesRenderer, FileAnnotationModalRenderer} from "../../../../server/components/AddFilesButton";
-
-type AnyPK = DatasetPK | ProjectPK | TeamPK | undefined
+import {addFilesRenderer} from "../../../../server/components/AddFilesButton";
+import AnnotatorPage from "../AnnotatorPage";
+import {constantInitialiser} from "../../../../util/typescript/initialisers";
+import isDefined from "../../../../util/typescript/isDefined";
+import {
+    DatasetDispatch,
+    DatasetDispatchItem
+} from "../../../../server/hooks/useDataset/DatasetDispatch";
+import hasData from "../../../../util/react/query/hasData";
+import passOnUndefined from "../../../../util/typescript/functions/passOnUndefined";
+import {DatasetDispatchItemAnnotationType} from "../../../../server/hooks/useDataset/types";
+import {ImageOrVideoRenderer} from "../../../../server/components/image/ImageOrVideoRenderer";
+import useRenderNotify from "../../../../util/react/hooks/useRenderNotify";
 
 export const SORT_ORDERS = {
     "filename": BY_FILENAME,
     "label": BY_CLASSIFICATION
 } as const
-
-const SELECTED_PK_REDUCER = createSimpleStateReducer<AnyPK>();
 
 export type ICAPProps = {
     lockedPK?: AnyPK,
@@ -74,52 +68,39 @@ export type ICAPProps = {
 export default function ImageClassificationAnnotatorPage(
     props: ICAPProps
 ) {
+    useRenderNotify("ImageClassificationAnnotatorPage", props)
+
     const ufdlServerContext = useContext(UFDL_SERVER_REACT_CONTEXT);
 
-    const [selectedPK, setSelectedPK] = useDerivedReducer(
-        SELECTED_PK_REDUCER,
-        ([pk]) => pk,
-        [props.lockedPK] as const
-    );
+    const [selectedPK, setSelectedPK] = useStateSafe(constantInitialiser(props.lockedPK))
 
     const dataset = useImageClassificationDataset(
         ufdlServerContext,
-        IMAGE_CACHE_CONTEXT,
         getDatasetPK(selectedPK)
     );
 
+    useRenderNotify("useImageClassificationDataset", {dataset: dataset})
+
     const evalDataset = useImageClassificationDataset(
         ufdlServerContext,
-        IMAGE_CACHE_CONTEXT,
         props.evalPK
     );
 
-    const classColoursDispatch = useClassColours(dataset?.items, props.initialColours);
-
-    const [sortFunction, setSortFunction] = useStateSafe<typeof SORT_ORDERS[keyof typeof SORT_ORDERS]>(
-        () => SORT_ORDERS.filename
-    );
+    const classColoursDispatch = useClassColours(dataset, props.initialColours);
 
     // Sub-page displays
-    const [showNewDatasetPage, setShowNewDatasetPage] = useStateSafe<boolean>(() => false);
     const [showLabelColourPickerPage, setShowLabelColourPickerPage] = useStateSafe<boolean>(() => false);
     const [showLargeImageOverlay, setShowLargeImageOverlay] = useStateSafe<BehaviorSubject<string> | string | undefined>(() => undefined);
 
-    const ICDatasetOverviewOnReclassify = useDerivedState(
-        () => (filename: string, _: Classification, newLabel: Classification) => {
-            if (dataset !== undefined) dataset.setAnnotation(filename, newLabel);
+    const datasetOverviewOnReclassify = useDerivedState(
+        ([dataset]) => (
+            filename: string,
+            _: OptionalAnnotations<Classification>,
+            newLabel: OptionalAnnotations<Classification>
+        ) => {
+            if (isDefined(dataset)) dataset.setAnnotationsForFile(filename, newLabel);
         },
         [dataset]
-    )
-
-    const newDatasetPageOnCreate = useDerivedState(
-        () => (pk: DatasetPK) => {setSelectedPK(pk); setShowNewDatasetPage(false)},
-        [setSelectedPK, setShowNewDatasetPage]
-    )
-
-    const newDatasetPageOnBack = useDerivedState(
-        () => () => setShowNewDatasetPage(false),
-        [setShowNewDatasetPage]
     )
 
     const classColourPickerPageOnColourChanged = useDerivedState(
@@ -142,18 +123,22 @@ export default function ImageClassificationAnnotatorPage(
     )
 
     const classColourPickerPageOnClassDeleted = useDerivedState(
-        () => (classification: string) => {
-            classColoursDispatch.delete(classification);
-            if (dataset !== undefined) dataset.setAnnotations(
-                mapMap(
-                    dataset.items,
-                    (filename, item) => item.annotations.success && item.annotations.value === classification
-                        ? [[filename, NO_CLASSIFICATION]]
-                        : []
+        ([classColours, dataset]) => (classification: string) => {
+            classColours.delete(classification);
+            if (isDefined(dataset))
+                dataset.setAnnotations(
+                    mapMap(
+                        dataset,
+                        (filename, item) => {
+                            if (item.annotations.isSuccess && item.annotations.data === classification)
+                                return [[filename, NO_ANNOTATION]]
+                            else
+                                return []
+                        }
+                    )
                 )
-            )
         },
-        [classColoursDispatch, dataset]
+        [classColoursDispatch, dataset] as const
     )
 
     const classColourPickerPageOnBack = useDerivedState(
@@ -172,59 +157,19 @@ export default function ImageClassificationAnnotatorPage(
         [setShowLargeImageOverlay]
     )
 
-    const icapTopMenuOnTeamChanged = useDerivedState(
-        () => (_: any, pk: number | undefined) => {
-            setSelectedPK(pk === undefined ? undefined : new TeamPK(pk));
-        },
-        [setSelectedPK]
-    )
-
-    const icapTopMenuOnProjectChanged = useDerivedState(
-        () => (_: any, pk: number | undefined) => {
-            const teamPK = getTeamPK(selectedPK);
-            setSelectedPK(pk === undefined ? teamPK : teamPK?.project(pk));
-        },
-        [selectedPK, setSelectedPK]
-    )
-
     const imagesDisplayOnFileClicked = useDerivedState(
-        () => (item: DatasetItem<Image, Classification>) => {
-            const data = item.data.value?.cache?.getConverted(item.data.value.handle);
-            if (data !== undefined) setShowLargeImageOverlay(data)
+        ([setShowLargeImageOverlay]) => (item: DatasetDispatchItem<Image, Classification>) => {
+            if (hasData(item.data)) setShowLargeImageOverlay(item.data.data.getValue().url)
         },
-        [setShowLargeImageOverlay]
-    )
-
-    const imagesDisplayOnFileSelected = useDerivedState(
-        () => (item: DatasetItem<Image, Classification>) => {
-            if (dataset !== undefined) dataset.toggleSelection(IC_SELECTIONS.isFile(item.filename))
-        },
-        [dataset]
-    )
-
-    const imagesDisplayOnAddFiles = useDerivedState(
-        () => (files: ReadonlyMap<string, [Blob, Classification]>) => {
-            if (dataset !== undefined) doAsync(() => dataset.addFiles(files))
-        },
-        [dataset]
-    )
-
-    const annotatorTopMenuOnSelect = useDerivedState(
-        () => {
-            if (dataset === undefined) return undefined;
-            return (select: ItemSelector<Image, Classification>) => {
-                dataset.selectOnly(select)
-            }
-        },
-        [dataset]
+        [setShowLargeImageOverlay] as const
     )
 
     const itemSelectFragmentRenderer = useDerivedState(
-        () => createImageClassificationSelectFragmentRenderer(
-            classColoursDispatch.state,
-            evalDataset?.items
+        ([classColours, evalDataset]) => createImageClassificationSelectFragmentRenderer(
+            classColours,
+            evalDataset
         ),
-        [classColoursDispatch.state, evalDataset]
+        [classColoursDispatch.state, evalDataset] as const
     )
 
     const extraControls = useDerivedState(
@@ -237,88 +182,49 @@ export default function ImageClassificationAnnotatorPage(
     )
 
     const filesClassificationModalRenderer = useDerivedState(
-        createFileClassificationModalRenderer,
+        ([classColours]) =>
+            createFileClassificationModalRenderer(classColours, imageFromFile),
         [classColoursDispatch.state]
     )
 
-    const folderClassificationModalRenderer: FileAnnotationModalRenderer<Classification> = useDerivedState(
+    const [folderClassificationModalRenderer] = useStateSafe(
         () => addFilesRenderer(
             "folder",
+            imageFromFile,
             (file) => {
                 const pathElements = getPathFromFile(file);
 
                 return pathElements.length > 1 ?
                     pathElements[pathElements.length - 2] :
-                    NO_CLASSIFICATION;
+                    NO_ANNOTATION;
             }
-        ),
-        []
+        )
     )
 
     const classificationRenderer = useDerivedState(
-        () => createClassificationRenderer(classColoursDispatch.state, ICDatasetOverviewOnReclassify),
-        [classColoursDispatch.state, ICDatasetOverviewOnReclassify]
+        ([classColours, datasetOverviewOnReclassify]) =>
+            createClassificationRenderer(classColours, datasetOverviewOnReclassify),
+        [classColoursDispatch.state, datasetOverviewOnReclassify] as const
     )
 
-    const annotatorTopMenuOnDatasetChanged = useDerivedState(
-        () => (_: any, pk: number | undefined) => {
-            const projectPK = getProjectPK(selectedPK);
-            setSelectedPK(pk === undefined ? projectPK : projectPK?.dataset(pk));
-        },
-        [selectedPK, setSelectedPK]
-    )
-
-    const annotatorTopMenuOnRequestNewDataset = useDerivedState(
-        () => () => setShowNewDatasetPage(true),
-        [setShowNewDatasetPage]
-    )
-
-    const annotatorTopMenuOnNext = useDerivedState(
-        () => (position: [number, number]) => {
-            if (props.onNext !== undefined) props.onNext(selectedPK, dataset, classColoursDispatch.state, position)
-        },
-        [selectedPK, dataset, classColoursDispatch.state]
-    )
-
-    const annotatorTopMenuNumSelected = useDerivedState(
-        () => dataset === undefined
-            ? [0, 0] as const
-            : [dataset.numSelected, dataset.items.size] as const,
-        [dataset?.items]
-    )
-
-    const onExtractSelected = useDerivedState(
-        () => dataset !== undefined
-            ? async () => {
-                const newDataset = await ICDataset.copy(
-                    ufdlServerContext,
-                    dataset!.pk.asNumber,
-                    undefined,
-                    Array(
-                        ...iteratorMap(
-                            dataset!.selected,
-                            (value) => value[0]
-                        )
-                    )
-                )
-
-                setSelectedPK(dataset!.pk.project.dataset(newDataset.pk))
+    const addFilesSubMenus = useDerivedState(
+        ([filesClassificationModalRenderer, folderClassificationModalRenderer]) => {
+            return {
+                files: filesClassificationModalRenderer,
+                folders: folderClassificationModalRenderer
             }
-            :undefined,
-        [dataset]
+        },
+        [filesClassificationModalRenderer, folderClassificationModalRenderer] as const
     )
 
-    if (showNewDatasetPage) {
-        return <NewDatasetPage
-            domain={"Image Classification"} lockDomain
-            licencePK={UNCONTROLLED_KEEP}
-            isPublic={UNCONTROLLED_KEEP}
-            from={selectedPK instanceof DatasetPK ? selectedPK.project : selectedPK}
-            lockFrom={props.lockedPK === undefined ? undefined : props.lockedPK instanceof TeamPK ? "team" : "project"}
-            onCreate={newDatasetPageOnCreate}
-            onBack={newDatasetPageOnBack}
-        />
-    } else if (showLabelColourPickerPage) {
+    const onNext = useDerivedState(
+        ([onNext, dataset, colours]) => {
+            return (selectedPK: AnyPK, position: [number, number]) => passOnUndefined(onNext)(selectedPK, dataset, colours, position)
+        },
+        [props.onNext, dataset, classColoursDispatch.state] as const
+    )
+
+    if (showLabelColourPickerPage) {
         return <ClassColourPickerPage
             colours={classColoursDispatch.state}
             onColourChanged={classColourPickerPageOnColourChanged}
@@ -333,51 +239,29 @@ export default function ImageClassificationAnnotatorPage(
         />
     }
 
-    return <Page className={"ImageClassificationAnnotatorPage"}>
-        <AnnotatorTopMenu
-            domain={"Image Classification"}
-            selectedPK={selectedPK}
-            lockedPK={props.lockedPK}
-            onTeamChanged={icapTopMenuOnTeamChanged}
-            onProjectChanged={icapTopMenuOnProjectChanged}
-            onDatasetChanged={annotatorTopMenuOnDatasetChanged}
-            onRequestNewDataset={annotatorTopMenuOnRequestNewDataset}
-            nextLabel={props.nextLabel}
-            onNext={annotatorTopMenuOnNext}
-            nextDisabled={dataset === undefined || !dataset.synchronised || props.onNext === undefined}
-            onBack={props.onBack}
-            className={"menuBar"}
-            sortOrders={SORT_ORDERS}
-            onSortChanged={setSortFunction}
-            onSelect={annotatorTopMenuOnSelect}
-            itemSelectFragmentRenderer={itemSelectFragmentRenderer}
-            onDeleteSelected={dataset === undefined ? undefined : dataset.deleteSelectedFiles.bind(dataset)}
-            extraControls={extraControls}
-            numSelected={annotatorTopMenuNumSelected}
-            onExtractSelected={onExtractSelected}
-        />
-
-        <DatasetOverview<Image, Classification>
-            className={"ICDatasetOverview"}
-            dataset={dataset?.items}
-            evalDataset={evalDataset?.items}
-            renderData={ImageRenderer}
-            renderAnnotation={classificationRenderer}
-            onItemSelected={imagesDisplayOnFileSelected}
-            onItemClicked={imagesDisplayOnFileClicked}
-            onAddFiles={imagesDisplayOnAddFiles}
-            sortFunction={sortFunction}
-            itemClass={"ICDatasetItem"}
-            addFilesSubMenus={{
-                files: filesClassificationModalRenderer,
-                folders: folderClassificationModalRenderer
-            }}
-        />
-    </Page>
+    return <AnnotatorPage
+        className={"ImageClassificationAnnotatorPage"}
+        domain={"Image Classification"}
+        nextLabel={props.nextLabel}
+        sortOrders={SORT_ORDERS}
+        renderData={ImageOrVideoRenderer}
+        renderAnnotation={classificationRenderer}
+        onItemClicked={imagesDisplayOnFileClicked}
+        addFilesSubMenus={addFilesSubMenus}
+        extraControls={extraControls}
+        itemSelectFragmentRenderer={itemSelectFragmentRenderer}
+        onSelectedPKChanged={setSelectedPK}
+        selectedPK={selectedPK}
+        dataset={dataset}
+        evalDataset={evalDataset}
+        lockedPK={props.lockedPK}
+        onBack={props.onBack}
+        onNext={onNext}
+    />
 }
 
 function createImageClassificationExtraControlsRenderer(
-    onRelabelSelected: ((label: Classification) => void) | undefined,
+    onRelabelSelected: ((label: OptionalAnnotations<Classification>) => void) | undefined,
     colours: ClassColours,
     onRequestLabelColourPickerOverlay: (() => void) | undefined
 ): AnnotatorTopMenuExtraControlsRenderer {
@@ -414,9 +298,21 @@ function createImageClassificationExtraControlsRenderer(
     }
 }
 
+function extractClassificationForEval(
+    annotation: DatasetDispatchItemAnnotationType<Classification>
+): Classification | undefined {
+    if (!hasData(annotation)) return undefined
+
+    const classification = annotation.data
+
+    if (classification === NO_ANNOTATION) return undefined
+
+    return classification
+}
+
 function createImageClassificationSelectFragmentRenderer(
     classColours: ClassColours,
-    evalDataset: Dataset<Image, Classification> | undefined
+    evalDataset: DatasetDispatch<Image, Classification> | undefined
 ): ItemSelectFragmentRenderer<Image, Classification> {
     return (select) => {
         return <>
@@ -424,22 +320,32 @@ function createImageClassificationSelectFragmentRenderer(
                 onReclassify={(_, classification) => {
                     select(IC_SELECTIONS.withClassification(classification))
                 }}
-                classification={NO_CLASSIFICATION}
+                classification={NO_ANNOTATION}
                 colours={classColours}
                 allowSelectNone
             />
             <button
                 disabled={evalDataset === undefined}
-                onClick={() => select(IC_SELECTIONS.correctForEval(evalDataset!))}
+                onClick={() => select(IC_SELECTIONS.correctForEval(evalDataset!, extractClassificationForEval))}
             >
                 Correct
             </button>
             <button
                 disabled={evalDataset === undefined}
-                onClick={() => select(IC_SELECTIONS.incorrectForEval(evalDataset!))}
+                onClick={() => select(IC_SELECTIONS.incorrectForEval(evalDataset!, extractClassificationForEval))}
             >
                 Incorrect
             </button>
         </>
     }
+}
+
+function imageFromFile(
+    file: File
+): Image {
+    return new Image(
+        file,
+        undefined,
+        undefined
+    )
 }

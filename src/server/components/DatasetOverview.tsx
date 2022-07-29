@@ -1,35 +1,34 @@
 import React from "react";
-import {Dataset} from "../types/Dataset";
-import {DatasetItem as DatasetItemInfo} from "../types/DatasetItem";
-import {handleDefaults, PropsDefaultHandlers, WithDefault} from "../../util/typescript/default";
-import {CompareFunction} from "../../util/typescript/sort/CompareFunction";
+import {handleSingleDefault, WithDefault} from "../../util/typescript/default";
 import {FlexItemProps} from "../../util/react/component/flex/FlexItem";
 import {constantInitialiser} from "../../util/typescript/initialisers";
-import {mapToArray} from "../../util/map";
+import {mapMap, mapToArray} from "../../util/map";
 import FlexContainer from "../../util/react/component/flex/FlexContainer";
-import AddFilesButton, {FileAnnotationModalRenderer, addFilesRenderer, SubMenus} from "./AddFilesButton";
-import {undefinedAsAbsent} from "../../util/typescript/types/Possible";
+import AddFilesButton, {OnSubmitFunction, SubMenus} from "./AddFilesButton";
+import {Absent, Possible, undefinedAsAbsent} from "../../util/typescript/types/Possible";
 import DatasetItem, {AnnotationRenderer, DataRenderer} from "./DatasetItem";
 import {augmentClassName} from "../../util/react/augmentClass";
+import {DomainSortOrderFunction} from "./types";
+import {DomainAnnotationType, DomainDataType, DomainName} from "../domains";
+import {
+    DatasetDispatch,
+    DatasetDispatchItem,
+    MutableDatasetDispatch
+} from "../hooks/useDataset/DatasetDispatch";
+import useDerivedState from "../../util/react/hooks/useDerivedState";
+import {DatasetDispatchItemAnnotationType, DatasetDispatchItemDataType} from "../hooks/useDataset/types";
+import useRenderNotify from "../../util/react/hooks/useRenderNotify";
 
-export type DatasetOverviewProps<D, A> = {
-    dataset: Dataset<D, A> | undefined
-    evalDataset: Dataset<D, A> | undefined
-    renderData: DataRenderer<D>
-    renderAnnotation: AnnotationRenderer<A>
-    onItemSelected: (item: DatasetItemInfo<D, A>) => void
-    onItemClicked: (item: DatasetItemInfo<D, A>) => void
-    onAddFiles: (files: ReadonlyMap<string, [Blob, A]>) => void
-    sortFunction: WithDefault<CompareFunction<DatasetItemInfo<D, A>> | undefined>
-    itemClass: WithDefault<string | undefined>
-    addFilesSubMenus: SubMenus<A>
+export type DatasetOverviewProps<D extends DomainName> = {
+    dataset: MutableDatasetDispatch<DomainDataType<D>, DomainAnnotationType<D>> | undefined
+    evalDataset: DatasetDispatch<DomainDataType<D>, DomainAnnotationType<D>> | undefined
+    renderData: DataRenderer<DatasetDispatchItemDataType<DomainDataType<D>>>
+    renderAnnotation: AnnotationRenderer<DatasetDispatchItemAnnotationType<DomainAnnotationType<D>>>
+    onItemClicked: (item: DatasetDispatchItem<DomainDataType<D>, DomainAnnotationType<D>>) => void
+    sortFunction: WithDefault<Possible<DomainSortOrderFunction<D>>>
+    addFilesSubMenus: SubMenus<DomainDataType<D>, DomainAnnotationType<D>>
     className?: string
 }
-
-const DEFAULT_HANDLERS: PropsDefaultHandlers<DatasetOverviewProps<any, any>> = {
-    sortFunction: constantInitialiser(undefined),
-    itemClass: constantInitialiser(undefined)
-};
 
 const ITEM_STYLE: FlexItemProps["style"] = {
     margin: "1.25%",
@@ -53,48 +52,62 @@ const FLEX_CONTAINER_STYLE = {
     alignContent: "flex-start"
 } as const
 
-export default function DatasetOverview<D, A>(
-    props: DatasetOverviewProps<D, A>
+export default function DatasetOverview<D extends DomainName>(
+    props: DatasetOverviewProps<D>
 ) {
+    useRenderNotify("DatasetOverview", props)
+
     // Handle the default values for the props
-    const propsDef = handleDefaults(props, DEFAULT_HANDLERS);
+    const sortFunction = handleSingleDefault(props.sortFunction, constantInitialiser(Absent))
 
     // Extract the dataset items, if any
-    const items: DatasetItemInfo<D, A>[]
-        = propsDef.dataset === undefined
+    const items
+        = props.dataset === undefined
         ? []
         : mapToArray(
-            propsDef.dataset,
+            props.dataset,
             (_filename, item) => item
         );
 
     // Sort them according to the given sort function
-    if (propsDef.sortFunction !== undefined) items.sort(propsDef.sortFunction);
+    if (sortFunction !== Absent) items.sort(sortFunction)
 
     // Create a display item for each dataset item
     const renderedItems = items.map(
         (item) => {
-            return <DatasetItem<D, A>
+            return <DatasetItem<D>
                 key={item.filename}
                 item={item}
                 evalAnnotation={undefinedAsAbsent(props.evalDataset?.get(item.filename)?.annotations)}
                 renderData={props.renderData}
                 renderAnnotation={props.renderAnnotation}
-                onSelect={props.onItemSelected}
                 onClick={props.onItemClicked}
-                className={propsDef.itemClass}
             />
         }
     );
+
+    // Create the submission function for adding new files to the dataset
+    const onSubmit: OnSubmitFunction<DomainDataType<D>, DomainAnnotationType<D>> = useDerivedState(
+        ([dataset]) =>
+            (newFiles) =>
+                dataset?.addFiles(
+                    mapMap(
+                        newFiles,
+                        (key, value) => [[key, value[0]]] as const
+                    )
+                ),
+        [props.dataset] as const
+    )
 
     return <FlexContainer
         className={augmentClassName(props.className, "DatasetOverview")}
         itemProps={GET_ITEM_PROPS}
         style={FLEX_CONTAINER_STYLE}
     >
-        <AddFilesButton<A>
+        {/* TODO: onSubmit currently discards the annotations */}
+        <AddFilesButton<DomainDataType<D>, DomainAnnotationType<D>>
             disabled={props.dataset === undefined}
-            onSelected={props.onAddFiles}
+            onSubmit={onSubmit}
             subMenus={props.addFilesSubMenus}
         />
         {renderedItems}

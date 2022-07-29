@@ -35,6 +35,53 @@ type ReducerActionOrReInit<S, A> = A | ReInitAction<S>
 type ReducerWithReInit<S, A> = Reducer<S, ReducerActionOrReInit<S, A>>
 
 /**
+ * Utility symbol to use as the initial state of a derived reducer when no actual state
+ * is provided.
+ */
+export const UNINITIALISED: unique symbol = Symbol("The state is not yet initialised")
+
+/**
+ * Adds a reducer to the component which has state S and takes an action-type A.
+ * The reducer will re-initialise whenever the dependencies array changes.
+ *
+ * @param reducer
+ *          The reducer to use. Only read on first call.
+ * @param initialiser
+ *          The initialiser to use to re-initialise the reducer. Can change from
+ *          invocation to invocation. On first initialisation, the UNINITIALISED
+ *          symbol will be passed for currentState.
+ * @param dependencies
+ *          The dependencies array. The reducer will re-initialise if this changes.
+ */
+export default function useDerivedReducer<S, A, D extends readonly unknown[]>(
+    reducer: Reducer<S, A>,
+    initialiser: (args: D, currentState: S | typeof UNINITIALISED) => S,
+    dependencies: D
+): [S, Dispatch<A>];
+
+/**
+ * Adds a reducer to the component which has state S and takes an action-type A.
+ * The reducer will re-initialise whenever the dependencies array changes.
+ *
+ * @param reducer
+ *          The reducer to use. Only read on first call.
+ * @param initialiser
+ *          The initialiser to use to re-initialise the reducer. Can change from
+ *          invocation to invocation.
+ * @param dependencies
+ *          The dependencies array. The reducer will re-initialise if this changes.
+ * @param initialState
+ *          The argument to the currentState parameter of the initialiser on first
+ *          initialisation.
+ */
+export default function useDerivedReducer<S, A, D extends readonly unknown[]>(
+    reducer: Reducer<S, A>,
+    initialiser: (args: D, currentState: S) => S,
+    dependencies: D,
+    initialState: () => S
+): [S, Dispatch<A>];
+
+/**
  * Adds a reducer to the component which has state S and takes an action-type A.
  * The reducer will re-initialise whenever the dependencies array changes.
  *
@@ -48,11 +95,11 @@ type ReducerWithReInit<S, A> = Reducer<S, ReducerActionOrReInit<S, A>>
  * @param initialState
  *          An optional argument to the currentState parameter of the initialiser.
  */
-export default function useDerivedReducer<S, A, D extends readonly any[]>(
+export default function useDerivedReducer<S, A, D extends readonly unknown[]>(
     reducer: Reducer<S, A>,
-    initialiser: (args: D, currentState?: S) => S,
+    initialiser: (args: D, currentState: S | typeof UNINITIALISED) => S,
     dependencies: D,
-    initialState?: S
+    initialState: (() => S) | typeof UNINITIALISED = UNINITIALISED
 ): [S, Dispatch<A>] {
     // Keep track of the previous state of our dependencies. No need to render when this changes.
     const [lastDependencies, setLastDependencies] = useNonUpdatingState<D>(constantInitialiser(dependencies));
@@ -71,7 +118,7 @@ export default function useDerivedReducer<S, A, D extends readonly any[]>(
     // Add update-control to the reducer
     const [reducerState, dispatch] = useControlledUpdateReducer<S, ReducerActionOrReInit<S, A>>(
         reducerExtended,
-        () => initialiser(dependencies, initialState)
+        () => initialiser(dependencies, initialState === UNINITIALISED ? UNINITIALISED : initialState())
     );
 
     // Create a dispatch function which always re-renders

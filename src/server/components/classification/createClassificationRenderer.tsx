@@ -1,18 +1,21 @@
 import {ClassColours} from "../../util/classification";
-import {Classification, NO_CLASSIFICATION} from "../../types/annotations";
+import {Classification, NO_ANNOTATION, OptionalAnnotations} from "../../types/annotations";
 import {AnnotationRenderer} from "../DatasetItem";
 import {numberWithSuffix} from "../../../util/numberWithSuffix";
 import React, {CSSProperties} from "react";
 import {Absent} from "../../../util/typescript/types/Possible";
 import ClassSelect from "./ClassSelect";
+import isSuccess from "../../../util/react/query/isSuccess";
+import hasData from "../../../util/react/query/hasData";
+import {DatasetDispatchItemAnnotationType} from "../../hooks/useDataset/types";
 
 export const SELECTED_BORDER_WIDTH_PX: number = 3;
 export const UNSELECTED_BORDER_WIDTH_PX: number = 2;
 
 export default function createClassificationRenderer(
     colours: ClassColours,
-    onReclassify: (filename: string, oldClass: Classification, newClass: Classification) => void
-): AnnotationRenderer<Classification> {
+    onReclassify: (filename: string, oldClass: OptionalAnnotations<Classification>, newClass: OptionalAnnotations<Classification>) => void
+): AnnotationRenderer<DatasetDispatchItemAnnotationType<Classification>> {
     return (
         filename,
         selected,
@@ -27,18 +30,18 @@ export default function createClassificationRenderer(
             "px"
         );
 
-        const labelColour = !classification.success
-            ? "black"
-            : classification.value !== NO_CLASSIFICATION
-                ? colours.get(classification.value)
-                : "white";
+        const labelColour = isSuccess(classification)
+            ? classification.data !== NO_ANNOTATION
+                ? colours.get(classification.data)
+                : "white"
+            : "black"
 
         const borderStyle: CSSProperties = {
             borderStyle: "solid",
-            borderColor: evalClass === Absent || !classification.success
+            borderColor: evalClass === Absent || !isSuccess(classification)
                 ? labelColour
-                : evalClass.success
-                    ? evalClass.value === classification.value
+                : isSuccess(evalClass)
+                    ? evalClass.data === classification.data
                         ? "limegreen"
                         : "red"
                     : "black"
@@ -46,23 +49,21 @@ export default function createClassificationRenderer(
             borderWidth: borderWidth + (evalClass !== Absent ? 2 : 0)
         };
 
-        const label = classification.success
-            ? classification.value
-            : classification.success === undefined
-                ? classification.partialResult
-                : NO_CLASSIFICATION
+        const label = hasData(classification)
+            ? classification.data
+            : NO_ANNOTATION
 
         return <>
             <ClassSelect
                 onReclassify={(oldClass, newClass) => onReclassify(filename, oldClass, newClass)}
                 classification={label}
                 colours={colours}
-                disabled={!classification.success}
+                disabled={!isSuccess(classification)}
                 allowSelectNone
             />
 
             <div
-                className={"ICDatasetItemBorder"}
+                className={"DatasetItemBorder"}
                 style={borderStyle}
             />
         </>

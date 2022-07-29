@@ -1,13 +1,16 @@
 /*
  * Types of annotations.
  */
-import {Annotation} from "ufdl-ts-client/json/generated/Image";
+import {Annotation} from "ufdl-ts-client/json/hand_crafted/AnnotationsFile";
 
-/** Symbol which represents no classification label for a dataset item. */
-export const NO_CLASSIFICATION = Symbol("The dataset entry has no classification.")
+/** Symbol representing the case when a dataset item is not annotated. */
+export const NO_ANNOTATION: unique symbol = Symbol("The dataset item is not annotated")
+
+/** Type representing either annotations or no annotations. */
+export type OptionalAnnotations<A> = A | typeof NO_ANNOTATION
 
 /** The type of annotation for classification tasks. */
-export type Classification = string | typeof NO_CLASSIFICATION
+export type Classification = string
 
 /** The type of annotation for image object-detection tasks. */
-export type DetectedObjects = Annotation[]
+export type DetectedObjects = [Annotation, ...Annotation[]]

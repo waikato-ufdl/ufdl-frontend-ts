@@ -1,6 +1,7 @@
 import {rendezvous} from "./typescript/async/rendezvous";
 import {DEFAULT, handleSingleDefault, WithDefault} from "./typescript/default";
 import {constantInitialiser} from "./typescript/initialisers";
+import UNREACHABLE from "./typescript/UNREACHABLE";
 
 export type SupportedImageTypes = "png" | "jpeg"
 
@@ -33,10 +34,7 @@ export default async function getImageFromVideo(
 
     // Get the 2D drawing context for drawing the video into
     const context = dummyCanvas.getContext("2d")
-    if (context === null) {
-        // Should never occur
-        throw new Error("getContext returned null; this should never occur")
-    }
+    if (context === null) UNREACHABLE("getContext returned null")
 
     // Draw the video into the canvas, scaling to the desired dimensions
     context.drawImage(video, 0, 0, width, height)

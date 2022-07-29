@@ -6,7 +6,7 @@ import {PossiblePromise} from "../types/promise";
  * withPromiseParameters, when called with a function which
  * takes parameters P.
  */
-export type PromiseParameters<P extends unknown[]>
+export type PromiseParameters<P extends readonly unknown[]>
     = {
         [key in keyof P]:
         P[key] extends Promise<any>

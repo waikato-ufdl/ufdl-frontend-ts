@@ -1,51 +1,49 @@
 import "./DatasetItem.css";
-import {DatasetItem as DatasetItemInfo} from "../types/DatasetItem";
 import {FunctionComponentReturnType} from "../../util/react/types";
 import {Possible} from "../../util/typescript/types/Possible";
 import {ReactElement, ReactNode} from "react";
 import CenterContent from "../../components/CenterContent";
 import {augmentClassName} from "../../util/react/augmentClass";
 import useDerivedState from "../../util/react/hooks/useDerivedState";
+import {DomainAnnotationType, DomainDataType, DomainName} from "../domains";
+import {
+    MutableDatasetDispatchItem
+} from "../hooks/useDataset/DatasetDispatch";
+import {TOGGLE} from "../hooks/useDataset/selection";
+import {DatasetDispatchItemAnnotationType, DatasetDispatchItemDataType} from "../hooks/useDataset/types";
 import useRenderNotify from "../../util/react/hooks/useRenderNotify";
 
+/** The type of component that renders the raw item data (e.g. images/videos). */
 export type DataRenderer<D> = (
-    filename: string,
-    selected: boolean,
-    data: DatasetItemInfo<D, unknown>['data']
+    props: {
+        filename: string
+        selected: boolean
+        data: D
+    }
 ) => ReactElement;
 
 export type AnnotationRenderer<A> = (
     filename: string,
     selected: boolean,
-    annotation: DatasetItemInfo<unknown, A>['annotations'],
-    evalAnnotation: Possible<DatasetItemInfo<unknown, A>['annotations']>
+    annotation: A,
+    evalAnnotation: Possible<A>
 ) => ReactNode
 
-export type DatasetItemProps<D, A> = {
-    item: DatasetItemInfo<D, A>,
-    evalAnnotation: Possible<DatasetItemInfo<unknown, A>['annotations']>,
-    renderData: DataRenderer<D>
-    renderAnnotation: AnnotationRenderer<A>
-    onSelect: (item: DatasetItemInfo<D, A>) => void,
-    onClick: (item: DatasetItemInfo<D, A>) => void
+export type DatasetItemProps<D extends DomainName> = {
+    item: MutableDatasetDispatchItem<DomainDataType<D>, DomainAnnotationType<D>>,
+    evalAnnotation: Possible<DatasetDispatchItemAnnotationType<DomainAnnotationType<D>>>,
+    renderData: DataRenderer<DatasetDispatchItemDataType<DomainDataType<D>>>
+    renderAnnotation: AnnotationRenderer<DatasetDispatchItemAnnotationType<DomainAnnotationType<D>>>
+    onClick: (item: MutableDatasetDispatchItem<DomainDataType<D>, DomainAnnotationType<D>>) => void
     children?: undefined
     className?: string
 }
 
-export default function DatasetItem<D, A>(
-    props: DatasetItemProps<D, A>
+export default function DatasetItem<D extends DomainName>(
+    props: DatasetItemProps<D>
 ): FunctionComponentReturnType {
 
-    //useRenderNotify("DatasetItem", props)
-
-    const renderedData = useDerivedState(
-        () => props.renderData(
-            props.item.filename,
-            props.item.selected,
-            props.item.data
-        ),
-        [props.renderData, props.item.filename, props.item.selected, props.item.data]
-    )
+    useRenderNotify("DatasetItem", props)
 
     const renderedAnnotation = useDerivedState(
         () => props.renderAnnotation(
@@ -54,7 +52,7 @@ export default function DatasetItem<D, A>(
             props.item.annotations,
             props.evalAnnotation
         ),
-    [props.renderAnnotation, props.item.filename, props.item.selected, props.item.annotations, props.evalAnnotation]
+        [props.renderAnnotation, props.item.filename, props.item.selected, props.item.annotations, props.evalAnnotation]
     )
 
     const onClickContent = useDerivedState(
@@ -63,8 +61,8 @@ export default function DatasetItem<D, A>(
     )
 
     const onSelect = useDerivedState(
-        () => () => props.onSelect(props.item),
-        [props.onSelect, props.item]
+        ([item]) => () => item.setSelected(TOGGLE),
+        [props.item]
     )
 
     return <div className={augmentClassName(props.className, "DatasetItem")}>
@@ -72,7 +70,11 @@ export default function DatasetItem<D, A>(
             className={"DatasetItemRenderedData"}
             onClick={onClickContent}
         >
-            {renderedData}
+            <props.renderData
+                data={props.item.data}
+                filename={props.item.filename}
+                selected={props.item.selected}
+            />
         </CenterContent>
 
         {renderedAnnotation}

@@ -13,24 +13,27 @@ import {ownPropertyIterator} from "../../util/typescript/object";
 import iteratorMap from "../../util/typescript/iterate/map";
 import {PossiblePromise} from "../../util/typescript/types/promise";
 import isPromise from "../../util/typescript/async/isPromise";
+import {Data} from "../types/data";
+import {OptionalAnnotations} from "../types/annotations";
+import withPromiseParameters from "../../util/typescript/async/withPromiseParameters";
 
-export type AddedFiles<A> = ReadonlyMap<string, [Blob, A]>
+export type AddedFiles<D extends Data, A> = ReadonlyMap<string, [D, OptionalAnnotations<A>]>
 
 /**
  * The type of the function provided to sub-menu components to allow them
  * to submit new files to the dataset.
  */
-export type OnSubmitFunction<A> = (newFiles: AddedFiles<A>) => void
+export type OnSubmitFunction<D extends Data, A> = (newFiles: AddedFiles<D, A>) => void
 
-export type FileAnnotationModalRenderer<A> = (
-    onSubmit: OnSubmitFunction<A>,
+export type FileAnnotationModalRenderer<D extends Data, A> = (
+    onSubmit: OnSubmitFunction<D, A>,
     onCancel: () => void
 ) => PossiblePromise<FunctionComponentReturnType>
 
-export type SubMenus<A> = {
-    files: FileAnnotationModalRenderer<A>
-    folders: FileAnnotationModalRenderer<A>
-    [key: string]: FileAnnotationModalRenderer<A>
+export type SubMenus<D extends Data, A> = {
+    files: FileAnnotationModalRenderer<D, A>
+    folders: FileAnnotationModalRenderer<D, A>
+    [key: string]: FileAnnotationModalRenderer<D, A>
 }
 
 /**
@@ -43,19 +46,19 @@ export type SubMenus<A> = {
  * @property subMenus
  *          A mapping from menu items to modal components for handling the menu item.
  */
-export type AddFilesButtonProps<A> = {
+export type AddFilesButtonProps<D extends Data, A> = {
     disabled?: boolean
-    onSelected: (files: ReadonlyMap<string, [Blob, A]>) => void
-    subMenus: SubMenus<A>
+    onSubmit: OnSubmitFunction<D, A>
+    subMenus: SubMenus<D, A>
 }
 
-export default function AddFilesButton<A>(
-    props: AddFilesButtonProps<A>
+export default function AddFilesButton<D extends Data, A>(
+    props: AddFilesButtonProps<D, A>
 ): FunctionComponentReturnType {
 
     const {
         disabled,
-        onSelected,
+        onSubmit,
         subMenus
     } = props;
 
@@ -75,7 +78,7 @@ export default function AddFilesButton<A>(
     )
 
     function AddFilesMenu(
-        props: SubMenus<A>
+        props: SubMenus<D, A>
     ): FunctionComponentReturnType {
 
         const menuButtons = iteratorMap(
@@ -84,7 +87,7 @@ export default function AddFilesButton<A>(
                 className={"AddFilesMenuButton"}
                 onClick={
                     () => {
-                        const rendered = renderer(onSelected, onCancel);
+                        const rendered = renderer(onSubmit, onCancel);
                         if (isPromise(rendered)) {
                             rendered.then((value) => {
                                 if (rendered !== null) setMenuItemModalComponent(value)
@@ -128,31 +131,37 @@ export default function AddFilesButton<A>(
     </>
 }
 
-
-
-export function addFilesRenderer<A>(
+/**
+ * TODO
+ *
+ * @param method
+ * @param getData
+ * @param getAnnotation
+ */
+export function addFilesRenderer<D extends Data, A>(
     method: SelectFilesMethod,
-    getAnnotation: (file: File) => A
-): FileAnnotationModalRenderer<A> {
+    getData: (file: File) => PossiblePromise<D>,
+    getAnnotation: (file: File) => PossiblePromise<OptionalAnnotations<A>>
+): FileAnnotationModalRenderer<D, A> {
     return (
         onSubmit
     ) => {
         doAsync(
             async () => {
-                let files = await selectFiles(method);
+                // Let the user select some files to add, aborting if none selected
+                // Make file iteration uniform by wrapping single files in a length-1 array
+                let files = await selectFiles(method)
+                if (files === null) return
+                if (!isArray(files)) files = [files]
+                if (files.length === 0) return
+                console.log(`Selected files for submission: ${files.map(file => file.name)}`)
 
-                if (files === null) return;
-
-                if (!isArray(files)) files = [files];
-
-                if (files.length === 0) return;
-
-                onSubmit(
-                    mapFromArray(
-                        files,
-                        (file) => [file.name, [file, getAnnotation(file)]]
-                    )
-                );
+                // Convert the files and submit them
+                const submissionMap: Map<string, [D, OptionalAnnotations<A>]> = new Map()
+                for (const file of files) {
+                    submissionMap.set(file.name, [await getData(file), await getAnnotation(file)])
+                }
+                onSubmit(submissionMap)
             }
         );
 

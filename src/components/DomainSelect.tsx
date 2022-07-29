@@ -1,12 +1,12 @@
 import React from "react";
-import {Domain} from "../server/domains";
+import {DomainName} from "../server/domains";
 import useDerivedState from "../util/react/hooks/useDerivedState";
 import {isPresent, Possible} from "../util/typescript/types/Possible";
 import {MapSelect, MapSelectProps} from "../util/react/component/MapSelect";
 import {Controllable} from "../util/react/hooks/useControllableState";
 import {mapFromArray} from "../util/map";
 
-export type DomainSelectProps<D extends Domain>
+export type DomainSelectProps<D extends DomainName>
     = Omit<MapSelectProps<D>, 'values' | 'value' | 'onChange'>
     &
     {
@@ -15,7 +15,7 @@ export type DomainSelectProps<D extends Domain>
         onChange?: (domain?: D) => void
     }
 
-export function DomainSelect<D extends Domain>(
+export function DomainSelect<D extends DomainName>(
     props: DomainSelectProps<D>
 ) {
     const {

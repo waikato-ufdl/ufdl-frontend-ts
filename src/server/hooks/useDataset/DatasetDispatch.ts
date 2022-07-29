@@ -1,334 +1,269 @@
-import {Dataset} from "../../types/Dataset";
-import {DatasetItem} from "../../types/DatasetItem";
-import iteratorFilter from "../../../util/typescript/iterate/filter";
 import iteratorMap from "../../../util/typescript/iterate/map";
-import {mapMap, mapSetDefault, mapToArray} from "../../../util/map";
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
-import {TaskDispatch} from "../../../util/react/hooks/useTaskWatcher";
 import {DatasetPK} from "../../pk";
-import {DataCache} from "../../DataCache";
-import compressFiles from "../../util/compressFiles";
-import * as DatasetCore from "ufdl-ts-client/functional/core/dataset";
-import {mapError, partialSuccess, success} from "../../../util/typescript/result";
-import promiseAsResult from "../../../util/typescript/async/promiseAsResult";
-import {SelfIterableIterator} from "../../../util/typescript/iterate/SelfIterableIterator";
 import {iteratorReduce} from "../../../util/typescript/iterate/reduce";
-import {IN_PROGRESS} from "./symbols";
-import {ActionsDispatch} from "./actions";
-import {ItemSelector, SELECTIONS} from "./selection";
-import {StateAccessor} from "../../../util/react/hooks/useStaticStateAccessor";
+import {TOGGLE} from "./selection";
+import {DatasetInstance} from "ufdl-ts-client/types/core/dataset";
+import {QueryObserverResult, RefetchOptions, RefetchQueryFilters, UseMutationResult, UseQueryResult} from "react-query";
+import {NamedFileInstance} from "ufdl-ts-client/types/core/named_file";
+import {ReadonlyQueryResult} from "../../../util/react/query/types";
+import iterate from "../../../util/typescript/iterate/iterate";
+import {Dataset} from "../../types/Dataset";
+import {Data} from "../../types/data";
+import {OptionalAnnotations} from "../../types/annotations";
+import iteratorFilter from "../../../util/typescript/iterate/filter";
+import {SelfIterableIterator} from "../../../util/typescript/iterate/SelfIterableIterator";
+import {
+    DatasetDispatchItemAnnotationType,
+    DatasetDispatchItemDataType, DatasetDispatchItemSelector,
+    DatasetDispatchItemType
+} from "./types";
 
-export type DatasetDispatchConstructor<D, A, DIS extends DatasetDispatch<D, A>> = {
-    new (
-        items: StateAccessor<Dataset<D, A>>,
-        synchronised: StateAccessor<boolean>,
-        pk: DatasetPK,
-        dispatch: ActionsDispatch<D, A>,
-        serverContext: UFDLServerContext,
-        addTask: TaskDispatch,
-        dataCache: DataCache<D>
-    ): DIS
+
+export class DatasetDispatchItem<D extends Data, A>
+    implements DatasetDispatchItemType<D, A>
+{
+    constructor(
+        readonly filename: string,
+        readonly handle: string,
+        readonly data: DatasetDispatchItemDataType<D>,
+        readonly annotations: DatasetDispatchItemAnnotationType<A>,
+        readonly selected: boolean
+    ) {}
 }
 
-export default abstract class DatasetDispatch<D, A> {
+export class MutableDatasetDispatchItem<D extends Data, A>
+    extends DatasetDispatchItem<D, A> {
 
     constructor(
-        private readonly _items: StateAccessor<Dataset<D, A>>,
-        private readonly _synchronised: StateAccessor<boolean>,
-        readonly pk: DatasetPK,
-        protected readonly dispatch: ActionsDispatch<D, A>,
-        protected readonly serverContext: UFDLServerContext,
-        protected readonly addTask: TaskDispatch,
-        protected readonly dataCache: DataCache<D>
-    ) {}
-
-    get items() {
-        return this._items()
-    }
-
-    get synchronised() {
-        return this._synchronised()
-    }
-
-    get selected(): SelfIterableIterator<[string, DatasetItem<D, A>]> {
-        return iteratorFilter(
-            this.items.entries(),
-            (entry) => entry[1].selected
+        filename: string,
+        handle: string,
+        data: DatasetDispatchItemDataType<D>,
+        annotations: DatasetDispatchItemAnnotationType<A>,
+        selected: boolean,
+        private readonly _setSelected: React.Dispatch<[string, boolean | typeof TOGGLE]>,
+        private readonly _setAnnotationsMutation: UseMutationResult<void, unknown, [string, OptionalAnnotations<A>]>
+    ) {
+        super(
+            filename,
+            handle,
+            data,
+            annotations,
+            selected
         )
+    }
+
+    setSelected(value: boolean | typeof TOGGLE) {
+        this._setSelected([this.filename, value])
+    }
+
+    setAnnotations(annotations: OptionalAnnotations<A>) {
+        this._setAnnotationsMutation.mutate([this.filename, annotations])
+    }
+
+}
+
+/**
+ * Type of object which abstracts dispatch to react-query for datasets.
+ */
+export class DatasetDispatch<D extends Data, A, I extends DatasetDispatchItem<D, A> = DatasetDispatchItem<D, A>>
+    implements Dataset<I>,
+    ReadonlyQueryResult<DatasetInstance>
+{
+    constructor(
+        protected readonly serverContext: UFDLServerContext,
+        readonly pk: DatasetPK,
+        protected readonly fileOrdering: string[],
+        protected readonly datasetResult: UseQueryResult<DatasetInstance>,
+        protected readonly itemMap: ReadonlyMap<string, I>
+    ) {
     }
 
     get numSelected(): number {
         return iteratorReduce(
-            this.selected,
-            (acc) => acc + 1,
+            this.itemMap.values(),
+            (acc, value) => value.selected ? acc + 1 : acc,
             0
         )
     }
 
-    select(itemSelection: ItemSelector<D, A>): void {
-        this.dispatch.updateItems(
-            () => {
-                return {
-                    selected: true
-                }
-            },
-            itemSelection
-        );
-    }
-
-    deselect(itemSelection: ItemSelector<D, A>): void {
-        this.dispatch.updateItems(
-            () => {
-                return {
-                    selected: false
-                }
-            },
-            itemSelection
-        );
-    }
-
-    toggleSelection(
-        itemSelection: ItemSelector<D, A>
-    ) {
-        this.dispatch.updateItems(
-            (item) => {
-                return {
-                    selected: !item.selected
-                }
-            },
-            itemSelection
-        );
-    }
-
-    selectOnly(
-        itemSelection: ItemSelector<D, A>
-    ) {
-        this.dispatch.updateItems(
-            (item) => {
-                return {
-                    selected: itemSelection(item, item.filename, this.items)
-                }
-            },
-            SELECTIONS.ALL
-        );
-
-    }
-
-    addFiles(files: ReadonlyMap<string, [Blob, A]>): void {
-        this.addTask(
-            this.addFilesToDataset(files)
+    iterateSelected(): SelfIterableIterator<string> {
+        return iteratorMap(
+            iteratorFilter(
+                this.entries(),
+                ([_filename, item]) => item.selected
+            ),
+            ([filename]) => filename
         )
     }
 
-    deleteFiles(...filenames: string[]): void {
-        this.addTask(
-            this.deleteFilesFromDataset(filenames)
-        )
+    [Symbol.iterator](): IterableIterator<[string, I]> {
+        return iterate(this.itemMap)
     }
 
-    deleteSelectedFiles(): void {
-        this.deleteFiles(
-            ...iteratorMap(
-                this.selected,
-                (entry) => entry[0]
-            )
-        );
+    entries(): IterableIterator<[string, I]> {
+        return iterate(this);
     }
 
-    deleteAllFiles(): void {
-        this.deleteFiles(
-            ...mapToArray(
-                this.items,
-                (filename) => filename
-            )
-        );
+    get(key: string): I | undefined {
+        return this.itemMap.get(key);
     }
 
-    setAnnotations(
-        annotations: ReadonlyMap<string, A>
+    has(key: string): boolean {
+        return this.itemMap.has(key);
+    }
+
+    keys(): IterableIterator<string> {
+        return iterate(this.fileOrdering);
+    }
+
+    get size(): number { return this.itemMap.size }
+
+    values(): IterableIterator<I> {
+        return this.itemMap.values();
+    }
+
+    get data(): DatasetInstance | undefined { return this.datasetResult.data }
+    get error(): unknown { return this.datasetResult.error }
+    get isError(): boolean { return this.datasetResult.isError }
+    get isIdle(): boolean { return this.datasetResult.isIdle }
+    get isLoading(): boolean { return this.datasetResult.isLoading }
+    get isLoadingError(): boolean { return this.datasetResult.isLoadingError }
+    get isRefetchError(): boolean { return this.datasetResult.isRefetchError }
+    get isSuccess(): boolean { return this.datasetResult.isSuccess }
+    get status(): "error" | "idle" | "loading" | "success" { return this.datasetResult.status }
+    refetch<TPageData>(options?: (RefetchOptions & RefetchQueryFilters<TPageData>) | undefined): Promise<QueryObserverResult<DatasetInstance>> {
+        return this.datasetResult.refetch(options)
+    }
+    get dataUpdatedAt(): number { return this.datasetResult.dataUpdatedAt }
+    get errorUpdateCount(): number { return this.datasetResult.errorUpdateCount }
+    get errorUpdatedAt(): number { return this.datasetResult.errorUpdatedAt }
+    get failureCount(): number { return this.datasetResult.failureCount }
+    get isFetched(): boolean { return this.datasetResult.isFetched }
+    get isFetchedAfterMount(): boolean { return this.datasetResult.isFetchedAfterMount }
+    get isFetching(): boolean { return this.datasetResult.isFetching }
+    get isPlaceholderData(): boolean { return this.datasetResult.isPlaceholderData }
+    get isPreviousData(): boolean { return this.datasetResult.isPreviousData }
+    get isRefetching(): boolean { return this.datasetResult.isRefetching }
+    get isStale(): boolean { return this.datasetResult.isStale }
+
+    forEach(
+        callbackfn: (
+            value: I,
+            key: string,
+            map: ReadonlyMap<string, I>
+        ) => void,
+        thisArg?: any
     ): void {
-        this.addTask(
-            this.setAnnotationsForDataset(annotations)
-        );
+        if (thisArg !== undefined) callbackfn = callbackfn.bind(thisArg)
+        for (const [key, value] of this.entries()) {
+            callbackfn(value, key, this)
+        }
     }
+}
 
-    setAnnotation(filename: string, annotation: A): void {
-        return this.setAnnotations(new Map([[filename, annotation]]))
-    }
+export class MutableDatasetDispatch<D extends Data, A, I extends MutableDatasetDispatchItem<D, A> = MutableDatasetDispatchItem<D, A>>
+    extends DatasetDispatch<D, A, I> {
 
-    setAnnotationsForSelected(annotations: A): void {
-        return this.setAnnotations(
-            new Map(
-                [
-                    ...iteratorMap(
-                        this.selected,
-                        ([filename]) => [filename, annotations] as const
-                    )
-                ]
-            )
-        )
-    }
-
-    private async setAnnotationsForDataset(
-        annotations: ReadonlyMap<string, A>
-    ): Promise<void> {
-        const annotationPromises = this.uploadAnnotationsForDataset(annotations);
-
-        await Promise.all(
-            mapToArray(
-                annotationPromises,
-                this.dispatchAnnotationsForItem.bind(this)
-            )
-        )
-    }
-
-    private async dispatchAnnotationsForItem(
-        filename: string,
-        promise: Promise<A>
+    constructor(
+        serverContext: UFDLServerContext,
+        pk: DatasetPK,
+        fileOrdering: string[],
+        datasetResult: UseQueryResult<DatasetInstance>,
+        private readonly addFilesMutation: UseMutationResult<NamedFileInstance[], unknown, ReadonlyMap<string, D>>,
+        private readonly deleteFileMutation: UseMutationResult<NamedFileInstance, unknown, string>,
+        private readonly setAnnotationsMutation: UseMutationResult<void, unknown, [string, OptionalAnnotations<A>]>,
+        private readonly setSelected: React.Dispatch<[string, boolean | typeof TOGGLE]>,
+        itemMap: ReadonlyMap<string, I>
     ) {
-        const result = await promiseAsResult(promise);
-
-        this.dispatch.updateItems(
-            (item) => {
-                if (result.success) return { annotations: result }
-
-                switch (item.annotations.success) {
-                    case true: return {annotations: partialSuccess(result.error, item.annotations.value)}
-                    case false: return {annotations: result}
-                    case undefined: return {annotations: partialSuccess(result.error, item.annotations.partialResult)}
-                }
-            },
-            (item) => item.filename === filename
+        super(
+            serverContext,
+            pk,
+            fileOrdering,
+            datasetResult,
+            itemMap
         )
-
     }
 
-    /**
-     * Uploads the annotations to the server.
-     *
-     * @param annotations
-     *          Map from filename to the annotations value to set.
-     * @return
-     *          Map from each filename in [annotations] to a promise
-     *          that will resolve to the annotations for the file when
-     *          the upload has completed.
-     * @protected
-     */
-    protected abstract uploadAnnotationsForDataset(
-        annotations: ReadonlyMap<string, A>
-    ): Map<string, Promise<A>>;
-
-    private async addFilesToDataset(
-        files: ReadonlyMap<string, [Blob, A]>
-    ) {
-        const dataMap = mapMap(
-            files,
-            (key, value) => [[key, value[0]]]
-        )
-
-        const annotationMap = mapMap(
-            files,
-            (key, value) => [[key, value[1]]]
-        )
-
-        // Add the files to the dataset as in-progress
-        this.dispatch.addItems(
-            ...mapToArray(
-                files,
-                (filename, [data, annotations]) => {
-                    return {
-                        filename: filename,
-                        data: partialSuccess(IN_PROGRESS, [this.dataCache, data] as const),
-                        annotations: partialSuccess(IN_PROGRESS, annotations),
-                        selected: false
-                    }
-                }
-            )
-        )
-
-        // Compress the file data for bulk upload
-        const compressed = await promiseAsResult(compressFiles(dataMap));
-
-        // Upload the files, or pass if compression failed
-        const filesAdded = compressed.success
-            ? await promiseAsResult(
-                DatasetCore.add_files(
-                    this.serverContext,
-                    this.pk.asNumber,
-                    compressed.value
-                )
-            )
-            : compressed
-
-        // If there was an error compressing or uploading the files, update items to indicate the error
-        if (!filesAdded.success) {
-            this.dispatch.updateItems(
-                (item) => {
-                    if (item.data.success !== undefined) throw new Error("Added item data not partial success")
-                    if (item.annotations.success !== undefined) throw new Error("Added item annotations not partial success")
-
-                    return {
-                        data: partialSuccess(filesAdded.error, item.data.partialResult),
-                        annotations: partialSuccess(filesAdded.error, item.annotations.partialResult)
-                    }
-                },
-                (item) => files.has(item.filename)
-            )
-        } else {
-            for (const {filename, handle} of filesAdded.value) {
-                mapSetDefault(
-                    this.dataCache,
-                    handle,
-                    () => dataMap.get(filename)!
-                );
-
-                this.dispatch.updateItems(
-                    () => {
-                        return {data: success({handle: handle, cache: this.dataCache})}
-                    },
-                    (item) => item.filename === filename
-                )
+    select(itemSelection: DatasetDispatchItemSelector<D, A>): void {
+        for (const filename of this.fileOrdering) {
+            if (itemSelection(this.itemMap.get(filename)!, filename, this)) {
+                this.setSelected([filename, true])
             }
-
-            await this.setAnnotationsForDataset(annotationMap)
         }
     }
 
-    private async deleteFileFromDataset(
-        filename: string
-    ) {
-        const result = await promiseAsResult(
-            DatasetCore.delete_file(
-                this.serverContext,
-                this.pk.asNumber,
-                filename
-            )
-        );
-
-        const isFile = SELECTIONS.isFile(filename);
-
-        if (result.success)
-            this.dispatch.deleteItems(isFile)
-        else
-            this.dispatch.updateItems(
-                (item) => {
-                    return {
-                        data: item.data.success
-                            ? partialSuccess(result.error, item.data.value)
-                            : mapError(item.data, () => result.error),
-                        annotations: item.annotations.success
-                            ? partialSuccess(result.error, item.annotations.value)
-                            : mapError(item.annotations, () => result.error)
-                    }
-                },
-                isFile
-            )
+    deselect(itemSelection: DatasetDispatchItemSelector<D, A>): void {
+        for (const filename of this.fileOrdering) {
+            if (itemSelection(this.itemMap.get(filename)!, filename, this)) {
+                this.setSelected([filename, false])
+            }
+        }
     }
 
-    private async deleteFilesFromDataset(
-        files: string[]
+    toggleSelection(
+        itemSelection: DatasetDispatchItemSelector<D, A>
     ) {
-        await Promise.all(files.map(this.deleteFileFromDataset.bind(this)))
+        for (const filename of this.fileOrdering) {
+            if (itemSelection(this.itemMap.get(filename)!, filename, this)) {
+                this.setSelected([filename, TOGGLE])
+            }
+        }
     }
 
+    selectOnly(
+        itemSelection: DatasetDispatchItemSelector<D, A>
+    ) {
+        for (const filename of this.fileOrdering) {
+            if (itemSelection(this.itemMap.get(filename)!, filename, this)) {
+                this.setSelected([filename, true])
+            } else {
+                this.setSelected([filename, false])
+            }
+        }
+    }
+
+    deleteSelectedFiles(): void {
+        for (const filename of this.fileOrdering) {
+            if (this.get(filename)!.selected) {
+                this.delete(filename)
+            }
+        }
+    }
+
+    setAnnotationsForSelected(annotations: OptionalAnnotations<A>): void {
+        for (const filename of this.fileOrdering) {
+            if (this.get(filename)!.selected) {
+                this.setAnnotationsForFile(filename, annotations)
+            }
+        }
+    }
+
+    setAnnotationsForFile(filename: string, annotations: OptionalAnnotations<A>): void {
+        this.setAnnotationsMutation.mutate([filename, annotations])
+    }
+
+    setAnnotations(
+        modifications: ReadonlyMap<string, OptionalAnnotations<A>>
+    ) {
+        for (const [filename, annotations] of modifications) {
+            this.setAnnotationsForFile(filename, annotations)
+        }
+    }
+
+    clear(): void {
+        for (const filename of this.fileOrdering) {
+            this.delete(filename)
+        }
+    }
+
+    delete(key: string): boolean {
+        if (!this.has(key)) return false;
+        this.deleteFileMutation.mutate(key)
+        return true;
+    }
+
+    addFiles(files: ReadonlyMap<string, D>) {
+        this.addFilesMutation.mutate(files)
+    }
 }

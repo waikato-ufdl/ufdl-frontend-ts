@@ -1,18 +1,20 @@
 import {ClassColours} from "../../util/classification";
 import {addFilesRenderer, FileAnnotationModalRenderer} from "../AddFilesButton";
-import {Classification, NO_CLASSIFICATION} from "../../types/annotations";
-import getPathFromFile from "../../../util/files/getPathFromFile";
+import {Classification} from "../../types/annotations";
 import PickClassForm from "./PickClassForm";
-import {constantInitialiser} from "../../../util/typescript/initialisers";
 import React from "react";
+import {Data} from "../../types/data";
 
-export default function createClassificationModalRenderer(
-    colours: [ClassColours]
-): FileAnnotationModalRenderer<Classification> {
+export default function createClassificationModalRenderer<D extends Data>(
+    colours: ClassColours,
+    getData: (file: File) => D
+): FileAnnotationModalRenderer<D, Classification> {
     return (onSubmit, onCancel) => {
         return <PickClassForm
-            onSubmit={(classification) => addFilesRenderer("multiple", () => classification)(onSubmit, onCancel)}
-            colours={colours[0]}
+            onSubmit={
+                (classification) => addFilesRenderer("multiple", getData,() => classification)(onSubmit, onCancel)
+            }
+            colours={colours}
             confirmText={"Select files..."}
         />
     }

@@ -1,73 +1,140 @@
 import {Dataset} from "../../types/Dataset";
-import {ItemSelector, SELECTIONS} from "../useDataset/selection";
-import {Classification} from "../../types/annotations";
-import {Image} from "../../types/data";
+import {SELECTIONS} from "../useDataset/selection";
+import {Classification, NO_ANNOTATION, OptionalAnnotations} from "../../types/annotations";
 import randomSubset from "../../../util/typescript/random/randomSubset";
+import {DatasetDispatchItem} from "../useDataset/DatasetDispatch";
+import hasData from "../../../util/react/query/hasData";
+import {Data} from "../../types/data";
+import isDefined from "../../../util/typescript/isDefined";
+import {DatasetItem} from "../../types/DatasetItem";
+import {mapGetDefault} from "../../../util/map";
+import iteratorFilter from "../../../util/typescript/iterate/filter";
+import iteratorMap from "../../../util/typescript/iterate/map";
+import {DatasetDispatchItemSelector} from "../useDataset/types";
 
 export const IC_SELECTIONS = {
     ...SELECTIONS,
     withClassification(
-        classification: Classification
-    ): ItemSelector<Image, Classification> {
+        classification: OptionalAnnotations<Classification>
+    ): DatasetDispatchItemSelector<Data, Classification> {
         return (item) => {
-            switch (item.annotations.success) {
-                case true: return item.annotations.value === classification
-                case undefined: return item.annotations.partialResult === classification
-                case false: return false
+            const annotations = item.annotations
+            if (hasData(annotations)) {
+                const data = annotations.data
+                return data === classification;
             }
+            return false;
         }
     },
-    correctForEval(
-        evalDataset: Dataset<Image, Classification>
-    ): ItemSelector<Image, Classification> {
+    correctForEval<A>(
+        evalDataset: Dataset<DatasetItem<unknown, A>>,
+        extractClassification: (annotation: A) => Classification | undefined
+    ): DatasetDispatchItemSelector<Data, Classification> {
         return this.forEval(
             evalDataset,
             (item, evalItem) => {
-                if (evalItem === undefined) return false;
+                if (!isDefined(evalItem)) return false
 
-                if (!item.annotations.success || !evalItem.annotations.success) return false;
+                const evalClassification = extractClassification(evalItem.annotations)
 
-                return item.annotations.value === evalItem.annotations.value;
+                if (!isDefined(evalClassification)) return false
+
+                const annotationsResult = item.annotations
+
+                if (!hasData(annotationsResult)) return false
+
+                const annotations = annotationsResult.data
+
+                return annotations === evalClassification
             }
         )
     },
-    incorrectForEval(
-        evalDataset: Dataset<Image, Classification>
-    ): ItemSelector<Image, Classification> {
+    incorrectForEval<A>(
+        evalDataset: Dataset<DatasetItem<unknown, A>>,
+        extractClassification: (annotation: A) => Classification | undefined
+    ): DatasetDispatchItemSelector<Data, Classification> {
         return this.forEval(
             evalDataset,
             (item, evalItem) => {
-                if (evalItem === undefined) return false;
+                if (!isDefined(evalItem)) return false
 
-                if (!item.annotations.success || !evalItem.annotations.success) return false;
+                const evalClassification = extractClassification(evalItem.annotations)
 
-                return item.annotations.value !== evalItem.annotations.value;
+                if (!isDefined(evalClassification)) return false
+
+                const annotationsResult = item.annotations
+
+                if (!hasData(annotationsResult)) return false
+
+                const annotations = annotationsResult.data
+
+                return annotations !== evalClassification
             }
         )
     },
     chooseRandomMFromEachClass(
         m: number,
         seed?: string
-    ): ItemSelector<any, Classification> {
-        let selectorSet: Set<string> | undefined = undefined
+    ): DatasetDispatchItemSelector<Data, Classification> {
+        let selectorSets: Map<string, Set<string>> | undefined = undefined
 
-        function initSelectorSet(
-            dataset: Dataset<any, any>
-        ): Set<string> {
-            return new Set(
-                randomSubset(
-                    [...dataset.keys()],
-                    BigInt(m),
-                    false,
-                    false,
-                    seed
-                )
+        function lazySelected(
+            dataset: Dataset<DatasetDispatchItem<Data, Classification>>,
+            class_: string,
+            filename: string
+        ): boolean {
+            if (!isDefined(selectorSets)) selectorSets = new Map()
+
+            const classSet = mapGetDefault(
+                selectorSets,
+                class_,
+                () => {
+                    const entriesForClass = iteratorFilter(
+                        dataset.entries(),
+                        ([_, item]) => {
+                            const annotationsResult = item.annotations
+
+                            if (!hasData(annotationsResult)) return false
+
+                            const annotations = annotationsResult.data
+
+                            if (annotations === NO_ANNOTATION) return false
+
+                            return annotations === class_
+                        }
+                    )
+
+                    const filenamesForClass = iteratorMap(
+                        entriesForClass,
+                        ([filename]) => filename
+                    )
+
+                    return new Set(
+                        randomSubset(
+                            [...filenamesForClass],
+                            BigInt(m),
+                            false,
+                            false,
+                            seed
+                        )
+                    )
+                },
+                true
             )
+
+            return classSet.has(filename)
         }
 
-        return (_, filename, dataset) => {
-            if (selectorSet === undefined) selectorSet = initSelectorSet(dataset)
-            return selectorSet.has(filename)
+        return (item, filename, dataset) => {
+            const annotationsResult = item.annotations
+
+            if (!hasData(annotationsResult)) return false
+
+            const annotations = annotationsResult.data
+
+            if (annotations === NO_ANNOTATION) return false
+
+            return lazySelected(dataset, annotations, filename)
         }
     }
 } as const;

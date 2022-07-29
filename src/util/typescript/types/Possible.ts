@@ -8,6 +8,8 @@ export const Absent = Symbol("Absent");
  */
 export type Possible<T> = T | typeof Absent
 
+export type Present<T> = Omit<T, typeof Absent>
+
 /**
  * Type-narrowing check if a value is present.
  *
@@ -18,6 +20,17 @@ export function isPresent<T>(
     value: Possible<T>
 ): value is T {
     return value !== Absent;
+}
+
+export function ifPresent<T, R>(
+    value: Possible<T>,
+    ifPresent: (value: Present<T>) => R,
+    ifAbsent: () => R
+): R {
+    if (isPresent(value))
+        return ifPresent(value)
+    else
+        return ifAbsent()
 }
 
 /**

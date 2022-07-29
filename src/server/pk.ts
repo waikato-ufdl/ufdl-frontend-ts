@@ -1,4 +1,7 @@
 import {memoInstances} from "../util/memo";
+import isDefined from "../util/typescript/isDefined";
+
+export type AnyPK = DatasetPK | ProjectPK | TeamPK | undefined
 
 @memoInstances
 export class TeamPK {
@@ -15,6 +18,13 @@ export class TeamPK {
 
     owns(pk: ProjectPK | DatasetPK): boolean {
         return pk.team === this;
+    }
+
+    commonBase(pk: AnyPK): AnyPK {
+        if (getTeamPK(pk) === this)
+            return this
+        else
+            return undefined
     }
 }
 
@@ -35,6 +45,13 @@ export class ProjectPK {
     owns(pk: DatasetPK): boolean {
         return pk.project === this;
     }
+
+    commonBase(pk: AnyPK): AnyPK {
+        if (getProjectPK(pk) === this)
+            return this
+        else
+            return this.team.commonBase(pk)
+    }
 }
 
 @memoInstances
@@ -47,6 +64,23 @@ export class DatasetPK {
     get team(): TeamPK {
         return this.project.team;
     }
+
+    commonBase(pk: AnyPK): AnyPK {
+        if (getDatasetPK(pk) === this)
+            return this
+        else
+            return this.project.commonBase(pk)
+    }
+}
+
+export function getCommonBasePK(
+    a: AnyPK,
+    b: AnyPK
+): AnyPK {
+    if (isDefined(a))
+        return a.commonBase(b)
+    else
+        return undefined
 }
 
 export function getTeamPK(

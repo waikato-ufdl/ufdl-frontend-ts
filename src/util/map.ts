@@ -1,4 +1,7 @@
 import {withNonLocalReturn} from "./typescript/nonLocalReturn";
+import {PossiblePromise} from "./typescript/types/promise";
+import arrayMap from "./typescript/arrays/arrayMap";
+import iteratorFilter from "./typescript/iterate/filter";
 
 export function isMap(obj: any): obj is (Map<any, any> | ReadonlyMap<any, any>) {
     return obj instanceof Map;
@@ -127,17 +130,48 @@ export function mapSetDefault<K, V>(
     return true;
 }
 
-export function mapGetDefault<K, V>(map: ReadonlyMap<K, V>, key: K, defaultValue: () => V, set: false): V;
+/**
+ * Gets the value for a given key from the map, returning a lazily-evaluated
+ * default value if the key is not in the map.
+ *
+ * @param map
+ *          The map to get the value from.
+ * @param key
+ *          The key to find in the map.
+ * @param defaultValue
+ *          A function which returns a default value, in the case the key isn't found.
+ * @return
+ *          The value at the given key, or the default value if there is none.
+ */
+export function mapGetDefault<K, V>(map: ReadonlyMap<K, V>, key: K, defaultValue: () => V): V;
+
+/**
+ * Gets the value for a given key from the map, returning a lazily-evaluated
+ * default value if the key is not in the map. The calculated default value can
+ * optionally be inserted into the map.
+ *
+ * @param map
+ *          The map to get the value from.
+ * @param key
+ *          The key to find in the map.
+ * @param defaultValue
+ *          A function which returns a default value, in the case the key isn't found.
+ * @param set
+ *          Whether to insert the default value into the map if it is used.
+ * @return
+ *          The value at the given key, or the default value if there is none.
+ */
 export function mapGetDefault<K, V>(map: Map<K, V>, key: K, defaultValue: () => V, set: boolean): V;
+
 export function mapGetDefault<K, V>(
     map: Map<K, V> | ReadonlyMap<K, V>,
     key: K,
     defaultValue: () => V,
-    set: boolean
+    set?: boolean
 ): V {
     if (map.has(key)) return map.get(key) as V;
     const def = defaultValue();
-    if (set) (map as Map<K, V>).set(key, def);
+    if (set === true) (map as Map<K, V>).set(key, def);
     return def;
 }
 
@@ -259,7 +293,7 @@ export function mapAddAll<K, V>(
  */
 export function mapMap<K, V, K2, V2>(
     map: ReadonlyMap<K, V>,
-    func: (key: K, value: V) => [K2, V2][]
+    func: (key: K, value: V) => readonly (readonly [K2, V2])[]
 ): Map<K2, V2> {
     const result: Map<K2, V2> = new Map()
 
@@ -289,4 +323,33 @@ export function mapToObject<V>(
     }
 
     return result;
+}
+
+export function mapSort<K, V, M extends Map<K, V>>(
+    map: M,
+    compareFn?: (a: readonly [K, V], b: readonly [K, V]) => number
+): M {
+    const entries = [...map.entries()]
+    entries.sort(compareFn)
+    map.clear()
+    for (const [key, value] of entries) {
+        map.set(key, value)
+    }
+    return map
+}
+
+export function mapKeep<K, V>(
+    map: Map<K, V>,
+    ...keys: K[]
+): boolean {
+    const keySet = new Set(keys)
+    const otherKeys = [...iteratorFilter(map.keys(), key => !keySet.has(key))]
+
+    if (otherKeys.length === 0) return false
+
+    for (const key of otherKeys) {
+        map.delete(key)
+    }
+
+    return true
 }

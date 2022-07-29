@@ -1,4 +1,5 @@
 import {DatasetItem} from "./DatasetItem";
 
 /** Represents all items in a dataset. */
-export type Dataset<D, A> = ReadonlyMap<string, DatasetItem<D, A>>
+export type Dataset<I extends DatasetItem<unknown, unknown>>
+    = ReadonlyMap<string, I>

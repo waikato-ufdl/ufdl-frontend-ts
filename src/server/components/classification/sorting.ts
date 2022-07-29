@@ -1,15 +1,17 @@
 import {CompareFunction} from "../../../util/typescript/sort/CompareFunction";
-import {DatasetItem} from "../../types/DatasetItem";
-import {Classification, NO_CLASSIFICATION} from "../../types/annotations";
+import {Classification, NO_ANNOTATION} from "../../types/annotations";
 import {localeCompareUndefined} from "../../../util/typescript/strings/localeCompareUndefined";
 import {asLabel} from "../../util/classification";
+import {DatasetDispatchItem} from "../../hooks/useDataset/DatasetDispatch";
+import {Data} from "../../types/data";
+import hasData from "../../../util/react/query/hasData";
 
-export const BY_CLASSIFICATION: CompareFunction<DatasetItem<any, Classification>> = (
+export const BY_CLASSIFICATION: CompareFunction<DatasetDispatchItem<Data, Classification>> = (
     a,
     b
 ) => {
     return localeCompareUndefined(
-        asLabel(a.annotations.success ? a.annotations.value : NO_CLASSIFICATION, undefined),
-        asLabel(b.annotations.success ? b.annotations.value : NO_CLASSIFICATION, undefined)
+        asLabel(hasData(a.annotations) ? a.annotations.data : NO_ANNOTATION, undefined),
+        asLabel(hasData(b.annotations) ? b.annotations.data : NO_ANNOTATION, undefined)
     )
 }

@@ -11,26 +11,30 @@ import {BackButton} from "../../components/BackButton";
 import {TeamSelect} from "../../components/TeamSelect";
 import {ProjectSelect} from "../../components/ProjectSelect";
 import {ListSelect} from "../../components/ListSelect";
-import {Domain, DOMAIN_DATASET_METHODS, DomainAnnotationType, DomainDataType} from "../domains";
+import {DOMAIN_DATASET_METHODS, DomainAnnotationType, DomainDataType, DomainName} from "../domains";
 import nameFromSignature from "../util/nameFromSignature";
 import {augmentClassName} from "../../util/react/augmentClass";
-import {ItemSelector} from "../hooks/useDataset/selection";
-import {handleDefault, PropsDefaultHandlers, WithDefault} from "../../util/typescript/default";
-import {CompareFunction} from "../../util/typescript/sort/CompareFunction";
-import {DatasetItem} from "../types/DatasetItem";
+import {handleSingleDefault, WithDefault} from "../../util/typescript/default";
 import asChangeEventHandler from "../../util/react/asChangeEventHandler";
 import useLocalModal from "../../util/react/hooks/useLocalModal";
 import SelectionModal from "./SelectionModal";
+import {Data} from "../types/data";
+import {Possible} from "../../util/typescript/types/Possible";
+import {BY_FILENAME} from "../sorting";
+import {DomainSortOrderFunction, DomainSortOrders} from "./types";
+import {DatasetDispatchItemSelector} from "../hooks/useDataset/types";
+import useRenderNotify from "../../util/react/hooks/useRenderNotify";
 
-export type ItemSelectFragmentRenderer<D, A> = (
-    select: Dispatch<ItemSelector<D, A>>
+export type ItemSelectFragmentRenderer<D extends Data, A> = (
+    select: Dispatch<DatasetDispatchItemSelector<D, A>>
 ) => ReactFragment
 
 export type AnnotatorTopMenuExtraControlsRenderer = (
     // No parameters
 ) => ReactFragment
 
-export type AnnotatorTopMenuProps<D extends Domain> = {
+export type AnnotatorTopMenuProps<D extends DomainName> = {
+    /** The domain. */
     domain: D
     selectedPK: Controllable<DatasetPK | ProjectPK | TeamPK | undefined>
     lockedPK: DatasetPK | ProjectPK | TeamPK | undefined
@@ -43,9 +47,9 @@ export type AnnotatorTopMenuProps<D extends Domain> = {
     nextDisabled: boolean
     onBack: (() => void) | undefined
     className?: string
-    sortOrders: { readonly [name: string]: CompareFunction<DatasetItem<DomainDataType<D>, DomainAnnotationType<D>>> }
-    onSortChanged: (order: CompareFunction<DatasetItem<DomainDataType<D>, DomainAnnotationType<D>>>) => void
-    onSelect: ((select: ItemSelector<DomainDataType<D>, DomainAnnotationType<D>>) => void) | undefined
+    sortOrders: WithDefault<DomainSortOrders<D>>
+    onSortChanged: (name: Possible<string>, order: Possible<DomainSortOrderFunction<D>>) => void
+    onSelect: ((select: DatasetDispatchItemSelector<DomainDataType<D>, DomainAnnotationType<D>>) => void) | undefined
     itemSelectFragmentRenderer: ItemSelectFragmentRenderer<DomainDataType<D>, DomainAnnotationType<D>>
     onDeleteSelected: (() => void) | undefined
     extraControls: AnnotatorTopMenuExtraControlsRenderer | undefined
@@ -53,16 +57,25 @@ export type AnnotatorTopMenuProps<D extends Domain> = {
     onExtractSelected: (() => void) | undefined
 }
 
-const DEFAULT_HANDLERS: PropsDefaultHandlers<AnnotatorTopMenuProps<Domain>> = {
-    nextLabel: () => "Next"
-}
-
-export default function AnnotatorTopMenu<D extends Domain>(
+export default function AnnotatorTopMenu<D extends DomainName>(
     props: AnnotatorTopMenuProps<D>
 ) {
+    useRenderNotify("AnnotatorTopMenu.props", props)
+
     const [selectedPK] = useControllableState(
         props.selectedPK,
         constantInitialiser(undefined)
+    )
+
+    // Derive the available sort-orders from the props, handling the default
+    const sortOrders = useDerivedState(
+        ([sortOrders]) => {
+            return handleSingleDefault(
+                sortOrders,
+                () => { return { "filename": BY_FILENAME } }
+            )
+        },
+        [props.sortOrders] as const
     )
 
     const teamPK = getTeamPK(selectedPK);
@@ -84,6 +97,15 @@ export default function AnnotatorTopMenu<D extends Domain>(
     );
 
     const selectModal = useLocalModal();
+
+    useRenderNotify("AnnotatorTopMenu.state",
+                    {
+                        selectedPK,
+                        sortOrders,
+                        projectTeamFilter,
+                        datasetProjectFilter,
+                        selectModal
+                    })
 
     const [numSelected, outOf] = props.numSelected;
 
@@ -133,29 +155,20 @@ export default function AnnotatorTopMenu<D extends Domain>(
                 }}
                 disabled={props.nextDisabled}
             >
-                {handleDefault(DEFAULT_HANDLERS, props, "nextLabel")}
+                {handleSingleDefault(props.nextLabel, constantInitialiser("Next"))}
             </button>
 
         }
         <select
-            onChange={
-                asChangeEventHandler(
-                    (order) => props.onSortChanged(
-                        props.sortOrders[order]
-                    )
+            onChange={asChangeEventHandler((order) => props.onSortChanged(order, sortOrders[order]))}
+        >
+            {
+                Object.getOwnPropertyNames(props.sortOrders).map(
+                    (order) => {
+                        return <option value={order}>{order}</option>
+                    }
                 )
             }
-        >
-            {Object.getOwnPropertyNames(props.sortOrders).map(
-                (order) => {
-                    return <option
-                        value={order}
-                    >
-                        {order}
-                    </option>
-                }
-            )}
-
         </select>
 
         <button

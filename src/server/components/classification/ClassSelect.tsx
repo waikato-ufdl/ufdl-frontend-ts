@@ -1,5 +1,5 @@
 import "./ClassSelect.css";
-import {Classification, NO_CLASSIFICATION} from "../../types/annotations";
+import {Classification, NO_ANNOTATION, OptionalAnnotations} from "../../types/annotations";
 import {asLabel, ClassColour, ClassColours} from "../../util/classification";
 import {FunctionComponentReturnType} from "../../../util/react/types";
 import {ClassSelectOption} from "./ClassSelectOption";
@@ -11,8 +11,8 @@ export type ClassSelectProps
         JSX.IntrinsicElements["select"],
         'value'
     > & {
-    onReclassify: (oldClass: Classification, newClass: Classification) => void,
-    classification: Classification
+    onReclassify: (oldClass: OptionalAnnotations<Classification>, newClass: OptionalAnnotations<Classification>) => void,
+    classification: OptionalAnnotations<Classification>
     colours: ClassColours
     children?: never
     allowSelectNone?: boolean
@@ -34,24 +34,14 @@ export default function ClassSelect(
         props.onReclassify(
             props.classification,
             value === "" || value === undefined
-                ? NO_CLASSIFICATION
+                ? NO_ANNOTATION
                 : value
         );
     }
 
-    function toOption(
-        classification: Classification,
-        colour: ClassColour
-    ) {
-        return <ClassSelectOption
-            classification={classification}
-            colour={colour}
-        />
-    }
-
     if (style === undefined) style = {};
 
-    style.backgroundColor = classification === NO_CLASSIFICATION ?
+    style.backgroundColor = classification === NO_ANNOTATION ?
             "white" :
             props.colours.get(classification);
 
@@ -62,7 +52,18 @@ export default function ClassSelect(
         style={style}
         {...selectProps}
     >
-        {props.allowSelectNone === true ? toOption(NO_CLASSIFICATION, "white") : undefined}
+        {props.allowSelectNone === true ? toOption(NO_ANNOTATION, "white") : undefined}
         {mapToArray(props.colours, toOption)}
     </select>
+}
+
+
+function toOption(
+    classification: OptionalAnnotations<Classification>,
+    colour: ClassColour
+) {
+    return <ClassSelectOption
+        classification={classification}
+        colour={colour}
+    />
 }

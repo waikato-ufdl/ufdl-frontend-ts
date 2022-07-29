@@ -1,6 +1,6 @@
 import {FunctionComponentReturnType} from "../../../util/react/types";
 import {Form} from "../../../util/react/component/Form";
-import {Classification, NO_CLASSIFICATION} from "../../types/annotations";
+import {Classification, NO_ANNOTATION, OptionalAnnotations} from "../../types/annotations";
 import asChangeEventHandler from "../../../util/react/asChangeEventHandler";
 import ClassSelect from "./ClassSelect";
 import React from "react";
@@ -10,7 +10,7 @@ import {ClassColours} from "../../util/classification";
 import "./PickClassForm.css";
 
 export type PickClassFormProps = {
-    onSubmit: (label: Classification) => void
+    onSubmit: (label: OptionalAnnotations<Classification>) => void
     colours: ClassColours
     confirmText: string
 }
@@ -20,11 +20,11 @@ export default function PickClassForm(
 ): FunctionComponentReturnType {
 
     // The contents of the label text box
-    const [label, setLabel] = useStateSafe<Classification>(constantInitialiser(NO_CLASSIFICATION));
+    const [label, setLabel] = useStateSafe<OptionalAnnotations<Classification>>(constantInitialiser(NO_ANNOTATION));
 
     const onSubmit = () => {
         props.onSubmit(label);
-        setLabel(NO_CLASSIFICATION);
+        setLabel(NO_ANNOTATION);
     };
 
     return <div>
@@ -34,7 +34,7 @@ export default function PickClassForm(
             <label>
                 New label
                 <input
-                    value={label === NO_CLASSIFICATION ? "" : label}
+                    value={label === NO_ANNOTATION ? "" : label}
                     onChange={asChangeEventHandler(setLabel)}
                     autoFocus
                 />

@@ -4,7 +4,6 @@ import Page from "./Page";
 import {BackButton} from "../BackButton";
 import PingButton from "../PingButton";
 import useStateSafe from "../../util/react/hooks/useStateSafe";
-import DataVideo from "../../util/react/component/DataVideo";
 import selectFiles from "../../util/files/selectFiles";
 import DataVideoWithFrameExtractor from "../../util/react/component/DataVideoWithFrameExtractor";
 import saveFile from "../../util/files/saveFile";

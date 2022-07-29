@@ -1,32 +1,34 @@
 import {createMapStateReducer, MapStateDispatch} from "../../util/react/hooks/useMapState";
 import {ClassColour, ClassColours, loadColoursFromContext, pickNewRandomColour} from "../util/classification";
-import {Dataset} from "../types/Dataset";
-import {Classification, NO_CLASSIFICATION} from "../types/annotations";
+import {Classification, NO_ANNOTATION} from "../types/annotations";
 import {copyMap} from "../../util/map";
 import {useContext} from "react";
 import {UFDL_SERVER_REACT_CONTEXT} from "../UFDLServerContextProvider";
 import useDerivedReducer from "../../util/react/hooks/useDerivedReducer";
 import useDerivedState from "../../util/react/hooks/useDerivedState";
 import useStaticStateAccessor from "../../util/react/hooks/useStaticStateAccessor";
+import {DatasetDispatch} from "./useDataset/DatasetDispatch";
+import {Data} from "../types/data";
+import hasData from "../../util/react/query/hasData";
+import isDefined from "../../util/typescript/isDefined";
 
 
 const CLASS_COLOURS_REDUCER = createMapStateReducer<string, ClassColour>();
 
 function initialiseClassColours(
-    dataset: readonly [Dataset<unknown, Classification> | undefined],
-    currentState?: ClassColours
+    [dataset]: readonly [DatasetDispatch<Data, Classification> | undefined],
+    currentState: ClassColours
 ): ClassColours {
-    const classColours: Map<string, ClassColour> = currentState === undefined
-        ? new Map()
-        : copyMap(currentState);
+    const classColours: Map<string, ClassColour> = copyMap(currentState);
 
     let noneSet = true;
 
-    if (dataset[0] !== undefined) {
-        dataset[0].forEach(
+    if (dataset !== undefined) {
+        dataset.forEach(
             (item) => {
-                const classification = item.annotations.success ? item.annotations.value : NO_CLASSIFICATION;
-                if (classification === NO_CLASSIFICATION) return;
+                if (!hasData(item.annotations)) return
+                const classification = item.annotations.data;
+                if (classification === NO_ANNOTATION) return;
                 if (classColours.has(classification)) return;
                 classColours.set(classification, pickNewRandomColour(classColours));
                 noneSet = false;
@@ -34,7 +36,8 @@ function initialiseClassColours(
         );
     }
 
-    if (currentState !== undefined && noneSet) return currentState;
+    // Return the previous state if it wasn't updated, to avoid unnecessary triggers
+    if (noneSet) return currentState;
 
     return classColours;
 }
@@ -50,7 +53,7 @@ export class ClassColoursDispatch extends MapStateDispatch<string, ClassColour> 
 }
 
 export default function useClassColours(
-    dataset: Dataset<any, Classification> | undefined,
+    dataset: DatasetDispatch<Data, Classification> | undefined,
     initialColours?: ClassColours
 ): ClassColoursDispatch {
 
@@ -66,7 +69,7 @@ export default function useClassColours(
         CLASS_COLOURS_REDUCER,
         initialiseClassColours,
         [dataset] as const,
-        initialColours
+        () => isDefined(initialColours) ? initialColours : new Map()
     );
 
     const reducerStateAccessor = useStaticStateAccessor(reducerState);

@@ -15,10 +15,10 @@ import {BackButton} from "../BackButton";
 import RenderSelectedChildren from "../../util/react/component/RenderSelectedChildren";
 import {constantInitialiser} from "../../util/typescript/initialisers";
 import {DatasetInstance} from "ufdl-ts-client/types/core/dataset";
-import {Domain} from "../../server/domains";
+import {DomainName} from "../../server/domains";
 
 export type SelectDatasetPageProps = {
-    onDatasetSelected: (pk: DatasetPK, domain: Domain) => void
+    onDatasetSelected: (pk: DatasetPK, domain: DomainName) => void
     onProjectSelected?: (pk: ProjectPK) => void
     onTeamSelected?: (pk: TeamPK) => void
     onBack?: () => void
@@ -76,7 +76,7 @@ export default function SelectDatasetPage(
                 labelFunction={nameFromSignature}
                 onChange={(item, pk) => {
                     if (pk !== undefined && item !== undefined && from instanceof ProjectPK)
-                        props.onDatasetSelected(from.dataset(pk), item.domain as Domain)
+                        props.onDatasetSelected(from.dataset(pk), item.domain as DomainName)
                 }}
                 filter={datasetProjectFilter}
                 value={UNCONTROLLED_KEEP}

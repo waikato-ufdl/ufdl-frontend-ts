@@ -1,22 +1,24 @@
 import React from "react";
 import {FunctionComponentReturnType} from "../../util/react/types";
-import {ItemSelector, SELECTIONS} from "../hooks/useDataset/selection";
+import {SELECTIONS} from "../hooks/useDataset/selection";
 import {ItemSelectFragmentRenderer} from "./AnnotatorTopMenu";
 import LocalModal from "../../util/react/component/LocalModal";
 import useLocalModal from "../../util/react/hooks/useLocalModal";
 import useStateSafe from "../../util/react/hooks/useStateSafe";
 import {constantInitialiser} from "../../util/typescript/initialisers";
 import asChangeEventHandler from "../../util/react/asChangeEventHandler";
+import {Data} from "../types/data";
+import {DatasetDispatchItemSelector} from "../hooks/useDataset/types";
 
-export type SelectionModalProps<D, A> = {
+export type SelectionModalProps<D extends Data, A> = {
     position: [number, number] | undefined
-    onSelect: (func: ItemSelector<D, A>) => void
+    onSelect: (func: DatasetDispatchItemSelector<D, A>) => void
     onCancel: () => void
     itemSelectFragmentRenderer: ItemSelectFragmentRenderer<D, A>
     numItems: number
 }
 
-export default function SelectionModal<D, A>(
+export default function SelectionModal<D extends Data, A>(
     props: SelectionModalProps<D, A>
 ): FunctionComponentReturnType {
 
@@ -24,7 +26,7 @@ export default function SelectionModal<D, A>(
 
     const [amount, setAmount] = useStateSafe(constantInitialiser(1))
 
-    const onSelectActual = (func: ItemSelector<D, A>) => {
+    const onSelectActual = (func: DatasetDispatchItemSelector<D, A>) => {
         props.onSelect(func);
         props.onCancel();
         randomAmountModal.hide()

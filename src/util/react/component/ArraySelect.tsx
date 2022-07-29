@@ -4,6 +4,7 @@ import asChangeEventHandler from "../asChangeEventHandler";
 import {constantInitialiser} from "../../typescript/initialisers";
 import {ElementType} from "../../typescript/types/array/ElementType";
 import {Absent, Possible} from "../../typescript/types/Possible";
+import arrayMap from "../../typescript/arrays/arrayMap";
 
 export type ArraySelectProps<T extends readonly unknown[]> = {
     values: Readonly<T>
@@ -41,7 +42,8 @@ export function ArraySelect<T extends readonly unknown[]>(
     const labelFunctionActual = labelFunction || defaultLabelFunction;
 
     // Create an option for each value
-    const valueOptions = values.map(
+    const valueOptions = arrayMap(
+        values,
         (value, index) => {
             return <option value={index.toString()}>
                 {labelFunctionActual(value, index)}

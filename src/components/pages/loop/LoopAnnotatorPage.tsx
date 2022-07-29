@@ -3,7 +3,7 @@ import ImageClassificationAnnotatorPage from "../annotation/icap/ImageClassifica
 import * as job_template from "ufdl-ts-client/functional/core/jobs/job_template";
 import ObjectDetectionAnnotatorPage from "../annotation/odap/ObjectDetectionAnnotatorPage";
 import React, {Dispatch} from "react";
-import {Domain} from "../../../server/domains";
+import {DomainName} from "../../../server/domains";
 import {DatasetPK} from "../../../server/pk";
 import {ClassColours} from "../../../server/util/classification";
 import UFDLServerContext from "../../../../../ufdl-ts-client/dist/UFDLServerContext";
@@ -11,7 +11,7 @@ import {JobTemplateInstance} from "../../../../../ufdl-ts-client/dist/types/core
 import {LocalModalDispatch} from "../../../util/react/hooks/useLocalModal";
 
 export type LoopAnnotatorPageProps = {
-    domain: Domain
+    domain: DomainName
     targetDataset: DatasetPK
     evalDatasetPK: DatasetPK | undefined
     nextLabel: string

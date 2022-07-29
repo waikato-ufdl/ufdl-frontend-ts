@@ -32,22 +32,22 @@ export type FunctionDefaultHandlers<P extends readonly any[]>
     = OmitNever<{ [index in IndexType<P>]: If<HasDefault<P[index]>, DefaultHandler<P[index]>, never>}>
 
 /** The prop keys which require default handlers. */
-export type PropsDefaultHandlersKeys<P extends {}> = {
+export type PropsDefaultHandlersKeys<P extends object> = {
     [K in keyof P]: typeof DEFAULT extends P[K] ? K : never
 }[keyof P]
 
 /** The type of a set of default handlers for a given props type. */
-export type PropsDefaultHandlers<P extends {}> = {
+export type PropsDefaultHandlers<P extends object> = {
     [K in PropsDefaultHandlersKeys<P>]: DefaultHandler<P[K]>
 }
 
 /** The props which require default handling. */
-export type PropsRequiringDefaultHandling<P extends {}> = {
+export type PropsRequiringDefaultHandling<P extends object> = {
     [K in PropsDefaultHandlersKeys<P>]: P[K]
 }
 
 /** The type of the props with all default arguments applied their default values. */
-export type DefaultHandled<P extends {}> = {
+export type DefaultHandled<P extends object> = {
     [K in keyof P]: WithoutDefault<P[K]>
 }
 
@@ -73,7 +73,7 @@ export function isSpecified<T>(
  * @param property
  *          The property to check for default handling.
  */
-export function hasHandler<P extends {}>(
+export function hasHandler<P extends object>(
     handlers: PropsDefaultHandlers<P>,
     property: keyof P
 ): property is keyof PropsDefaultHandlers<P> {
@@ -91,7 +91,7 @@ export function hasHandler<P extends {}>(
  * @return
  *          Props with all default values handled.
  */
-export function handleDefaults<P extends {}>(
+export function handleDefaults<P extends object>(
     props: P,
     handlers: PropsDefaultHandlers<P>
 ): DefaultHandled<P> {

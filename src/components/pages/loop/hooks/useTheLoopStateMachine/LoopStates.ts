@@ -1,7 +1,7 @@
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import {DatasetPK, ProjectPK, TeamPK} from "../../../../../server/pk";
 import {BehaviorSubject} from "rxjs";
-import {Domain} from "../../../../../server/domains";
+import {DomainName} from "../../../../../server/domains";
 import {ParameterValue} from "../../../../../../../ufdl-ts-client/dist/json/generated/CreateJobSpec";
 
 export type LoopStates = {
@@ -13,14 +13,14 @@ export type LoopStates = {
         context: UFDLServerContext
         primaryDataset: DatasetPK
         targetDataset: DatasetPK
-        domain: Domain
+        domain: DomainName
     }
     "Selecting Prelabel Images": {
         context: UFDLServerContext
         primaryDataset: DatasetPK
         modelOutputPK: number
         targetDataset: DatasetPK
-        domain: Domain
+        domain: DomainName
         framework: [string, string]
         modelType: string
         trainTemplatePK: number
@@ -33,7 +33,7 @@ export type LoopStates = {
         primaryDataset: DatasetPK
         jobPK: Promise<number>
         progress: BehaviorSubject<number>
-        domain: Domain
+        domain: DomainName
         framework: [string, string]
         modelType: string
         trainTemplatePK: number
@@ -48,7 +48,7 @@ export type LoopStates = {
         progress: BehaviorSubject<number>
         evaluationDataset: DatasetPK
         modelOutputPK: number
-        domain: Domain
+        domain: DomainName
         framework: [string, string]
         modelType: string
         trainTemplatePK: number
@@ -61,7 +61,7 @@ export type LoopStates = {
         primaryDataset: DatasetPK
         evaluationDataset: DatasetPK
         modelOutputPK: number
-        domain: Domain
+        domain: DomainName
         framework: [string, string]
         modelType: string
         trainTemplatePK: number
@@ -74,7 +74,7 @@ export type LoopStates = {
         primaryDataset: DatasetPK
         additionDataset: Promise<DatasetPK>
         modelOutputPK: number
-        domain: Domain
+        domain: DomainName
         framework: [string, string]
         modelType: string
         trainTemplatePK: number
@@ -89,7 +89,7 @@ export type LoopStates = {
         additionDataset: DatasetPK
         jobPK: Promise<number>
         progress: BehaviorSubject<number>
-        domain: Domain
+        domain: DomainName
         framework: [string, string]
         modelType: string
         trainTemplatePK: number
@@ -102,7 +102,7 @@ export type LoopStates = {
         primaryDataset: DatasetPK
         modelOutputPK: number
         additionDataset: DatasetPK
-        domain: Domain
+        domain: DomainName
         framework: [string, string]
         modelType: string
         trainTemplatePK: number
@@ -115,7 +115,7 @@ export type LoopStates = {
         primaryDataset: DatasetPK
         modelOutputPK: number
         mergeJobPK: Promise<void>
-        domain: Domain
+        domain: DomainName
         framework: [string, string]
         modelType: string
         trainTemplatePK: number

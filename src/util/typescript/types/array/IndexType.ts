@@ -5,7 +5,7 @@ import {DefiniteIndexType} from "./DefiniteIndexType";
 /**
  * Gets the type of the valid indices to an array type.
  */
-export type IndexType<A extends readonly any[]>
+export type IndexType<A extends readonly unknown[]>
     = If<
     IsTuple<A>,
     DefiniteIndexType<A>,

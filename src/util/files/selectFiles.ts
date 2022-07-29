@@ -2,12 +2,52 @@ import {rendezvous} from "../typescript/async/rendezvous";
 
 export type SelectFilesMethod = "folder" | "multiple" | "single"
 
+/**
+ * Selects files from the user's file-system.
+ *
+ * TODO: Add file-type restricting.
+ *
+ * @param method
+ *          - "single" to select a single file
+ *          - "multiple" to select multiple files by file
+ *          - "folder" to select multiple files by folder
+ * @return
+ *          A promise of the files, or null if none were
+ */
 export default async function selectFiles(method: "folder" | "multiple"): Promise<File[] | null>;
+
+/**
+ * Selects files from the user's file-system.
+ *
+ * TODO: Add file-type restricting.
+ *
+ * @param method
+ *          - "single" to select a single file
+ *          - "multiple" to select multiple files by file
+ *          - "folder" to select multiple files by folder
+ * @return
+ *          A promise of the files, or null if none were
+ */
 export default async function selectFiles(method: "single"): Promise<File | null>;
+
+/**
+ * Selects files from the user's file-system.
+ *
+ * TODO: Add file-type restricting.
+ *
+ * @param method
+ *          - "single" to select a single file
+ *          - "multiple" to select multiple files by file
+ *          - "folder" to select multiple files by folder
+ * @return
+ *          A promise of the files, or null if none were
+ */
 export default async function selectFiles(method: SelectFilesMethod): Promise<File[] | File | null>;
 
 /**
  * Selects files from the user's file-system.
+ *
+ * TODO: Add file-type restricting.
  *
  * @param method
  *          - "single" to select a single file

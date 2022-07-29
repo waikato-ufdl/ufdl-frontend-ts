@@ -3,7 +3,7 @@ import {mapToArray, spreadJoinMaps} from "../../util/map";
 import {toHexString} from "ufdl-ts-client/util";
 import {pseudoRandomBytes} from "crypto";
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
-import {Classification, NO_CLASSIFICATION} from "../types/annotations";
+import {Classification, NO_ANNOTATION, OptionalAnnotations} from "../types/annotations";
 import {Dataset} from "../types/Dataset";
 import {DatasetItem} from "../types/DatasetItem";
 
@@ -14,19 +14,19 @@ export type ClassColours = ReadonlyMap<string, ClassColour>
 const CLASS_COLOURS_STORAGE_KEY = "_CLASS_COLOURS_";
 
 export function asLabel<N>(
-    classification: Classification,
+    classification: OptionalAnnotations<Classification>,
     whenNoClassification: N
-): string | N {
-    if (classification === "" || classification === NO_CLASSIFICATION)
+): Classification | N {
+    if (classification === "" || classification === NO_ANNOTATION)
         return whenNoClassification;
     return classification;
 }
 
 export function asClassification(
     value: any
-): Classification {
+): OptionalAnnotations<Classification> {
     if (typeof value !== "string" || value === "")
-        return NO_CLASSIFICATION;
+        return NO_ANNOTATION;
     return value;
 }
 
@@ -119,30 +119,4 @@ export function storeColoursInContext(
     );
 
     context.store_item(CLASS_COLOURS_STORAGE_KEY, JSON.stringify(serialised), false);
-}
-
-export function groupByClassification<T>(
-    dataset: Dataset<T, Classification>
-): Map<Classification | undefined, Dataset<T, Classification>> {
-    const result: Map<Classification | undefined, Map<string, DatasetItem<T, Classification>>> = new Map()
-
-    dataset.forEach(
-        (item) => {
-            const classification = item.annotations.success === undefined
-                ? item.annotations.partialResult
-                : item.annotations.success
-                    ? item.annotations.value
-                    : undefined
-
-            let classDataset = result.get(classification)
-            if (classDataset === undefined) {
-                classDataset = new Map()
-                result.set(classification, classDataset)
-            }
-
-            classDataset.set(item.filename, item)
-        }
-    )
-
-    return result
 }

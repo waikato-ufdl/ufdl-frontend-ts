@@ -1,7 +1,3 @@
-import * as ICDataset from "ufdl-ts-client/functional/image_classification/dataset";
-import * as ODDataset from "ufdl-ts-client/functional/object_detection/dataset";
-import * as ISDataset from "ufdl-ts-client/functional/image_segmentation/dataset";
-import * as SPDataset from "ufdl-ts-client/functional/speech/dataset";
 import React, {useContext} from "react";
 import {UFDL_SERVER_REACT_CONTEXT} from "../../server/UFDLServerContextProvider";
 import {Controllable, useControllableState} from "../../util/react/hooks/useControllableState";
@@ -22,23 +18,13 @@ import asChangeEventHandler from "../../util/react/asChangeEventHandler";
 import {DatasetPK, ProjectPK, TeamPK} from "../../server/pk";
 import {
     DEFAULT_HANDLED_ERROR_RESPONSE,
-    WithErrorResponseHandler,
     withErrorResponseHandler
 } from "../../server/util/responseError";
-import {Domain, DOMAIN_DATASET_METHODS, DOMAINS} from "../../server/domains";
+import {DOMAIN_DATASET_METHODS, DOMAIN_NAMES, DomainName} from "../../server/domains";
 
-// TODO: Automate.
-const createFunctions: {
-    [key in Domain]: WithErrorResponseHandler<Parameters<typeof DOMAIN_DATASET_METHODS[key]['create']>, DatasetInstance>
-} = {
-    'Image Classification': withErrorResponseHandler(ICDataset.create),
-    'Object Detection': withErrorResponseHandler(ODDataset.create),
-    'Image Segmentation': withErrorResponseHandler(ISDataset.create),
-    'Speech': withErrorResponseHandler(SPDataset.create)
-} as const;
 
 export type NewDatasetPageProps = {
-    domain: Controllable<Domain>
+    domain: Controllable<DomainName>
     lockDomain?: boolean
     from?: Controllable<TeamPK | ProjectPK>
     lockFrom?: "team" | "project"
@@ -46,7 +32,7 @@ export type NewDatasetPageProps = {
     lockLicence?: boolean
     isPublic: Controllable<boolean>
     lockIsPublic?: boolean
-    onCreate?: (pk: DatasetPK, domain: Domain) => void
+    onCreate?: (pk: DatasetPK, domain: DomainName) => void
     onBack?: () => void
 }
 
@@ -54,7 +40,7 @@ export default function NewDatasetPage(props: NewDatasetPageProps) {
 
     const ufdlServerContext = useContext(UFDL_SERVER_REACT_CONTEXT);
 
-    const [domain, setDomain, domainLocked] = useControllableState<Domain | undefined>(props.domain, constantInitialiser(undefined));
+    const [domain, setDomain, domainLocked] = useControllableState<DomainName | undefined>(props.domain, constantInitialiser(undefined));
     const [from, setFrom, fromLocked] = useControllableState<ProjectPK | TeamPK | undefined>(props.from, constantInitialiser(undefined));
     const [licencePK, setLicencePK, licencePKLocked] = useControllableState<number | undefined>(props.licencePK, constantInitialiser(undefined));
     const [isPublic, setIsPublic, isPublicLocked] = useControllableState<boolean>(props.isPublic, constantInitialiser(false));
@@ -89,7 +75,7 @@ export default function NewDatasetPage(props: NewDatasetPageProps) {
         domain,
         (dataset) => {
             if (props.onCreate !== undefined) {
-                props.onCreate((from as ProjectPK).dataset(dataset['pk'] as number), domain as Domain);
+                props.onCreate((from as ProjectPK).dataset(dataset['pk'] as number), domain as DomainName);
             }
             clearForm();
         }
@@ -102,7 +88,7 @@ export default function NewDatasetPage(props: NewDatasetPageProps) {
                 Domain:
                 <DomainSelect
                     onChange={setDomain}
-                    values={DOMAINS}
+                    values={DOMAIN_NAMES}
                     value={domain}
                     disabled={props.lockDomain}
                 />
@@ -165,7 +151,7 @@ function canSubmit(
     projectPK: ProjectPK | TeamPK | undefined,
     name: string,
     licencePK: number | undefined,
-    domain: Domain | undefined
+    domain: DomainName | undefined
 ): boolean {
     return projectPK instanceof ProjectPK &&
         name !== "" &&
@@ -180,12 +166,14 @@ async function submitNewDataset(
     description: string,
     isPublic: boolean,
     licencePK: number | undefined,
-    domain: Domain | undefined,
+    domain: DomainName | undefined,
     onSuccess: (dataset: DatasetInstance) => void
 ): Promise<void> {
     if (!canSubmit(projectPK, name, licencePK, domain)) return;
 
-    const response = await createFunctions[domain as Domain](
+    const createFunction = withErrorResponseHandler(DOMAIN_DATASET_METHODS[domain as DomainName]['create'])
+
+    const response = await createFunction(
         context,
         name,
         (projectPK as ProjectPK).asNumber,

@@ -1,11 +1,11 @@
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import {get_output_info} from "ufdl-ts-client/functional/core/jobs/job";
-import {Domain} from "../../../../server/domains";
+import {DomainName} from "../../../../server/domains";
 
 export default async function getModelOutputPK(
     context: UFDLServerContext,
     jobPK: number,
-    domain: Domain,
+    domain: DomainName,
     framework: [string, string]
 ): Promise<number> {
     const output = await get_output_info(

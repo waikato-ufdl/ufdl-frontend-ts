@@ -20,12 +20,12 @@ import cancelJobTransition from "./cancelJobTransition";
 import completionPromise from "../../../../../util/rx/completionPromise";
 import {CANCELLED} from "../../../../../server/websocket/observableWebSocket";
 import {ParameterValues} from "../../EditParametersModal";
-import {Domain} from "../../../../../server/domains";
+import {DomainName} from "../../../../../server/domains";
 import {formatResponseError} from "../../../../../server/util/responseError";
 
 export const LOOP_TRANSITIONS = {
     "Selecting Primary Dataset": {
-        setSelected(selection?: DatasetPK | ProjectPK | TeamPK, domain?: Domain) {
+        setSelected(selection?: DatasetPK | ProjectPK | TeamPK, domain?: DomainName) {
             return (current: LoopStateAndData) => {
                 if (current.state !== "Selecting Primary Dataset") return;
 

@@ -5,7 +5,7 @@ import {DatasetPK} from "../../../../server/pk";
 import webSocketNotificationOverride from "../webSocketNotificationOverride";
 import createJob from "../../../../server/createJob";
 import jobProgressSubject from "../../../../server/util/jobProgressSubject";
-import {Domain} from "../../../../server/domains";
+import {DomainName} from "../../../../server/domains";
 
 export default function evaluate(
     context: UFDLServerContext,
@@ -13,7 +13,7 @@ export default function evaluate(
     datasetPK: DatasetPK,
     modelOutputPK: number,
     parameter_values: { [name: string]: ParameterValue },
-    domain: Domain,
+    domain: DomainName,
     framework: [string, string]
 ): [Promise<number>, BehaviorSubject<number>] {
     const createJobSpec: CreateJobSpec = {

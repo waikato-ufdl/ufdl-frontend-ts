@@ -10,7 +10,7 @@
  */
 export function mapOwnProperties<T extends object, R>(
     obj: T,
-    body: (property: keyof T, value: T[keyof T]) => R
+    body: <K extends keyof T>(property: K, value: T[K]) => R
 ): R[] {
     const result: R[] = []
 
@@ -85,4 +85,55 @@ export function deepCopyOwnProperties<T extends object>(
     )
 
     return result as T
+}
+
+/**
+ * Omits a single key from an object.
+ *
+ * Modified from https://stackoverflow.com/a/56156274
+ *
+ * @param key
+ * @param _
+ * @param remainder
+ */
+export function omit<T extends object, K extends keyof T>(
+    key: K,
+    {[key]: _, ...remainder}: T
+): Omit<T, K> {
+    return remainder
+}
+
+/**
+ * Converts a constructor into a plain function.
+ *
+ * @param cons
+ *          The constructor.
+ * @return
+ *          A plain function taking the same parameters as the given constructor.
+ */
+export function constructorToFunction<T extends object, P extends readonly unknown[]>(
+    cons: new (...args: P) => T
+): (...args: P) => T {
+    return (...args) => new cons(...args)
+}
+
+/**
+ * Converts a factory function into a constructor.
+ *
+ * @param fn
+ *          The factory function.
+ * @return
+ *          A constructor equivalent to the given function.
+ */
+export function functionToConstructor<T extends object, P extends readonly unknown[]>(
+    fn: (...args: P) => T
+): new (...args: P) => T {
+    return new Proxy(
+        fn,
+        {
+            construct(target: (...args: P) => T, argArray: any, _newTarget?: any): object {
+                return target(...argArray)
+            }
+        }
+    ) as any
 }
