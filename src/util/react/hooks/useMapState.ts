@@ -1,7 +1,8 @@
 import {Dispatch, Reducer, useReducer} from "react";
 import {copyMap} from "../../map";
 import useDerivedState from "./useDerivedState";
-import useStaticStateAccessor, {StateAccessor} from "./useStaticStateAccessor";
+import {constantInitialiser} from "../../typescript/initialisers";
+import useNonUpdatingState from "./useNonUpdatingState";
 
 export const CLEAR = Symbol("clear");
 
@@ -58,7 +59,7 @@ export function createMapStateReducer<K, V>(): MapStateReducer<K, V> {
 
 export class MapStateDispatch<K, V> {
     constructor(
-        private readonly _state: StateAccessor<ReadonlyMap<K, V>>,
+        private readonly _state: () => ReadonlyMap<K, V>,
         private dispatch: Dispatch<MapStateReducerAction<K, V>>
     ) {}
     get state() {return this._state()}
@@ -77,10 +78,11 @@ export default function useMapState<K, V>(
         () => new Map()
     );
 
-    const reducerStateAccessor = useStaticStateAccessor(reducerState);
+    const [getReducerState, setReducerState] = useNonUpdatingState(constantInitialiser(reducerState));
+    setReducerState(reducerState)
 
     return useDerivedState(
-        () => new MapStateDispatch<K, V>(reducerStateAccessor, dispatch),
-        [reducerStateAccessor, dispatch]
+        () => new MapStateDispatch<K, V>(getReducerState, dispatch),
+        [getReducerState, dispatch]
     );
 }

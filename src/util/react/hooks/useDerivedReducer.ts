@@ -102,7 +102,7 @@ export default function useDerivedReducer<S, A, D extends readonly unknown[]>(
     initialState: (() => S) | typeof UNINITIALISED = UNINITIALISED
 ): [S, Dispatch<A>] {
     // Keep track of the previous state of our dependencies. No need to render when this changes.
-    const [lastDependencies, setLastDependencies] = useNonUpdatingState<D>(constantInitialiser(dependencies));
+    const [getLastDependencies, setLastDependencies] = useNonUpdatingState<D>(constantInitialiser(dependencies));
 
     // Create a reducer which can also be re-initialised when necessary
     const [reducerExtended] = useStateSafe<ReducerWithReInit<S, A>>(
@@ -129,7 +129,7 @@ export default function useDerivedReducer<S, A, D extends readonly unknown[]>(
 
     // If the dependencies have changed, re-initialise
     let derivedState: S;
-    if (!arrayEqual(lastDependencies, dependencies)) {
+    if (!arrayEqual(getLastDependencies(), dependencies)) {
         derivedState = initialiser(dependencies, reducerState);
         dispatch(new ReInitAction(derivedState), false);
         setLastDependencies(dependencies);

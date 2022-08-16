@@ -25,11 +25,11 @@ function createNonUpdatingStateClosure<S>(
  */
 export default function useNonUpdatingState<S>(
     init: () => S
-): [S, Dispatch<S>] {
+): [() => S, Dispatch<S>] {
 
     const [getClosureState, setClosureState] = useStateSafe(
         () => createNonUpdatingStateClosure(init)
     )[0];
 
-    return [getClosureState(), setClosureState];
+    return [getClosureState, setClosureState];
 }

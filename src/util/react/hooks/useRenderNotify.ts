@@ -16,9 +16,11 @@ export default function useRenderNotify<P extends object>(
     props: P
 ): void {
     // Remember the last set of prop values the component received
-    const [lastProps, setLastProps] = useNonUpdatingState<P | undefined>(
+    const [getLastProps, setLastProps] = useNonUpdatingState<P | undefined>(
         constantInitialiser(undefined)
     );
+
+    const lastProps = getLastProps()
 
     // Special case for the first time rendering the component
     if (lastProps === undefined) {

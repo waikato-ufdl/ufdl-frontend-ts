@@ -1,6 +1,5 @@
 import useNonUpdatingState from "./useNonUpdatingState";
 import {arrayEqual} from "../../typescript/arrays/arrayEqual";
-import {useMemo} from "react";
 
 /**
  * State which updates whenever it's list of dependencies changes.
@@ -39,14 +38,16 @@ export default function useDerivedState<S, DD extends readonly any[]>(
 ): S {
     const joinDependencies = () => [dependencies, nonDerivationDependencies];
 
-    const [[lastDependencies, lastNonDerivationDependencies], setLastDependencies]
+    const [getLastDependencies, setLastDependencies]
         = useNonUpdatingState(joinDependencies);
 
-    const [lastDerivedState, setLastDerivedState] = useNonUpdatingState(
+    const [lastDependencies, lastNonDerivationDependencies] = getLastDependencies()
+
+    const [getLastDerivedState, setLastDerivedState] = useNonUpdatingState(
         () => deriveState(dependencies)
     );
 
-    let derivedState: S = lastDerivedState;
+    let derivedState: S = getLastDerivedState();
 
     if (
         !arrayEqual(lastDependencies, dependencies) ||

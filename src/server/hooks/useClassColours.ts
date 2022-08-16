@@ -6,11 +6,12 @@ import {useContext} from "react";
 import {UFDL_SERVER_REACT_CONTEXT} from "../UFDLServerContextProvider";
 import useDerivedReducer from "../../util/react/hooks/useDerivedReducer";
 import useDerivedState from "../../util/react/hooks/useDerivedState";
-import useStaticStateAccessor from "../../util/react/hooks/useStaticStateAccessor";
 import {DatasetDispatch} from "./useDataset/DatasetDispatch";
 import {Data} from "../types/data";
 import hasData from "../../util/react/query/hasData";
 import isDefined from "../../util/typescript/isDefined";
+import {constantInitialiser} from "../../util/typescript/initialisers";
+import useNonUpdatingState from "../../util/react/hooks/useNonUpdatingState";
 
 
 const CLASS_COLOURS_REDUCER = createMapStateReducer<string, ClassColour>();
@@ -72,11 +73,12 @@ export default function useClassColours(
         () => isDefined(initialColours) ? initialColours : new Map()
     );
 
-    const reducerStateAccessor = useStaticStateAccessor(reducerState);
+    const [getReducerState, setReducerState] = useNonUpdatingState(constantInitialiser(reducerState));
+    setReducerState(reducerState)
 
     // Wrap the dispatch in an object
     return useDerivedState(
-        () => new ClassColoursDispatch(reducerStateAccessor, dispatch),
-        [reducerStateAccessor, dispatch] as const
+        () => new ClassColoursDispatch(getReducerState, dispatch),
+        [getReducerState, dispatch] as const
     );
 }
