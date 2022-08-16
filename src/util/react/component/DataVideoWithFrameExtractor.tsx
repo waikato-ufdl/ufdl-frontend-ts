@@ -2,7 +2,6 @@ import {FunctionComponentReturnType} from "../types";
 import React from "react";
 import {augmentClassName} from "../augmentClass";
 import DataVideo, {DataVideoProps} from "./DataVideo";
-import saveFile from "../../files/saveFile";
 import getImageFromVideo, {SupportedImageTypes} from "../../getImageFromVideo";
 
 export type DataVideoWithFrameExtractorProps = Omit<DataVideoProps, "forwardedRef"> & {
@@ -33,7 +32,6 @@ export default function DataVideoWithFrameExtractor(
                 }
                 const image = await getImageFromVideo(video, type);
                 onExtract(image, video.currentTime);
-                //await saveFile(`image.${type}`, getImageFromVideo(video, type))
             }
         }
     >Extract</button>
