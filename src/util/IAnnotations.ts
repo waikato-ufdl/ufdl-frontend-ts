@@ -21,11 +21,26 @@ export function iAnnotationsToDetectedObjects(
 export function iAnnotationToAnnotation(
     iAnnotation: IAnnotation<IRectShapeData>
 ): Annotation {
+    let x = Math.round(iAnnotation.mark.x)
+    let y = Math.round(iAnnotation.mark.y)
+    let width = Math.round(iAnnotation.mark.width)
+    let height = Math.round(iAnnotation.mark.height)
+
+    if (width < 0) {
+        x += width
+        width = -width
+    }
+
+    if (height < 0) {
+        y += height
+        height = -height
+    }
+
     return {
-        x: Math.round(iAnnotation.mark.x),
-        y: Math.round(iAnnotation.mark.y),
-        width: Math.round(iAnnotation.mark.width),
-        height: Math.round(iAnnotation.mark.height),
+        x,
+        y,
+        width,
+        height,
         label: iAnnotation.comment || "UNLABELLED"
     }
 }
