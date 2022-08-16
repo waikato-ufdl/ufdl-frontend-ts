@@ -1,4 +1,4 @@
-import React, {MouseEventHandler, useContext} from "react";
+import React, {useContext} from "react";
 import {UFDL_SERVER_REACT_CONTEXT} from "../../../../server/UFDLServerContextProvider";
 import {
     AnnotatorTopMenuExtraControlsRenderer,
@@ -16,7 +16,6 @@ import {DEFAULT, WithDefault} from "../../../../util/typescript/default";
 import ObjectDetectionDatasetDispatch
     from "../../../../server/hooks/useObjectDetectionDataset/ObjectDetectionDatasetDispatch";
 import useObjectDetectionDataset from "../../../../server/hooks/useObjectDetectionDataset/useObjectDetectionDataset";
-import {ReactPictureAnnotation} from "react-picture-annotation";
 import {IAnnotation} from "react-picture-annotation/dist/types/src/Annotation";
 import {addFilesRenderer, FileAnnotationModalRenderer} from "../../../../server/components/AddFilesButton";
 import DataVideoWithFrameExtractor from "../../../../util/react/component/DataVideoWithFrameExtractor";
@@ -24,8 +23,6 @@ import selectFiles from "../../../../util/files/selectFiles";
 import AnnotatorPage from "../AnnotatorPage";
 import {constantInitialiser} from "../../../../util/typescript/initialisers";
 import {ImageOrVideoRenderer} from "../../../../server/components/image/ImageOrVideoRenderer";
-import {isNotEmpty} from "../../../../util/typescript/arrays/isNotEmpty";
-import arrayMap from "../../../../util/typescript/arrays/arrayMap";
 import getVideoStats from "../../../../util/getVideoStats";
 import getImageStats from "../../../../util/getImageStats";
 import passOnUndefined from "../../../../util/typescript/functions/passOnUndefined";
@@ -35,6 +32,8 @@ import UNREACHABLE from "../../../../util/typescript/UNREACHABLE";
 import {iAnnotationsToDetectedObjects} from "../../../../util/IAnnotations";
 import ifDefined from "../../../../util/typescript/ifDefined";
 import {identity} from "../../../../util/identity";
+import {SubmitCancelPictureAnnotation} from "../../../../util/react/component/SubmitCancelPictureAnnotation";
+import pass from "../../../../util/typescript/functions/pass";
 
 export type ODAPProps = {
     lockedPK?: AnyPK,
@@ -61,14 +60,6 @@ export default function ObjectDetectionAnnotatorPage(
 
     // Sub-page displays
     const [annotating, setAnnotating] = useStateSafe<string | undefined>(() => undefined);
-
-    const largeImageOverlayOnClick: MouseEventHandler<HTMLImageElement> = useDerivedState(
-        () => (event) => {
-            setAnnotating(undefined);
-            event.stopPropagation()
-        },
-        [setAnnotating]
-    )
 
     const imagesDisplayOnFileClicked = useDerivedState(
         () => (item: DatasetItem<unknown, unknown>) => {
@@ -149,7 +140,7 @@ export default function ObjectDetectionAnnotatorPage(
         [dataset, annotating] as const
     )
 
-    const pictureAnnotatorOnChange = useDerivedState(
+    const pictureAnnotatorOnSubmit = useDerivedState(
         ([dataset, annotating]) => (annotationData: IAnnotation[]) => {
             if (dataset === undefined || annotating === undefined) {
                 UNREACHABLE("This callback should never be called without 'dataset' and 'annotating' defined");
@@ -169,31 +160,25 @@ export default function ObjectDetectionAnnotatorPage(
         [dataset, annotating] as const
     )
 
-    const pictureAnnotatorOnSelect = useDerivedState(
-        () => {
-            let first = true;
-            return (id: string | null) => {
-                if (id === null) {
-                    if (first) {
-                        first = false
-                    } else {
-                        setAnnotating(undefined);
-                    }
-                }
-            }
+    const pictureAnnotatorOnCancel = useDerivedState(
+        ([setAnnotating]) => () => {
+            setAnnotating(undefined);
         },
-        [annotating]
+        [setAnnotating]
     )
 
     if (annotating !== undefined) {
         const item = dataset?.get(annotating);
-        return <ReactPictureAnnotation
-            onChange={pictureAnnotatorOnChange}
+        return <SubmitCancelPictureAnnotation
+            onSubmit={pictureAnnotatorOnSubmit}
             width={window.innerWidth}
             height={window.innerHeight}
             image={item?.data.data?.getValue().url!}
-            onSelect={pictureAnnotatorOnSelect}
+            onCancel={pictureAnnotatorOnCancel}
             annotationData={iAnnotations}
+            defaultAnnotationSize={[20, 20]}
+            onChange={pass}
+            onSelect={pass}
         />
     }
 
