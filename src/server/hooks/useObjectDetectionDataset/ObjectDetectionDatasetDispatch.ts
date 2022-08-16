@@ -1,4 +1,4 @@
-import {MutableDatasetDispatch} from "../useDataset/DatasetDispatch";
+import {MutableDatasetDispatch, MutableDatasetDispatchItem} from "../useDataset/DatasetDispatch";
 import {NO_ANNOTATION, OptionalAnnotations} from "../../types/annotations";
 import {IAnnotation} from "react-picture-annotation/dist/types/src/Annotation";
 import {IRectShapeData} from "react-picture-annotation/dist/types/src/Shape";
@@ -8,14 +8,32 @@ import hasData from "../../../util/react/query/hasData";
 import delayFunction from "../../../util/typescript/delayFunction";
 import {mapGetDefault} from "../../../util/map";
 import {detectedObjectsToIAnnotations} from "../../../util/IAnnotations";
-import {isDeepStrictEqual} from "util";
 import {isDeepEqual} from "../../../util/equivalency";
 
+export class ObjectDetectionDatasetDispatchItem
+    extends MutableDatasetDispatchItem<
+        DomainDataType<'Object Detection'>,
+        DomainAnnotationType<'Object Detection'>
+    >
+{
+    public asIAnnotations(): IAnnotation<IRectShapeData>[] | undefined {
+        const annotationsResult = this.annotations
 
+        if (!hasData(annotationsResult)) return undefined;
+
+        const annotations = annotationsResult.data
+
+        if (annotations === NO_ANNOTATION) return []
+
+        return detectedObjectsToIAnnotations(annotations)
+    }
+
+}
 export default class ObjectDetectionDatasetDispatch
     extends MutableDatasetDispatch<
         DomainDataType<'Object Detection'>,
-        DomainAnnotationType<'Object Detection'>
+        DomainAnnotationType<'Object Detection'>,
+        ObjectDetectionDatasetDispatchItem
 > {
     // Create a delayed version of the annotation change function which doesn't
     // update the server until the user has stopped making changes for at least
@@ -44,17 +62,9 @@ export default class ObjectDetectionDatasetDispatch
     public asIAnnotations(filename: string): IAnnotation<IRectShapeData>[] | undefined {
         const objects = this.get(filename);
 
-        const annotationsResult = objects?.annotations
+        if (!isDefined(objects)) return undefined
 
-        if (!isDefined(annotationsResult) || !hasData(annotationsResult)) return undefined;
-
-        const annotations = annotationsResult.data
-
-        if (!isDefined(annotations)) return undefined
-
-        if (annotations === NO_ANNOTATION) return []
-
-        return detectedObjectsToIAnnotations(annotations)
+        return objects.asIAnnotations()
     }
 
 }

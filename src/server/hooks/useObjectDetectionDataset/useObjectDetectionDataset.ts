@@ -4,11 +4,10 @@ import {InTransit} from "../../InTransit";
 import {DatasetPK} from "../../pk";
 import {ImageOrVideo} from "../../types/data";
 import * as ODDataset from "ufdl-ts-client/functional/object_detection/dataset";
-import ObjectDetectionDatasetDispatch from "./ObjectDetectionDatasetDispatch";
+import ObjectDetectionDatasetDispatch, {ObjectDetectionDatasetDispatchItem} from "./ObjectDetectionDatasetDispatch";
 import {DetectedObjects, NO_ANNOTATION} from "../../types/annotations";
 import {BlobSubject} from "../../../util/rx/data/BlobSubject";
 import {DatasetInstance} from "ufdl-ts-client/types/core/dataset";
-import {MutableDatasetDispatchItem} from "../useDataset/DatasetDispatch";
 
 
 async function getData(
@@ -90,7 +89,7 @@ export default function useObjectDetectionDataset(
         setData,
         getAnnotations,
         setAnnotations,
-        MutableDatasetDispatchItem,
+        ObjectDetectionDatasetDispatchItem,
         ObjectDetectionDatasetDispatch,
         datasetPK
     )
