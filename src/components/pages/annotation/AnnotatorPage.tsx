@@ -179,7 +179,7 @@ export default function AnnotatorPage<D extends DomainName>(
         onRequestNewDataset={topMenuOnRequestNewDataset}
         nextLabel={props.nextLabel}
         onNext={topMenuOnNext}
-        nextDisabled={!isDefined(props.dataset) || !props.dataset.isError || !isDefined(props.onNext)}
+        nextDisabled={!isDefined(props.dataset) || props.dataset.isError || !isDefined(props.onNext)}
         onBack={props.onBack}
         className={"menuBar"}
         sortOrders={props.sortOrders}
