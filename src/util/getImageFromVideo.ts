@@ -1,7 +1,8 @@
-import {rendezvous} from "./typescript/async/rendezvous";
 import {DEFAULT, handleSingleDefault, WithDefault} from "./typescript/default";
 import {constantInitialiser} from "./typescript/initialisers";
 import UNREACHABLE from "./typescript/UNREACHABLE";
+import videoHasLoadedCurrentFrame from "./typescript/videoHasLoadedCurrentFrame";
+import callbackPromise from "./typescript/async/callbackPromise";
 
 export type SupportedImageTypes = "png" | "jpeg"
 
@@ -17,15 +18,25 @@ export type SupportedImageTypes = "png" | "jpeg"
  *          The width to scale the image to. Defaults to the video's native width.
  * @param height
  *          The height to scale the image to. Defaults to the video's native height.
+ * @param throwOnCurrentTimeChanged
+ *          Whether to reject the promise if the currentTime changes while waiting. The default
+ *          is to wait until the video is loaded and has returned to the currentTime.
  */
 export default async function getImageFromVideo(
     video: HTMLVideoElement,
     type: WithDefault<SupportedImageTypes> = DEFAULT,
-    width: number = video.videoWidth,
-    height: number = video.videoHeight
+    width: WithDefault<number> = DEFAULT,
+    height: WithDefault<number> = DEFAULT,
+    throwOnCurrentTimeChanged: boolean = false
 ): Promise<Blob> {
+
+    // Wait for the video to be loaded
+    await videoHasLoadedCurrentFrame(video, throwOnCurrentTimeChanged)
+
     // Handle default type (png)
     type = handleSingleDefault(type, constantInitialiser("png"));
+    width = handleSingleDefault(width, constantInitialiser(video.videoWidth))
+    height = handleSingleDefault(height, constantInitialiser(video.videoHeight))
 
     // Create a canvas of the desired width and height
     const dummyCanvas = document.createElement("canvas")
@@ -39,21 +50,10 @@ export default async function getImageFromVideo(
     // Draw the video into the canvas, scaling to the desired dimensions
     context.drawImage(video, 0, 0, width, height)
 
-    // The extracted image data is provided through a callback, so create a rendezvous
-    // promise to receive the value
-    const [promise, resolve, reject] = rendezvous<Blob>();
+    const blob = await callbackPromise(dummyCanvas.toBlob.bind(dummyCanvas))(`image/${type}`)
 
-    // Schedule the promise to be resolved with the image data in the requested format
-    dummyCanvas.toBlob(
-        (blob) => {
-            if (blob === null) {
-                reject("toBlob returned null");
-            } else {
-                resolve(blob)
-            }
-        },
-        `image/${type}`
-    )
+    if (blob === null)
+        throw new Error("toBlob returned null")
 
-    return promise;
+    return blob;
 }
