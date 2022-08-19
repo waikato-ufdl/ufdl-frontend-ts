@@ -1,6 +1,4 @@
 import {withNonLocalReturn} from "./typescript/nonLocalReturn";
-import {PossiblePromise} from "./typescript/types/promise";
-import arrayMap from "./typescript/arrays/arrayMap";
 import iteratorFilter from "./typescript/iterate/filter";
 
 export function isMap(obj: any): obj is (Map<any, any> | ReadonlyMap<any, any>) {
@@ -96,7 +94,7 @@ export function mapToArray<K, V, T>(
 }
 
 export function spreadJoinMaps<K, V>(
-    ...maps: (ReadonlyMap<K, V> | [K, V])[]
+    ...maps: (ReadonlyMap<K, V> | readonly [K, V])[]
 ): Map<K, V> {
     const result = new Map<K, V>();
     const setResult = (value: V, key: K) => result.set(key, value);
