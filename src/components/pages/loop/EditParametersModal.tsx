@@ -3,7 +3,6 @@ import LocalModal from "../../../util/react/component/LocalModal";
 import useStateSafe from "../../../util/react/hooks/useStateSafe";
 import {constantInitialiser} from "../../../util/typescript/initialisers";
 import useDerivedState from "../../../util/react/hooks/useDerivedState";
-import {ownPropertyIterator} from "../../../util/typescript/object";
 import iteratorMap from "../../../util/typescript/iterate/map";
 import iteratorConcat from "../../../util/typescript/iterate/concat";
 import ParameterEditorButton from "./ParameterEditorButton";
@@ -29,7 +28,7 @@ export type ParameterValues = { [name: string]: ParameterValue}
 
 export type EditParametersModalProps = {
     onDone: (parameter_values: ParameterValues) => void
-    parameter_specs: ParameterSpecs
+    parameterSpecs: ParameterSpecs
     position: [number, number] | undefined
     onCancel: () => void
 }
@@ -38,25 +37,25 @@ export default function EditParametersModal(
     props: EditParametersModalProps
 ): FunctionComponentReturnType {
 
-    const [required_parameter_specs, optional_parameter_specs, const_parameter_specs] = useDerivedState(
+    const [requiredParameterSpecs, optionalParameterSpecs, constParameterSpecs] = useDerivedState(
         () => {
-            const required_parameter_specs: string[] = []
-            const optional_parameter_specs: string[] = []
-            const const_parameter_specs: string[] = []
+            const requiredParameterSpecs: string[] = []
+            const optionalParameterSpecs: string[] = []
+            const constParameterSpecs: string[] = []
 
-            for (const parameter_name in props.parameter_specs) {
-                const spec = props.parameter_specs[parameter_name]
+            for (const parameterName in props.parameterSpecs) {
+                const spec = props.parameterSpecs[parameterName]
                 if (spec.default === undefined)
-                    required_parameter_specs.push(parameter_name)
+                    requiredParameterSpecs.push(parameterName)
                 else if (spec.default.const)
-                    const_parameter_specs.push(parameter_name)
+                    constParameterSpecs.push(parameterName)
                 else
-                    optional_parameter_specs.push(parameter_name)
+                    optionalParameterSpecs.push(parameterName)
             }
 
-            return [required_parameter_specs, optional_parameter_specs, const_parameter_specs]
+            return [requiredParameterSpecs, optionalParameterSpecs, constParameterSpecs]
         },
-        [props.parameter_specs]
+        [props.parameterSpecs]
     )
 
     const [showExtra, setShowExtra] = useStateSafe<"none" | "optional" | "all">(constantInitialiser("none"))
@@ -76,15 +75,15 @@ export default function EditParametersModal(
                 case "none":
                     return []
                 case "optional":
-                    return optional_parameter_specs
+                    return optionalParameterSpecs
                 case "all":
                     return [
-                        ...optional_parameter_specs,
-                        ...const_parameter_specs
+                        ...optionalParameterSpecs,
+                        ...constParameterSpecs
                     ]
             }
         },
-        [showExtra, optional_parameter_specs, const_parameter_specs]
+        [showExtra, optionalParameterSpecs, constParameterSpecs]
     )
 
     const buttons = useDerivedState(
@@ -124,14 +123,17 @@ export default function EditParametersModal(
         [showExtra]
     )
 
-    const parameter_list_items = useDerivedState(
+    const parameterListItems = useDerivedState(
         () => {
             return [
                 ...iteratorMap(
-                    iteratorConcat(iterate(required_parameter_specs), iterate(extra)),
+                    iteratorConcat(
+                        iterate(requiredParameterSpecs),
+                        iterate(extra)
+                    ),
                     (name) => {
                         return <ParameterEditorButton
-                            parameter_spec={props.parameter_specs[name]}
+                            parameterSpec={props.parameterSpecs[name]}
                             name={name as string}
                             hasValue={values.hasOwnProperty(name)}
                             onChange={(value, type) => setValues([name as string, {value: value, type: type}])}
@@ -140,7 +142,7 @@ export default function EditParametersModal(
                 )
             ]
         },
-        [required_parameter_specs, extra, values]
+        [requiredParameterSpecs, extra, values]
     )
 
     return <LocalModal
@@ -151,7 +153,7 @@ export default function EditParametersModal(
             {
                 [
                     ...iteratorMap(
-                        parameter_list_items[Symbol.iterator](),
+                        parameterListItems[Symbol.iterator](),
                         (editor) => <li>{editor}</li>
                     )
                 ]
@@ -162,12 +164,12 @@ export default function EditParametersModal(
             onClick={() => {props.onDone(values)}}
             disabled={
                 any(
-                    ([required_parameter_name, _]) => {
-                        const is_not_in = !(required_parameter_name in values)
-                        console.log(required_parameter_name, is_not_in, values)
-                        return is_not_in
+                    (requiredParameterName) => {
+                        const requiredParameterValueNotSet = !(requiredParameterName in values)
+                        console.log(requiredParameterName, requiredParameterValueNotSet, values)
+                        return requiredParameterValueNotSet
                     },
-                    ...ownPropertyIterator(required_parameter_specs)
+                    ...requiredParameterSpecs
                 )
             }
         >

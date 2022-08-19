@@ -5,7 +5,7 @@ import ParameterEditor from "./ParameterEditor";
 
 export type ParameterEditorButtonProps = {
     onChange: (parameter_value: any, parameter_type: string) => void
-    parameter_spec: ParameterSpec,
+    parameterSpec: ParameterSpec,
     name: string,
     hasValue: boolean
 }
@@ -14,21 +14,26 @@ export default function ParameterEditorButton(
     props: ParameterEditorButtonProps
 ): FunctionComponentReturnType {
 
-    const editor_modal = useLocalModal();
+    const editorModal = useLocalModal();
 
     return <>
         <button
-            title={props.parameter_spec.help}
-            onClick={(event) => editor_modal.show(event.clientX, event.clientY)}
+            title={props.parameterSpec.help}
+            onClick={(event) => editorModal.show(event.clientX, event.clientY)}
         >
             {props.name}{props.hasValue ? " ✓" : ""}
         </button>
         <ParameterEditor
-            onChange={(parameter_value, parameter_type) => {props.onChange(parameter_value, parameter_type); editor_modal.hide()}}
-            parameter_spec={props.parameter_spec}
+            onChange={
+                (parameterValue, parameterType) => {
+                    props.onChange(parameterValue, parameterType)
+                    editorModal.hide()
+                }
+            }
+            parameterSpec={props.parameterSpec}
             name={props.name}
-            position={editor_modal.position}
-            onCancel={() => editor_modal.hide()}
+            position={editorModal.position}
+            onCancel={() => editorModal.hide()}
         />
     </>
 }

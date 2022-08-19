@@ -12,7 +12,7 @@ import {DEFAULT, WithDefault} from "../../../util/typescript/default";
 
 export type ParameterEditorProps = {
     onChange: (parameter_value: any, parameter_type: string) => void
-    parameter_spec: ParameterSpec
+    parameterSpec: ParameterSpec
     name: string
     position: [number, number] | undefined
     onCancel: () => void
@@ -21,7 +21,7 @@ export type ParameterEditorProps = {
 export default function ParameterEditor(
     props: ParameterEditorProps
 ): FunctionComponentReturnType {
-    const def = props.parameter_spec.default
+    const def = props.parameterSpec.default
 
     const types = useDerivedState<WithDefault<string>[], any>(
         () => {
@@ -29,21 +29,21 @@ export default function ParameterEditor(
 
             if (def !== undefined) {
                 if (def.const) return [DEFAULT];
-                console.log(props.parameter_spec.types, def.type, !(def.type in props.parameter_spec.types))
-                if (!(def.type in props.parameter_spec.types))
+                console.log(props.parameterSpec.types, def.type, !(def.type in props.parameterSpec.types))
+                if (!(def.type in props.parameterSpec.types))
                     types.push(DEFAULT)
             }
 
             types.push(
                 ...iteratorMap(
-                    ownPropertyIterator(props.parameter_spec.types),
+                    ownPropertyIterator(props.parameterSpec.types),
                     ([type_name]) => type_name as string
                 )
             )
 
             return types
         },
-        [props.parameter_spec.types, def]
+        [props.parameterSpec.types, def]
     )
 
     const [selectedIndex, setSelectedIndex] = useStateSafe<number>(() => {
@@ -58,7 +58,7 @@ export default function ParameterEditor(
             const type = types[selectedIndex]
             const schema = type === DEFAULT
                 ? def?.schema
-                : props.parameter_spec.types[type]
+                : props.parameterSpec.types[type]
 
             const formData = def !== undefined
                 ? type === DEFAULT || type === def.type
@@ -87,7 +87,7 @@ export default function ParameterEditor(
                 />
             </div>
         },
-        [selectedIndex, props.parameter_spec.types, props.parameter_spec.default]
+        [selectedIndex, props.parameterSpec.types, props.parameterSpec.default]
     )
 
     return <LocalModal position={props.position} onCancel={props.onCancel}>

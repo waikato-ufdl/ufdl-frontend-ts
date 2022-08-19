@@ -17,17 +17,20 @@ export type SelectTemplateModalProps = {
     onCancel: () => void
 }
 
+/**
+ * Modal dialogue which allows the user to select a template to execute.
+ */
 export default function SelectTemplateModal(
     props: SelectTemplateModalProps
 ): FunctionComponentReturnType {
 
     const ufdlServerContext = useContext(UFDL_SERVER_REACT_CONTEXT);
 
-    const [template_pk, set_template_pk] = useStateSafe<number>(constantInitialiser(-1))
+    const [templatePK, setTemplatePK] = useStateSafe<number>(constantInitialiser(-1))
 
-    const [parameter_specs, set_parameter_specs] = useStateSafe<ParameterSpecs>(() => { return {}; })
+    const [parameterSpecs, setParameterSpecs] = useStateSafe<ParameterSpecs>(constantInitialiser({}))
 
-    const edit_parameters_modal = useLocalModal()
+    const editParametersModal = useLocalModal()
 
     return <LocalModal
         position={props.position}
@@ -35,30 +38,29 @@ export default function SelectTemplateModal(
     >
         <RawJSONObjectSelect<JobTemplateInstance>
             labelFunction={(json) => `${json['name']} v${json['version']}`}
-            value={template_pk}
+            value={templatePK}
             values={props.templates}
             onChange={(_, pk) => {
-                if (pk !== undefined) set_template_pk(pk)
+                if (pk !== undefined) setTemplatePK(pk)
             }}
         />
         <button
-            onClick={(event) => {
-                job_template.get_all_parameters(ufdlServerContext, template_pk).then(
-                    (parameters) => {
-                        set_parameter_specs(parameters);
-                        edit_parameters_modal.show(event.clientX, event.clientY)
-                    }
-                )
-            }}
-            disabled={template_pk === -1}
+            onClick={
+                async (event) => {
+                    const parameters = await job_template.get_all_parameters(ufdlServerContext, templatePK)
+                    setParameterSpecs(parameters);
+                    editParametersModal.show(event.clientX, event.clientY)
+                }
+            }
+            disabled={templatePK === -1}
         >
             Edit Parameters
         </button>
         <EditParametersModal
-            onDone={(parameter_values) => props.onDone(template_pk, parameter_values)}
-            parameter_specs={parameter_specs}
-            position={edit_parameters_modal.position}
-            onCancel={() => edit_parameters_modal.hide()}
+            onDone={(parameterValues) => props.onDone(templatePK, parameterValues)}
+            parameterSpecs={parameterSpecs}
+            position={editParametersModal.position}
+            onCancel={() => editParametersModal.hide()}
         />
     </LocalModal>
 }
