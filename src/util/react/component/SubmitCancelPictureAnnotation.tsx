@@ -8,6 +8,8 @@ import useRenderNotify from "../hooks/useRenderNotify";
 import useDerivedReducer from "../hooks/useDerivedReducer";
 import {createSimpleStateReducer} from "../hooks/SimpleStateReducer";
 import "./SubmitCancelPictureAnnotation.css"
+import {isDeepEqual} from "../../equivalency";
+import {arrayEqual} from "../../typescript/arrays/arrayEqual";
 
 export type SubmitCancelPictureAnnotationProps = {
     annotationData?: IAnnotation[]
@@ -57,11 +59,12 @@ export function SubmitCancelPictureAnnotation(
     )
 
     const onChangeActual = useDerivedState(
-        ([setAnnotations, onChange]) => (annotationData: IAnnotation[]) => {
+        ([setAnnotations, onChange, annotations]) => (annotationData: IAnnotation[]) => {
+            if (arrayEqual(annotations, annotationData, isDeepEqual)) return
             setAnnotations(annotationData)
             onChange(annotationData)
         },
-        [setAnnotations, onChange] as const
+        [setAnnotations, onChange, annotations] as const
     )
 
     return <div className={"SubmitCancelPictureAnnotation"}>
