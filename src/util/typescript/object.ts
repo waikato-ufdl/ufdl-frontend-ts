@@ -137,3 +137,10 @@ export function functionToConstructor<T extends object, P extends readonly unkno
         }
     ) as any
 }
+
+export function hasOwnProperty<T extends {}, K extends PropertyKey>(
+    obj: T,
+    prop: K
+): obj is (T & (K extends PropertyKey ? { [key in K]?: unknown } : never)) {
+    return obj.hasOwnProperty(prop)
+}
