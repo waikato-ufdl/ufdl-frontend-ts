@@ -6,8 +6,6 @@ import {
 } from "../../../../server/components/AnnotatorTopMenu";
 import useStateSafe from "../../../../util/react/hooks/useStateSafe";
 import {AnyPK, getDatasetPK} from "../../../../server/pk";
-import useDerivedReducer from "../../../../util/react/hooks/useDerivedReducer";
-import {createSimpleStateReducer} from "../../../../util/react/hooks/SimpleStateReducer";
 import {DetectedObjects, NO_ANNOTATION} from "../../../../server/types/annotations";
 import useDerivedState from "../../../../util/react/hooks/useDerivedState";
 import {DatasetItem} from "../../../../server/types/DatasetItem";
@@ -26,14 +24,18 @@ import {ImageOrVideoRenderer} from "../../../../server/components/image/ImageOrV
 import getVideoStats from "../../../../util/getVideoStats";
 import getImageStats from "../../../../util/getImageStats";
 import passOnUndefined from "../../../../util/typescript/functions/passOnUndefined";
-import {IRectShapeData} from "react-picture-annotation/dist/types/src/Shape";
 import "./ObjectDetectionAnnotatorPage.css"
 import UNREACHABLE from "../../../../util/typescript/UNREACHABLE";
-import {iAnnotationsToDetectedObjects} from "../../../../util/IAnnotations";
 import ifDefined from "../../../../util/typescript/ifDefined";
 import {identity} from "../../../../util/identity";
-import {SubmitCancelPictureAnnotation} from "../../../../util/react/component/SubmitCancelPictureAnnotation";
 import pass from "../../../../util/typescript/functions/pass";
+import {SubmitCancelPictureOrVideoAnnotation} from "../../../../util/react/component/SubmitCancelPictureOrVideoAnnotation";
+import {IRectShapeData} from "react-picture-annotation/dist/types/src/Shape";
+import {isArray} from "../../../../util/typescript/arrays/isArray";
+import {mapToArray} from "../../../../util/map";
+import arrayFlatten from "../../../../util/typescript/arrays/arrayFlatten";
+import {iAnnotationsToAnnotations} from "../../../../util/IAnnotations";
+import {isNotEmpty} from "../../../../util/typescript/arrays/isNotEmpty";
 
 export type ODAPProps = {
     lockedPK?: AnyPK,
@@ -134,27 +136,30 @@ export default function ObjectDetectionAnnotatorPage(
         []
     )
 
-    const [iAnnotations] = useDerivedReducer(
-        createSimpleStateReducer<IAnnotation<IRectShapeData>[] | undefined>(),
-        ([dataset, annotating]) => annotating === undefined ? undefined : dataset?.asIAnnotations(annotating),
-        [dataset, annotating] as const
-    )
-
     const pictureAnnotatorOnSubmit = useDerivedState(
-        ([dataset, annotating]) => (annotationData: IAnnotation[]) => {
+        ([dataset, annotating]) => (annotationData: IAnnotation[] | ReadonlyMap<number, IAnnotation<IRectShapeData>[]>) => {
             if (dataset === undefined || annotating === undefined) {
                 UNREACHABLE("This callback should never be called without 'dataset' and 'annotating' defined");
             }
 
-            const annotations = iAnnotationsToDetectedObjects(annotationData)
+            const annotations = isArray(annotationData)
+                ? iAnnotationsToAnnotations(annotationData)
+                : arrayFlatten(
+                    mapToArray(
+                        annotationData,
+                        (time, annotations) => {
+                            return ifDefined(
+                                iAnnotationsToAnnotations(annotations, time),
+                                identity,
+                                constantInitialiser([])
+                            )
+                        }
+                    )
+                )
 
             dataset.setAnnotationsForFile(
                 annotating,
-                ifDefined(
-                    annotations,
-                    identity,
-                    constantInitialiser(NO_ANNOTATION)
-                )
+                isNotEmpty(annotations) ? annotations : NO_ANNOTATION
             )
         },
         [dataset, annotating] as const
@@ -168,14 +173,12 @@ export default function ObjectDetectionAnnotatorPage(
     )
 
     if (annotating !== undefined) {
-        const item = dataset?.get(annotating);
-        return <SubmitCancelPictureAnnotation
+        return <SubmitCancelPictureOrVideoAnnotation
             onSubmit={pictureAnnotatorOnSubmit}
             width={window.innerWidth}
             height={window.innerHeight}
-            image={item?.data.data?.getValue().url!}
+            item={dataset?.get(annotating)!}
             onCancel={pictureAnnotatorOnCancel}
-            annotationData={iAnnotations}
             defaultAnnotationSize={[20, 20]}
             onChange={pass}
             onSelect={pass}

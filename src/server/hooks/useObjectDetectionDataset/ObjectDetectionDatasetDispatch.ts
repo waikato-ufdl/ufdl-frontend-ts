@@ -16,14 +16,14 @@ export class ObjectDetectionDatasetDispatchItem
         DomainAnnotationType<'Object Detection'>
     >
 {
-    public asIAnnotations(): IAnnotation<IRectShapeData>[] | undefined {
+    public asIAnnotations(): IAnnotation<IRectShapeData>[] | Map<number, IAnnotation<IRectShapeData>[]> | typeof NO_ANNOTATION | undefined {
         const annotationsResult = this.annotations
 
         if (!hasData(annotationsResult)) return undefined;
 
         const annotations = annotationsResult.data
 
-        if (annotations === NO_ANNOTATION) return []
+        if (annotations === NO_ANNOTATION) return NO_ANNOTATION
 
         return detectedObjectsToIAnnotations(annotations)
     }
@@ -59,7 +59,7 @@ export default class ObjectDetectionDatasetDispatch
         delayedFunction(annotations)
     }
 
-    public asIAnnotations(filename: string): IAnnotation<IRectShapeData>[] | undefined {
+    public asIAnnotations(filename: string): IAnnotation<IRectShapeData>[] | Map<number, IAnnotation<IRectShapeData>[]> | typeof NO_ANNOTATION | undefined {
         const objects = this.get(filename);
 
         if (!isDefined(objects)) return undefined
