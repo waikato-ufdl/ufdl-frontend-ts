@@ -44,7 +44,6 @@ import repeat from "../../../util/typescript/iterate/repeat";
 import useCachedObject, {useCachedObjects} from "../../../util/react/hooks/useCachedObject";
 import {tuple} from "../../../util/typescript/arrays/tuple";
 import useRenderNotify from "../../../util/react/hooks/useRenderNotify";
-import useUpdateTrigger from "../../../util/react/hooks/useUpdateTrigger";
 
 
 /**
