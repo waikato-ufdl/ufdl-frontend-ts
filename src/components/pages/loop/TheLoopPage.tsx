@@ -74,63 +74,54 @@ export default function TheLoopPage(
                     onError={stateMachine.transitions.error}
                 />
                 <SelectTemplateModal
-                    onDone={(template_pk, parameter_values) => {
-                        const position = trainConfigureModal.position;
-                        if (position === undefined) return;
-                        trainConfigureModal.hide()
-                        setTrainTemplate(template_pk);
-                        setTrainParameters(parameter_values);
-                        job_template.get_outputs(
-                            ufdlServerContext,
-                            template_pk
-                        ).then(
-                            async (outputs) => {
-                                try {
-                                    const modelOutputType = outputs["model"];
+                    onDone={
+                        async (template_pk, parameter_values) => {
+                            const position = trainConfigureModal.position;
+                            if (position === undefined) return;
+                            trainConfigureModal.hide()
+                            setTrainTemplate(template_pk);
+                            setTrainParameters(parameter_values);
+                            try {
+                                const outputs = await job_template.get_outputs(ufdlServerContext, template_pk)
 
-                                    setModelType(modelOutputType);
+                                const modelOutputType = outputs["model"];
 
-                                    const matchingTemplates = await job_template.get_all_matching_templates(
-                                        ufdlServerContext,
-                                        "Predict",
-                                        {model: `JobOutput<${modelOutputType}>`}
-                                    )
+                                setModelType(modelOutputType);
 
-                                    setSelectableTemplates(matchingTemplates);
+                                const matchingTemplates = await job_template.get_all_matching_templates(
+                                    ufdlServerContext,
+                                    "Predict",
+                                    {model: `JobOutput<${modelOutputType}>`}
+                                )
 
-                                    evalConfigureModal.show(...position);
-                                } catch (e) {
-                                    stateMachine.transitions.error(e)
-                                }
+                                setSelectableTemplates(matchingTemplates);
+
+                                evalConfigureModal.show(...position);
+                            } catch (e) {
+                                stateMachine.transitions.error(e)
                             }
-                        ).catch(stateMachine.transitions.error)
 
-                        job_template.get_types(
-                            ufdlServerContext,
-                            template_pk
-                        ).then(
-                            async (types) => {
-                                try {
-                                    console.log("TYPES", types)
-                                    const frameworkType = types["FrameworkType"]
-                                    if (frameworkType === undefined) {
-                                        console.log("Couldn't get FrameworkType")
-                                        return;
-                                    }
-                                    const framework = frameworkType.match(FRAMEWORK_REGEXP);
-                                    if (framework === null) {
-                                        console.log(`Couldn't parse FrameworkType ${frameworkType}`)
-                                        return;
-                                    }
-                                    console.log("FRAMEWORK", framework, framework[1], framework[2])
-                                    setFramework([framework[1], framework[2]])
-                                } catch (e) {
-                                    stateMachine.transitions.error(e)
+                            try {
+                                const types = await job_template.get_types(ufdlServerContext, template_pk)
+
+                                console.log("TYPES", types)
+                                const frameworkType = types["FrameworkType"]
+                                if (frameworkType === undefined) {
+                                    console.log("Couldn't get FrameworkType")
+                                    return;
                                 }
+                                const framework = frameworkType.match(FRAMEWORK_REGEXP);
+                                if (framework === null) {
+                                    console.log(`Couldn't parse FrameworkType ${frameworkType}`)
+                                    return;
+                                }
+                                console.log("FRAMEWORK", framework, framework[1], framework[2])
+                                setFramework([framework[1], framework[2]])
+                            } catch (e) {
+                                stateMachine.transitions.error(e)
                             }
-                        ).catch(stateMachine.transitions.error)
-
-                    }}
+                        }
+                    }
                     templates={selectableTemplates === undefined ? [] : selectableTemplates}
                     position={trainConfigureModal.position}
                     onCancel={() => trainConfigureModal.hide()}
