@@ -1,6 +1,11 @@
-import {rendezvous} from "./typescript/async/rendezvous";
+import loadedAwaitable from "./loadedAwaitable";
+import {identity} from "./identity";
 
-export type VideoStats ={ width: number, height: number, length: number }
+export type VideoStats = {
+    width: number
+    height: number
+    length: number
+}
 
 /**
  * Gets the pixel-width, pixel-height, length in seconds, and format of a video.
@@ -19,21 +24,16 @@ export default async function getVideoStats(
     // Create a dummy video element
     const dummyVideoElement = document.createElement("video")
 
-    // Create a rendezvous to resolve the stats once the image loads
-    const [promise, resolve, reject] = rendezvous<VideoStats>()
-
-    dummyVideoElement.onloadedmetadata = () => resolve(
-        {
-            width: dummyVideoElement.videoWidth,
-            height: dummyVideoElement.videoHeight,
-            length: dummyVideoElement.duration
-        }
-    )
-
-    dummyVideoElement.onerror = (ev) => reject(ev)
+    const loaded = loadedAwaitable(dummyVideoElement, identity, "onloadedmetadata")
 
     // Add a URL to the file-data
     dummyVideoElement.src = URL.createObjectURL(videoFile)
 
-    return promise
+    await loaded
+
+    return {
+        width: dummyVideoElement.videoWidth,
+        height: dummyVideoElement.videoHeight,
+        length: dummyVideoElement.duration
+    }
 }
