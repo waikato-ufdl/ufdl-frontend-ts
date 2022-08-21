@@ -14,7 +14,7 @@ export const UNSELECTED_BORDER_WIDTH_PX: number = 2;
 
 export default function createClassificationRenderer(
     colours: ClassColours,
-    onReclassify: (filename: string, oldClass: OptionalAnnotations<Classification>, newClass: OptionalAnnotations<Classification>) => void
+    onReclassify: (filename: string, oldClass: OptionalAnnotations<Classification> | undefined, newClass: OptionalAnnotations<Classification>) => void
 ): AnnotationRenderer<DatasetDispatchItemAnnotationType<Classification>> {
     return (
         filename,
@@ -60,6 +60,7 @@ export default function createClassificationRenderer(
                 colours={colours}
                 disabled={!isSuccess(classification)}
                 allowSelectNone
+                noAnnotationLabel={"[NONE]"}
             />
 
             <div

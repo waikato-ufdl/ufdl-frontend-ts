@@ -1,9 +1,8 @@
 import React, {CSSProperties} from "react";
-import {asLabel, ClassColour} from "../../util/classification";
-import {Classification, OptionalAnnotations} from "../../types/annotations";
+import {ClassColour} from "../../util/classification";
 
 export type ClassSelectOptionProps = {
-    classification: OptionalAnnotations<Classification>,
+    label: string,
     colour: ClassColour
     onClick?: () => void
 }
@@ -13,14 +12,12 @@ export function ClassSelectOption(props: ClassSelectOptionProps) {
         backgroundColor: props.colour
     };
 
-    const label = asLabel(props.classification, "");
-
     return <option
         className={"ClassSelectOption"}
         style={style}
-        value={label}
+        value={props.label}
         onClick={props.onClick}
     >
-        {label}
+        {props.label}
     </option>
 }

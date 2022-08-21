@@ -8,6 +8,7 @@ import useStateSafe from "../../../util/react/hooks/useStateSafe";
 import {constantInitialiser} from "../../../util/typescript/initialisers";
 import {ClassColours} from "../../util/classification";
 import "./PickClassForm.css";
+import {DEFAULT} from "../../../util/typescript/default";
 
 export type PickClassFormProps = {
     onSubmit: (label: OptionalAnnotations<Classification>) => void
@@ -51,6 +52,7 @@ export default function PickClassForm(
                     border: "1px solid black"
                 }}
                 allowSelectNone
+                noAnnotationLabel={DEFAULT}
             />
         </label>
 

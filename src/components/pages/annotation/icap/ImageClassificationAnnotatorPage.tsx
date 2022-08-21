@@ -36,10 +36,7 @@ import {addFilesRenderer} from "../../../../server/components/AddFilesButton";
 import AnnotatorPage from "../AnnotatorPage";
 import {constantInitialiser} from "../../../../util/typescript/initialisers";
 import isDefined from "../../../../util/typescript/isDefined";
-import {
-    DatasetDispatch,
-    DatasetDispatchItem
-} from "../../../../server/hooks/useDataset/DatasetDispatch";
+import {DatasetDispatch, DatasetDispatchItem} from "../../../../server/hooks/useDataset/DatasetDispatch";
 import hasData from "../../../../util/react/query/hasData";
 import passOnUndefined from "../../../../util/typescript/functions/passOnUndefined";
 import {DatasetDispatchItemAnnotationType} from "../../../../server/hooks/useDataset/types";
@@ -95,7 +92,7 @@ export default function ImageClassificationAnnotatorPage(
     const datasetOverviewOnReclassify = useDerivedState(
         ([dataset]) => (
             filename: string,
-            _: OptionalAnnotations<Classification>,
+            _: OptionalAnnotations<Classification> | undefined,
             newLabel: OptionalAnnotations<Classification>
         ) => {
             if (isDefined(dataset)) dataset.setAnnotationsForFile(filename, newLabel);
@@ -320,9 +317,9 @@ function createImageClassificationSelectFragmentRenderer(
                 onReclassify={(_, classification) => {
                     select(IC_SELECTIONS.withClassification(classification))
                 }}
-                classification={NO_ANNOTATION}
                 colours={classColours}
                 allowSelectNone
+                noAnnotationLabel={"[NONE]"}
             />
             <button
                 disabled={evalDataset === undefined}
