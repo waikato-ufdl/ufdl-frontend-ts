@@ -47,6 +47,9 @@ export default function SelectionModal<D extends Data, A>(
         <button onClick={randomAmountModal.onClick}>
             Random
         </button>
+        <button onClick={() => onSelectActual(SELECTIONS.UNSELECTED)}>
+            Invert
+        </button>
         <LocalModal
             position={randomAmountModal.position}
             onCancel={randomAmountModal.hide}
