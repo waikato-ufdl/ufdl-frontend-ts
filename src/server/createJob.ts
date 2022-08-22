@@ -11,6 +11,7 @@ import {getJobLog} from "./util/getJobLog";
 import {JobTransitionMessage} from "ufdl-ts-client/types/core/jobs/job";
 import {EMPTY, Empty} from "../util/typescript/types/Empty";
 import onCompletion from "../util/typescript/async/onCompletion";
+import {forEachOwnProperty} from "../util/typescript/object";
 
 export default function createJob(
     context: UFDLServerContext,
@@ -40,11 +41,22 @@ export default function createJob(
         async () => {
             const pk = await jobPK;
 
+            console.group(`Job log for job #${pk}`)
+
             try {
-                console.log(`Job log for job #${pk}`, await getJobLog(context, pk));
+                const log = await getJobLog(context, pk)
+
+                forEachOwnProperty(
+                    log,
+                    (timestamp, obj) => {
+                        console.log(timestamp, obj)
+                    }
+                )
             } catch (e) {
                 console.log(`Failed to get job log for job #${pk}`, e);
             }
+
+            console.groupEnd()
         }
     );
 
