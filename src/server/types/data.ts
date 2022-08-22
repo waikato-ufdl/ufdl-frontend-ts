@@ -27,7 +27,7 @@ export class Data {
  */
 export class ImageOrVideo extends Data {
     /** The URL to the in-memory data. */
-    readonly url: string
+    private _url: string | undefined = undefined
 
     constructor(
         raw: Blob,
@@ -37,11 +37,15 @@ export class ImageOrVideo extends Data {
     ) {
         super(raw)
         if (isDefined(videoLength) && videoLength < 0) throw new Error(`Negative video length: ${videoLength}`)
-        this.url = URL.createObjectURL(raw)
     }
 
     get isVideo(): boolean {
         return isDefined(this.videoLength)
+    }
+
+    get url(): string {
+        if (this._url === undefined) this._url = URL.createObjectURL(this.raw)
+        return this._url
     }
 }
 
