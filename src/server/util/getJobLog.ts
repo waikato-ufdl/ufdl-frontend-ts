@@ -23,7 +23,7 @@ export async function getJobLog(
         = await JSZip.loadAsync(logDataZipped);
 
     // Unzip the log JSON file
-    const logData: JSZip.JSZipObject | null = logDataArchive.file('log.json');
+    const logData: JSZip.JSZipObject | null = logDataArchive.file('data');
 
     // Except on unzip failure
     if (logData === null) throw new Error(`Couldn't get log from archive for job #${jobPK}`);
