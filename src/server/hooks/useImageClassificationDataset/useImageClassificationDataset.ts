@@ -42,14 +42,12 @@ async function getAnnotations(
     dataset: DatasetInstance,
     filename: string
 ): Promise<Classification | typeof NO_ANNOTATION> {
-    const categories = await ICDataset.get_categories(context, dataset.pk);
+    const categories = await ICDataset.get_categories_for_file(context, dataset.pk, filename);
 
-    const categoriesForFile = categories[filename];
-
-    if (categoriesForFile === undefined || categoriesForFile.length === 0)
+    if (categories.length === 0)
         return NO_ANNOTATION;
 
-    return categoriesForFile[0];
+    return categories[0];
 }
 
 async function setAnnotations(
