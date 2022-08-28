@@ -6,7 +6,6 @@ import {Data} from "../../types/data";
 import {NO_ANNOTATION, OptionalAnnotations} from "../../types/annotations";
 import {DatasetPK} from "../../pk";
 import {UseMutationResult, UseQueryResult} from "react-query";
-import {NamedFileInstance} from "../../../../../ufdl-ts-client/dist/types/core/named_file";
 import {TOGGLE} from "./selection";
 import {DatasetItem} from "../../types/DatasetItem";
 import {Dataset} from "../../types/Dataset";
@@ -89,30 +88,35 @@ export type MutableDatasetDispatchConstructor<
     A,
     I extends MutableDatasetDispatchItem<D, A>,
     DIS extends MutableDatasetDispatch<D, A, I>
-> = {
-    new(
+> = new (
         serverContext: UFDLServerContext,
         pk: DatasetPK,
         fileOrdering: string[],
         datasetResult: UseQueryResult<DatasetInstance>,
-        addFilesMutation: UseMutationResult<NamedFileInstance[], unknown, ReadonlyMap<string, D>>,
-        deleteFileMutation: UseMutationResult<NamedFileInstance, unknown, string>,
-        setAnnotationsMutation: UseMutationResult<void, unknown, [string, OptionalAnnotations<A>]>,
-        setSelected: React.Dispatch<[string, boolean | typeof TOGGLE]>,
-        itemMap: ReadonlyMap<string, I>
-    ): DIS
-}
+        itemMap: ReadonlyMap<string, I>,
+        select: (itemSelection: DatasetDispatchItemSelector<D, A>) => void,
+        deselect: (itemSelection: DatasetDispatchItemSelector<D, A>) => void,
+        toggleSelection: (itemSelection: DatasetDispatchItemSelector<D, A>) => void,
+        selectOnly: (itemSelection: DatasetDispatchItemSelector<D, A>) => void,
+        deleteSelectedFiles: () => void,
+        setAnnotationsForSelected: (annotations: OptionalAnnotations<A>) => void,
+        setAnnotationsForFile: (filename: string, annotations: OptionalAnnotations<A>) => void,
+        setAnnotations: (modifications: ReadonlyMap<string, OptionalAnnotations<A>>) => void,
+        clear: () => void,
+        deleteFile: (filename: string) => boolean,
+        addFiles: (files: ReadonlyMap<string, D>) => void
+    ) => DIS
 
 export type MutableDatasetDispatchItemConstructor<D extends Data, A, I extends MutableDatasetDispatchItem<D, A> = MutableDatasetDispatchItem<D, A>>
-    = new (
-    filename: string,
-    handle: string,
-    data: DatasetDispatchItemDataType<D>,
-    annotations: DatasetDispatchItemAnnotationType<A>,
-    selected: boolean,
-    setSelected: React.Dispatch<[string, boolean | typeof TOGGLE]>,
-    setAnnotationsMutation: UseMutationResult<void, unknown, [string, OptionalAnnotations<A>]>
-) => I
+    = new(
+        filename: string,
+        handle: string,
+        data: DatasetDispatchItemDataType<D>,
+        annotations: DatasetDispatchItemAnnotationType<A>,
+        selected: boolean,
+        setSelected: React.Dispatch<[string, boolean | typeof TOGGLE]>,
+        setAnnotationsMutation: UseMutationResult<void, unknown, [string, OptionalAnnotations<A>]>
+    ) => I
 
 export type DatasetDispatchItemSelector<D extends Data, A>
     = ItemSelector<

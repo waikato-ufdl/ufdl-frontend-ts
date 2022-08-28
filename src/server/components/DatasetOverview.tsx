@@ -18,6 +18,7 @@ import {
 import useDerivedState from "../../util/react/hooks/useDerivedState";
 import {DatasetDispatchItemAnnotationType, DatasetDispatchItemDataType} from "../hooks/useDataset/types";
 import useRenderNotify from "../../util/react/hooks/useRenderNotify";
+import useDerivedStates from "../../util/react/hooks/useDerivedStates";
 
 export type DatasetOverviewProps<D extends DomainName> = {
     dataset: MutableDatasetDispatch<DomainDataType<D>, DomainAnnotationType<D>> | undefined
@@ -73,7 +74,7 @@ export default function DatasetOverview<D extends DomainName>(
     if (sortFunction !== Absent) items.sort(sortFunction)
 
     // Create a display item for each dataset item
-    const renderedItems = items.map(
+    const renderedItems = useDerivedStates(
         (item) => {
             return <DatasetItem<D>
                 key={item.filename}
@@ -83,8 +84,9 @@ export default function DatasetOverview<D extends DomainName>(
                 renderAnnotation={props.renderAnnotation}
                 onClick={props.onItemClicked}
             />
-        }
-    );
+        },
+        items.map(item => [item] as const)
+    )
 
     // Create the submission function for adding new files to the dataset
     const onSubmit: OnSubmitFunction<DomainDataType<D>, DomainAnnotationType<D>> = useDerivedState(
@@ -110,7 +112,7 @@ export default function DatasetOverview<D extends DomainName>(
             onSubmit={onSubmit}
             subMenus={props.addFilesSubMenus}
         />
-        {renderedItems}
+        {[...renderedItems.values()]}
     </FlexContainer>
 
 }

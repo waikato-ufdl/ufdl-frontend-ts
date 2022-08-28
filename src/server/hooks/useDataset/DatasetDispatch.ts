@@ -4,8 +4,13 @@ import {DatasetPK} from "../../pk";
 import {iteratorReduce} from "../../../util/typescript/iterate/reduce";
 import {TOGGLE} from "./selection";
 import {DatasetInstance} from "ufdl-ts-client/types/core/dataset";
-import {QueryObserverResult, RefetchOptions, RefetchQueryFilters, UseMutationResult, UseQueryResult} from "react-query";
-import {NamedFileInstance} from "ufdl-ts-client/types/core/named_file";
+import {
+    QueryObserverResult,
+    RefetchOptions,
+    RefetchQueryFilters,
+    UseMutationResult,
+    UseQueryResult
+} from "react-query";
 import {ReadonlyQueryResult} from "../../../util/react/query/types";
 import iterate from "../../../util/typescript/iterate/iterate";
 import {Dataset} from "../../types/Dataset";
@@ -170,11 +175,18 @@ export class MutableDatasetDispatch<D extends Data, A, I extends MutableDatasetD
         pk: DatasetPK,
         fileOrdering: string[],
         datasetResult: UseQueryResult<DatasetInstance>,
-        private readonly addFilesMutation: UseMutationResult<NamedFileInstance[], unknown, ReadonlyMap<string, D>>,
-        private readonly deleteFileMutation: UseMutationResult<NamedFileInstance, unknown, string>,
-        private readonly setAnnotationsMutation: UseMutationResult<void, unknown, [string, OptionalAnnotations<A>]>,
-        private readonly setSelected: React.Dispatch<[string, boolean | typeof TOGGLE]>,
-        itemMap: ReadonlyMap<string, I>
+        itemMap: ReadonlyMap<string, I>,
+        readonly select: (itemSelection: DatasetDispatchItemSelector<D, A>) => void,
+        readonly deselect: (itemSelection: DatasetDispatchItemSelector<D, A>) => void,
+        readonly toggleSelection: (itemSelection: DatasetDispatchItemSelector<D, A>) => void,
+        readonly selectOnly: (itemSelection: DatasetDispatchItemSelector<D, A>) => void,
+        readonly deleteSelectedFiles: () => void,
+        readonly setAnnotationsForSelected: (annotations: OptionalAnnotations<A>) => void,
+        readonly setAnnotationsForFile: (filename: string, annotations: OptionalAnnotations<A>) => void,
+        readonly setAnnotations: (modifications: ReadonlyMap<string, OptionalAnnotations<A>>) => void,
+        readonly clear: () => void,
+        readonly deleteFile: (filename: string) => boolean,
+        readonly addFiles: (files: ReadonlyMap<string, D>) => void
     ) {
         super(
             serverContext,
@@ -183,87 +195,5 @@ export class MutableDatasetDispatch<D extends Data, A, I extends MutableDatasetD
             datasetResult,
             itemMap
         )
-    }
-
-    select(itemSelection: DatasetDispatchItemSelector<D, A>): void {
-        for (const filename of this.fileOrdering) {
-            if (itemSelection(this.itemMap.get(filename)!, filename, this)) {
-                this.setSelected([filename, true])
-            }
-        }
-    }
-
-    deselect(itemSelection: DatasetDispatchItemSelector<D, A>): void {
-        for (const filename of this.fileOrdering) {
-            if (itemSelection(this.itemMap.get(filename)!, filename, this)) {
-                this.setSelected([filename, false])
-            }
-        }
-    }
-
-    toggleSelection(
-        itemSelection: DatasetDispatchItemSelector<D, A>
-    ) {
-        for (const filename of this.fileOrdering) {
-            if (itemSelection(this.itemMap.get(filename)!, filename, this)) {
-                this.setSelected([filename, TOGGLE])
-            }
-        }
-    }
-
-    selectOnly(
-        itemSelection: DatasetDispatchItemSelector<D, A>
-    ) {
-        for (const filename of this.fileOrdering) {
-            if (itemSelection(this.itemMap.get(filename)!, filename, this)) {
-                this.setSelected([filename, true])
-            } else {
-                this.setSelected([filename, false])
-            }
-        }
-    }
-
-    deleteSelectedFiles(): void {
-        for (const filename of this.fileOrdering) {
-            if (this.get(filename)!.selected) {
-                this.delete(filename)
-            }
-        }
-    }
-
-    setAnnotationsForSelected(annotations: OptionalAnnotations<A>): void {
-        for (const filename of this.fileOrdering) {
-            if (this.get(filename)!.selected) {
-                this.setAnnotationsForFile(filename, annotations)
-            }
-        }
-    }
-
-    setAnnotationsForFile(filename: string, annotations: OptionalAnnotations<A>): void {
-        this.setAnnotationsMutation.mutate([filename, annotations])
-    }
-
-    setAnnotations(
-        modifications: ReadonlyMap<string, OptionalAnnotations<A>>
-    ) {
-        for (const [filename, annotations] of modifications) {
-            this.setAnnotationsForFile(filename, annotations)
-        }
-    }
-
-    clear(): void {
-        for (const filename of this.fileOrdering) {
-            this.delete(filename)
-        }
-    }
-
-    delete(key: string): boolean {
-        if (!this.has(key)) return false;
-        this.deleteFileMutation.mutate(key)
-        return true;
-    }
-
-    addFiles(files: ReadonlyMap<string, D>) {
-        this.addFilesMutation.mutate(files)
     }
 }

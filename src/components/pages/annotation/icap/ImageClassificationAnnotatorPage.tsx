@@ -90,14 +90,14 @@ export default function ImageClassificationAnnotatorPage(
     const [showLargeImageOverlay, setShowLargeImageOverlay] = useStateSafe<BehaviorSubject<string> | string | undefined>(() => undefined);
 
     const datasetOverviewOnReclassify = useDerivedState(
-        ([dataset]) => (
+        ([setAnnotationsForFile]) => (
             filename: string,
             _: OptionalAnnotations<Classification> | undefined,
             newLabel: OptionalAnnotations<Classification>
         ) => {
-            if (isDefined(dataset)) dataset.setAnnotationsForFile(filename, newLabel);
+            if (isDefined(setAnnotationsForFile)) setAnnotationsForFile(filename, newLabel);
         },
-        [dataset]
+        [dataset?.setAnnotationsForFile]
     )
 
     const classColourPickerPageOnColourChanged = useDerivedState(

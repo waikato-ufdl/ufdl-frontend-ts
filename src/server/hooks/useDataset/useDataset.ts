@@ -44,6 +44,7 @@ import repeat from "../../../util/typescript/iterate/repeat";
 import useCachedObject, {useCachedObjects} from "../../../util/react/hooks/useCachedObject";
 import {tuple} from "../../../util/typescript/arrays/tuple";
 import useRenderNotify from "../../../util/react/hooks/useRenderNotify";
+import useDatasetMutationMethods from "./useDatasetMutationMethods";
 
 
 /**
@@ -436,28 +437,41 @@ export default function useDataset<
         [itemMultiMap, fileOrdering] as const
     )
 
+    const fileOrderingArray = useDerivedState(
+        ([fileOrdering]) => [...fileOrdering.keys()],
+        [fileOrdering] as const
+    )
+
+    const mutationMethods = useDatasetMutationMethods(
+        itemMap,
+        fileOrderingArray,
+        addFilesMutation.mutate,
+        deleteFileMutation.mutate,
+        setAnnotationsMutation.mutate,
+        setSelected
+    )
+
     // Derive the dispatch state from the arguments which construct it and return it
     const dispatch = useDerivedState(
-        ([dispatchConstructor, serverContext, datasetPK, fileOrdering, ...queriesAndMutations]) => {
+        ([dispatchConstructor, serverContext, datasetPK, fileOrdering, datasetResult, itemMap, ...mutations]) => {
             if (datasetPK === undefined) return undefined
             return new dispatchConstructor(
                     serverContext,
                     datasetPK,
-                    [...fileOrdering.keys()],
-                    ...queriesAndMutations
+                    fileOrdering,
+                    datasetResult,
+                    itemMap,
+                    ...mutations
                 )
         },
         [
             dispatchConstructor,
             serverContext,
             datasetPK,
-            fileOrdering,
+            fileOrderingArray,
             datasetResult,
-            addFilesMutation,
-            deleteFileMutation,
-            setAnnotationsMutation,
-            setSelected,
-            itemMap
+            itemMap,
+            ...mutationMethods
         ] as const
     );
 
