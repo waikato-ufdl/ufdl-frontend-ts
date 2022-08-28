@@ -37,13 +37,6 @@ export default function DataVideo(
         [srcValue]
     );
 
-    const VideoWithRef = React.forwardRef<HTMLVideoElement, VideoHTMLAttributes<HTMLVideoElement>>(
-        (props, ref) => <video
-            ref={ref}
-            {...props}
-        />
-    )
-
     return <VideoWithRef
         src={url}
         ref={forwardedRef}
@@ -51,3 +44,10 @@ export default function DataVideo(
         {...videoProps}
     />
 }
+
+const VideoWithRef = React.forwardRef<HTMLVideoElement, VideoHTMLAttributes<HTMLVideoElement>>(
+    (props, ref) => <video
+        ref={ref}
+        {...props}
+    />
+)
