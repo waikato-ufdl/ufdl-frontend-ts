@@ -4,6 +4,8 @@
 
 import isDefined from "../../util/typescript/isDefined";
 
+const URL_CACHE = new WeakMap<Blob, string>()
+
 /**
  * Base class for all data-types of domains. Only requires that the
  * raw binary data can be requested.
@@ -18,6 +20,14 @@ export class Data {
         this.raw = raw
     }
 
+    get url(): string {
+        const cached = URL_CACHE.get(this.raw)
+        if (cached !== undefined) return cached
+        const url = URL.createObjectURL(this.raw)
+        URL_CACHE.set(this.raw, url)
+        return url
+    }
+
 }
 
 /**
@@ -26,9 +36,6 @@ export class Data {
  * and which it is (true is video).
  */
 export class ImageOrVideo extends Data {
-    /** The URL to the in-memory data. */
-    private _url: string | undefined = undefined
-
     constructor(
         raw: Blob,
         readonly format: string | undefined,
@@ -41,11 +48,6 @@ export class ImageOrVideo extends Data {
 
     get isVideo(): boolean {
         return isDefined(this.videoLength)
-    }
-
-    get url(): string {
-        if (this._url === undefined) this._url = URL.createObjectURL(this.raw)
-        return this._url
     }
 }
 
