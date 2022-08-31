@@ -19,9 +19,9 @@ import {silentlyCancelJob} from "./silentlyCancelJob";
 import cancelJobTransition from "./cancelJobTransition";
 import completionPromise from "../../../../../util/rx/completionPromise";
 import {CANCELLED} from "../../../../../server/websocket/observableWebSocket";
-import {ParameterValues} from "../../EditParametersModal";
 import {DomainName} from "../../../../../server/domains";
 import {formatResponseError} from "../../../../../server/util/responseError";
+import {ParameterValue} from "ufdl-ts-client/json/generated/CreateJobSpec";
 
 export const LOOP_TRANSITIONS = {
     "Selecting Primary Dataset": {
@@ -68,9 +68,9 @@ export const LOOP_TRANSITIONS = {
     "Selecting Initial Images": {
         trainInitialModel(
             trainTemplatePK: number,
-            trainParameters: ParameterValues,
+            trainParameters: { [parameter_name: string]: ParameterValue},
             evalTemplatePK: number,
-            evalParameters: ParameterValues,
+            evalParameters: { [parameter_name: string]: ParameterValue},
             framework: [string, string],
             modelType: string
         ) {
@@ -138,7 +138,7 @@ export const LOOP_TRANSITIONS = {
     "Selecting Prelabel Images": {
         prelabel(
             prelabelTemplatePK: number,
-            prelabelParameters: ParameterValues
+            prelabelParameters: { [parameter_name: string]: ParameterValue }
         ) {
             return (current: LoopStateAndData) => {
                 if (current.state !== "Selecting Prelabel Images") return;
