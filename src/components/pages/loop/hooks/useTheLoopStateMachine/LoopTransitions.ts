@@ -18,7 +18,7 @@ import hasStateChanged from "../../../../../util/react/hooks/useStateMachine/has
 import {silentlyCancelJob} from "./silentlyCancelJob";
 import cancelJobTransition from "./cancelJobTransition";
 import completionPromise from "../../../../../util/rx/completionPromise";
-import {CANCELLED} from "../../../../../server/websocket/observableWebSocket";
+import {CANCELLED} from "../../../../../server/websocket/observeJobTransitionsViaWebSocket";
 import {DomainName} from "../../../../../server/domains";
 import {formatResponseError} from "../../../../../server/util/responseError";
 import {ParameterValue} from "ufdl-ts-client/json/generated/CreateJobSpec";

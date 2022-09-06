@@ -3,7 +3,7 @@ import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import {CreateJobSpec} from "ufdl-ts-client/json/generated/CreateJobSpec";
 import {create_job} from "ufdl-ts-client/functional/core/jobs/job_template";
 import {handleErrorResponse, throwOnError} from "./util/responseError";
-import observableWebSocket from "./websocket/observableWebSocket";
+import observeJobTransitionsViaWebSocket from "./websocket/observeJobTransitionsViaWebSocket";
 import {immediateObservable} from "../util/rx/immediate";
 import behaviourSubjectFromSubscribable from "../util/rx/behaviourSubjectFromSubscribable";
 import completionPromise from "../util/rx/completionPromise";
@@ -30,7 +30,7 @@ export default function createJob(
     // Create a behaviour subject to monitor the job's progress
     const jobMonitor = behaviourSubjectFromSubscribable<JobTransitionMessage | Empty>(
         immediateObservable(
-            jobPK.then((pk) => observableWebSocket(context, pk, true, true))
+            jobPK.then((pk) => observeJobTransitionsViaWebSocket(context, pk, true, true))
         ),
         EMPTY
     );
