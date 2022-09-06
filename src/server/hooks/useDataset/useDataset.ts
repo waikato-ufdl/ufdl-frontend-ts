@@ -165,7 +165,8 @@ export default function useDataset<
                         onError() {
                             queryClient.invalidateQueries(datasetQueryKey(datasetPK))
                         },
-                        staleTime: Infinity
+                        staleTime: Infinity,
+                        enabled: false
                     }
                 }
             )
@@ -194,7 +195,8 @@ export default function useDataset<
                         onError() {
                             queryClient.invalidateQueries(datasetQueryKey(datasetPK))
                         },
-                        staleTime: Infinity
+                        staleTime: Infinity,
+                        enabled: false
                     }
                 }
             )

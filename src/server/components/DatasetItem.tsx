@@ -1,7 +1,7 @@
 import "./DatasetItem.css";
 import {FunctionComponentReturnType} from "../../util/react/types";
 import {Possible} from "../../util/typescript/types/Possible";
-import {ReactElement, ReactNode} from "react";
+import React, {ReactElement, ReactNode, useEffect} from "react";
 import CenterContent from "../../components/CenterContent";
 import {augmentClassName} from "../../util/react/augmentClass";
 import useDerivedState from "../../util/react/hooks/useDerivedState";
@@ -65,7 +65,42 @@ export default function DatasetItem<D extends DomainName>(
         [props.item]
     )
 
-    return <div className={augmentClassName(props.className, "DatasetItem")}>
+    const ref = React.createRef<HTMLDivElement>();
+
+    useEffect(
+        () => {
+            const itemDiv = ref.current;
+            const item = props.item;
+
+            if (itemDiv === null) return;
+
+            var observer = new IntersectionObserver(
+                (entries) => {
+                    entries.forEach(
+                        entry => {
+                            if (entry.target !== itemDiv) return;
+                            if (entry.isIntersecting) {
+                                if (item.data.isIdle) item.data.refetch({cancelRefetch: true})
+                                if (item.annotations.isIdle) item.annotations.refetch({cancelRefetch: true})
+                                observer.unobserve(entry.target)
+                            }
+                        }
+                    );
+                },
+                { root: null, rootMargin: "50%", threshold: 0 }
+            );
+
+            observer.observe(itemDiv);
+
+            return () => { observer.unobserve(itemDiv) }
+        },
+        [ref, props.item]
+    )
+
+    return <div
+        className={augmentClassName(props.className, "DatasetItem")}
+        ref={ref}
+    >
         <CenterContent
             className={"DatasetItemRenderedData"}
             onClick={onClickContent}
