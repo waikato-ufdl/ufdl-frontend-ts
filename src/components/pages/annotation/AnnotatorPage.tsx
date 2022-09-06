@@ -26,7 +26,6 @@ import {SubMenus} from "../../../server/components/AddFilesButton";
 import {augmentClassName} from "../../../util/react/augmentClass";
 import "./AnnotatorPage.css"
 import {DatasetDispatchItemAnnotationType, DatasetDispatchItemDataType} from "../../../server/hooks/useDataset/types";
-import useRenderNotify from "../../../util/react/hooks/useRenderNotify";
 
 export type AnnotatorPageProps<D extends DomainName> = {
     domain: D,
@@ -54,8 +53,6 @@ export type AnnotatorPageProps<D extends DomainName> = {
 export default function AnnotatorPage<D extends DomainName>(
     props: AnnotatorPageProps<D>
 ) {
-    useRenderNotify("AnnotatorPage", props)
-
     // Get the server context
     const ufdlServerContext = useContext(UFDL_SERVER_REACT_CONTEXT);
 

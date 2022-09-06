@@ -23,7 +23,6 @@ import {Possible} from "../../util/typescript/types/Possible";
 import {BY_FILENAME} from "../sorting";
 import {DomainSortOrderFunction, DomainSortOrders} from "./types";
 import {DatasetDispatchItemSelector} from "../hooks/useDataset/types";
-import useRenderNotify from "../../util/react/hooks/useRenderNotify";
 
 export type ItemSelectFragmentRenderer<D extends Data, A> = (
     select: Dispatch<DatasetDispatchItemSelector<D, A>>
@@ -60,8 +59,6 @@ export type AnnotatorTopMenuProps<D extends DomainName> = {
 export default function AnnotatorTopMenu<D extends DomainName>(
     props: AnnotatorTopMenuProps<D>
 ) {
-    useRenderNotify("AnnotatorTopMenu.props", props)
-
     const [selectedPK] = useControllableState(
         props.selectedPK,
         constantInitialiser(undefined)
@@ -97,15 +94,6 @@ export default function AnnotatorTopMenu<D extends DomainName>(
     );
 
     const selectModal = useLocalModal();
-
-    useRenderNotify("AnnotatorTopMenu.state",
-                    {
-                        selectedPK,
-                        sortOrders,
-                        projectTeamFilter,
-                        datasetProjectFilter,
-                        selectModal
-                    })
 
     const [numSelected, outOf] = props.numSelected;
 

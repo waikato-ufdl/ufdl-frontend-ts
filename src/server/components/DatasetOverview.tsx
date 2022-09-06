@@ -17,7 +17,6 @@ import {
 } from "../hooks/useDataset/DatasetDispatch";
 import useDerivedState from "../../util/react/hooks/useDerivedState";
 import {DatasetDispatchItemAnnotationType, DatasetDispatchItemDataType} from "../hooks/useDataset/types";
-import useRenderNotify from "../../util/react/hooks/useRenderNotify";
 import useDerivedStates from "../../util/react/hooks/useDerivedStates";
 
 export type DatasetOverviewProps<D extends DomainName> = {
@@ -56,8 +55,6 @@ const FLEX_CONTAINER_STYLE = {
 export default function DatasetOverview<D extends DomainName>(
     props: DatasetOverviewProps<D>
 ) {
-    useRenderNotify("DatasetOverview", props)
-
     // Handle the default values for the props
     const sortFunction = handleSingleDefault(props.sortFunction, constantInitialiser(Absent))
 

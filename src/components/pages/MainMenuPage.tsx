@@ -12,11 +12,8 @@ import {UNCONTROLLED_KEEP} from "../../util/react/hooks/useControllableState";
 import NewUserPage from "./NewUserPage";
 import {DEFAULT} from "../../util/typescript/default";
 import ObjectDetectionAnnotatorPage from "./annotation/odap/ObjectDetectionAnnotatorPage";
-import useRenderNotify from "../../util/react/hooks/useRenderNotify";
 
 export function MainMenuPage() {
-
-    useRenderNotify("MainMenuPage", {})
 
     const [loggedIn, setLoggedIn] = useStateSafe<boolean>(() => false);
 

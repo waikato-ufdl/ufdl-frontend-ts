@@ -4,7 +4,6 @@ import React from "react";
 import {IAnnotation} from "react-picture-annotation/dist/types/src/Annotation";
 import {IShapeStyle} from "react-picture-annotation/dist/types/src/Shape";
 import useDerivedState from "../hooks/useDerivedState";
-import useRenderNotify from "../hooks/useRenderNotify";
 import useDerivedReducer from "../hooks/useDerivedReducer";
 import {createSimpleStateReducer} from "../hooks/SimpleStateReducer";
 import "./SubmitCancelPictureAnnotation.css"
@@ -33,8 +32,6 @@ const ANNOTATION_REDUCER = createSimpleStateReducer<IAnnotation[]>()
 export function SubmitCancelPictureAnnotation(
     props: SubmitCancelPictureAnnotationProps
 ): FunctionComponentReturnType {
-
-    useRenderNotify("SubmitCancelPictureAnnotation", props)
 
     const {
         onSubmit,

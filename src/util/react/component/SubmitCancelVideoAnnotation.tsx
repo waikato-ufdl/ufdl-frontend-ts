@@ -14,7 +14,6 @@ import {Reducer} from "react";
 import "./SubmitCancelVideoAnnotation.css"
 import {identity} from "../../identity";
 import {anyToString} from "../../typescript/strings/anyToString";
-import useRenderNotify from "../hooks/useRenderNotify";
 
 export type SubmitCancelVideoAnnotationProps = Omit<SubmitCancelPictureAnnotationProps, "annotationData" | "onChange" | "image" | "onSubmit"> & {
     annotationData?: ReadonlyMap<number, IAnnotation[]>
@@ -35,8 +34,6 @@ function annotationsMapInitialiser(
 export function SubmitCancelVideoAnnotation(
     props: SubmitCancelVideoAnnotationProps
 ): FunctionComponentReturnType {
-
-    useRenderNotify("SubmitCancelVideoAnnotation", props)
 
     const {
         annotationData,

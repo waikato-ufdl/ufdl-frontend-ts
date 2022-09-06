@@ -41,7 +41,6 @@ import hasData from "../../../../util/react/query/hasData";
 import passOnUndefined from "../../../../util/typescript/functions/passOnUndefined";
 import {DatasetDispatchItemAnnotationType} from "../../../../server/hooks/useDataset/types";
 import {ImageOrVideoRenderer} from "../../../../server/components/image/ImageOrVideoRenderer";
-import useRenderNotify from "../../../../util/react/hooks/useRenderNotify";
 
 export const SORT_ORDERS = {
     "filename": BY_FILENAME,
@@ -65,8 +64,6 @@ export type ICAPProps = {
 export default function ImageClassificationAnnotatorPage(
     props: ICAPProps
 ) {
-    useRenderNotify("ImageClassificationAnnotatorPage", props)
-
     const ufdlServerContext = useContext(UFDL_SERVER_REACT_CONTEXT);
 
     const [selectedPK, setSelectedPK] = useStateSafe(constantInitialiser(props.lockedPK))
@@ -75,8 +72,6 @@ export default function ImageClassificationAnnotatorPage(
         ufdlServerContext,
         getDatasetPK(selectedPK)
     );
-
-    useRenderNotify("useImageClassificationDataset", {dataset: dataset})
 
     const evalDataset = useImageClassificationDataset(
         ufdlServerContext,

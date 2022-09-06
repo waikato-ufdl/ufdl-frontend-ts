@@ -7,7 +7,6 @@ import {SubmitCancelVideoAnnotation} from "./SubmitCancelVideoAnnotation";
 import useDerivedState from "../hooks/useDerivedState";
 import {IRectShapeData} from "react-picture-annotation/dist/types/src/Shape";
 import {NO_ANNOTATION} from "../../../server/types/annotations";
-import useRenderNotify from "../hooks/useRenderNotify";
 
 export type SubmitCancelPictureOrVideoAnnotationProps = Omit<SubmitCancelPictureAnnotationProps, "annotationData" | "onChange" | "image" | "onSubmit"> & {
     item: ObjectDetectionDatasetDispatchItem
@@ -18,8 +17,6 @@ export type SubmitCancelPictureOrVideoAnnotationProps = Omit<SubmitCancelPicture
 export function SubmitCancelPictureOrVideoAnnotation(
     props: SubmitCancelPictureOrVideoAnnotationProps
 ): FunctionComponentReturnType {
-
-    useRenderNotify("SubmitCancelPictureOrVideoAnnotation", props)
 
     const {
         item,
