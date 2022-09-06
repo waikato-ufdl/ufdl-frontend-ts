@@ -1,7 +1,6 @@
 import {Observable, Observer} from "rxjs";
-import {useEffect} from "react";
+import {Reducer, useEffect} from "react";
 import useDerivedReducer from "./useDerivedReducer";
-import {createSimpleStateReducer} from "./SimpleStateReducer";
 import {constantInitialiser} from "../../typescript/initialisers";
 
 export type ObservableNextState<T> = {
@@ -23,12 +22,37 @@ export type ObservableState<T> =
     | ObservableCompleteState
     | ObservableErrorState
 
+function observableReducer<T>(
+    state: ObservableState<T> | undefined,
+    action: ObservableState<T>
+): ObservableState<T> {
+    if (
+        (state !== undefined)
+        &&
+        (
+            (state.type === "next" && action.type === "next" && state.value === action.value)
+            ||
+            (state.type === "complete" && action.type === "complete")
+            ||
+            (state.type === "error" && action.type === "error" && state.err === action.err)
+        )
+    ) {
+        return state
+    }
+
+    return action
+}
+
+function getObservableReducer<T>(): Reducer<ObservableState<T> | undefined, ObservableState<T>> {
+    return observableReducer
+}
+
 export function useObservable<T>(
     subject?: Observable<T>
 ): ObservableState<T> | undefined {
 
     const [state, dispatch] = useDerivedReducer(
-        createSimpleStateReducer<ObservableState<T> | undefined>(),
+        getObservableReducer<T>(),
         constantInitialiser(undefined),
         [subject]
     );
