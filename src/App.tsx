@@ -9,7 +9,7 @@ import {NQueue} from "./server/NQueue";
 const queryClient = new QueryClient()
 
 export default function App() {
-    const context = UFDLServerContext.for_current_host("", "", localStorage, new NQueue(10));
+    const context = UFDLServerContext.for_current_host("", "", localStorage, new NQueue(5));
 
     return <div className="App fullScreen">
         <QueryClientProvider client={queryClient}>
