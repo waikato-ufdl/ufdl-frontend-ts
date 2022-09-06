@@ -12,6 +12,7 @@ import {JobTransitionMessage} from "ufdl-ts-client/types/core/jobs/job";
 import {EMPTY, Empty} from "../util/typescript/types/Empty";
 import onCompletion from "../util/typescript/async/onCompletion";
 import {forEachOwnProperty} from "../util/typescript/object";
+import {JobLog} from "./types/JobLog";
 
 export default function createJob(
     context: UFDLServerContext,
@@ -38,22 +39,36 @@ export default function createJob(
     // Always print the log on job completion
     onCompletion(
         completionPromise(jobMonitor),
-        async () => {
-            const pk = await jobPK;
+        async (result, success) => {
+            // Check whether job-creation failed
+            let pk: number | undefined = undefined
+            try {
+                pk = await jobPK;
+            } catch (e) {
+                console.error(`Error creating job '${createJobSpec.description}'`, e)
+                return
+            }
+
+            if (!success) {
+                console.error(`Error monitoring job #${pk} (${createJobSpec.description})`, result)
+            }
 
             console.group(`Job log for job #${pk}`)
 
+            let log: JobLog | undefined = undefined
             try {
-                const log = await getJobLog(context, pk)
+                log = await getJobLog(context, pk)
+            } catch (e) {
+                console.error(`Failed to get job log for job #${pk}`, e);
+            }
 
+            if (log !== undefined) {
                 forEachOwnProperty(
                     log,
                     (timestamp, obj) => {
                         console.log(timestamp, obj)
                     }
                 )
-            } catch (e) {
-                console.log(`Failed to get job log for job #${pk}`, e);
             }
 
             console.groupEnd()
