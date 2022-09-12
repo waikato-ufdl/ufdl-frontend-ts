@@ -41,3 +41,9 @@ export const DOMAIN_NAMES = [
         ([property]) => property
     )
 ]
+
+export function isDomainName(
+    str: string
+): str is DomainName {
+    return str in DOMAIN_NAMES
+}
