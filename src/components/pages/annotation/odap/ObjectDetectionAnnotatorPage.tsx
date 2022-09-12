@@ -6,7 +6,7 @@ import {
 } from "../../../../server/components/AnnotatorTopMenu";
 import useStateSafe from "../../../../util/react/hooks/useStateSafe";
 import {AnyPK, getDatasetPK} from "../../../../server/pk";
-import {DetectedObjects, NO_ANNOTATION} from "../../../../server/types/annotations";
+import {Classification, DetectedObjects, NO_ANNOTATION} from "../../../../server/types/annotations";
 import useDerivedState from "../../../../util/react/hooks/useDerivedState";
 import {DatasetItem} from "../../../../server/types/DatasetItem";
 import {Image, ImageOrVideo} from "../../../../server/types/data";
@@ -36,6 +36,13 @@ import {mapToArray} from "../../../../util/map";
 import arrayFlatten from "../../../../util/typescript/arrays/arrayFlatten";
 import {iAnnotationsToAnnotations} from "../../../../util/IAnnotations";
 import {isNotEmpty} from "../../../../util/typescript/arrays/isNotEmpty";
+import createClassificationRenderer from "../../../../server/components/classification/createClassificationRenderer";
+import {AnnotationRenderer} from "../../../../server/components/DatasetItem";
+import {DatasetDispatchItemAnnotationType} from "../../../../server/hooks/useDataset/types";
+import {Absent, Possible} from "../../../../util/typescript/types/Possible";
+import hasData from "../../../../util/react/query/hasData";
+import mapQueryResult from "../../../../util/react/query/mapQueryResult";
+import {RefetchOptions, RefetchQueryFilters} from "react-query/types/core/types";
 
 export type ODAPProps = {
     lockedPK?: AnyPK,
@@ -131,8 +138,37 @@ export default function ObjectDetectionAnnotatorPage(
         }
     )
 
-    const detectedObjectsRenderer = useDerivedState(
-        () => () => undefined,
+    const detectedObjectsRenderer: AnnotationRenderer<DatasetDispatchItemAnnotationType<DetectedObjects>> = useDerivedState(
+        () => {
+            const colours = new Map([["has", "green"], ["not", "red"], ["loading", "blue"]])
+            const classificationRenderer = createClassificationRenderer(colours, pass)
+            function mapResult(result: DatasetDispatchItemAnnotationType<DetectedObjects>): DatasetDispatchItemAnnotationType<Classification> {
+                return {
+                    ...result,
+                    data: !hasData(result) ? "loading" : result.data === NO_ANNOTATION ? "not" : "has",
+                    refetch<TPageData>(options?: RefetchOptions & RefetchQueryFilters<TPageData>) {
+                        return result.refetch(options).then(
+                            value => {
+                                return mapQueryResult(value, (value) => value === NO_ANNOTATION ? "not" : "has")
+                            }
+                        )
+                    }
+                }
+            }
+            return (
+                filename: string,
+                selected: boolean,
+                annotation: DatasetDispatchItemAnnotationType<DetectedObjects>,
+                _evalAnnotation: Possible<DatasetDispatchItemAnnotationType<DetectedObjects>>
+            ) => {
+                return classificationRenderer(
+                    filename,
+                    selected,
+                    mapResult(annotation),
+                    Absent
+                )
+            }
+        },
         []
     )
 
