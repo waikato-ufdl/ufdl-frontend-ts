@@ -17,16 +17,14 @@ export default function cancelJobTransition(
             case "Training":
             case "Evaluating":
             case "Merging Additional Images":
-                return createNewLoopState(
-                    "Selecting Initial Images",
+                return createNewLoopState("Selecting Initial Images")(
                     {
                         ...current.data,
                         targetDataset: current.data.primaryDataset
                     }
                 );
             case "Prelabel":
-                return createNewLoopState(
-                    "Selecting Prelabel Images",
+                return createNewLoopState("Selecting Prelabel Images")(
                     {
                         ...current.data,
                         targetDataset: current.data.additionDataset

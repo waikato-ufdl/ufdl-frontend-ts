@@ -22,8 +22,47 @@ import {CANCELLED} from "../../../../../server/websocket/observeJobTransitionsVi
 import {DomainName} from "../../../../../server/domains";
 import {formatResponseError} from "../../../../../server/util/responseError";
 import {ParameterValue} from "ufdl-ts-client/json/generated/CreateJobSpec";
+import {restoreLoopState, trySaveLoopState} from "./save";
+import loopStateDataConstructor from "./loopStateDataConstructor";
 
 export const LOOP_TRANSITIONS = {
+    "Initial": {
+        async [AUTOMATIC](
+            current: LoopStateAndData<"Initial">,
+            changeState: Dispatch<LoopStateTransition>
+        ) {
+            const context = current.data.context
+
+            const previousLoopState = restoreLoopState(context)
+            console.log("PREVIOUS LOOP STATE", previousLoopState)
+
+            if (previousLoopState !== undefined) {
+                changeState(
+                    (newCurrent) => {
+                        if (newCurrent !== current) return;
+
+                        return previousLoopState;
+                    }
+                )
+            } else {
+                changeState(
+                    (newCurrent) => {
+                        if (newCurrent !== current) return;
+
+                        const newState = loopStateDataConstructor("Selecting Primary Dataset")(
+                            {
+                                context: context,
+                                from: undefined
+                            }
+                        )
+                        trySaveLoopState(newState)
+                        return newState
+
+                    }
+                )
+            }
+        }
+    },
     "Selecting Primary Dataset": {
         setSelected(selection?: DatasetPK | ProjectPK | TeamPK, domain?: DomainName) {
             return (current: LoopStateAndData) => {
@@ -31,8 +70,7 @@ export const LOOP_TRANSITIONS = {
 
                 if (selection instanceof DatasetPK) {
                     if (domain === undefined) return;
-                    return createNewLoopState(
-                        "Selecting Initial Images",
+                    return createNewLoopState("Selecting Initial Images")(
                         {
                             ...current.data,
                             primaryDataset: selection,
@@ -41,13 +79,12 @@ export const LOOP_TRANSITIONS = {
                         }
                     );
                 } else {
-                    return createNewLoopState(
-                        "Selecting Primary Dataset",
+                    return createNewLoopState("Selecting Primary Dataset")(
                         {
                             ...current.data,
                             from: selection
                         }
-                    );
+                    )
                 }
             }
         },
@@ -55,13 +92,12 @@ export const LOOP_TRANSITIONS = {
             return (current: LoopStateAndData) => {
                 if (current.state !== "Selecting Primary Dataset") return;
 
-                return createNewLoopState(
-                    "Selecting Primary Dataset",
+                return createNewLoopState("Selecting Primary Dataset")(
                     {
                         ...current.data,
                         from: current.data.from instanceof ProjectPK ? current.data.from.team : undefined
                     }
-                );
+                )
             }
         }
     },
@@ -85,8 +121,7 @@ export const LOOP_TRANSITIONS = {
                     current.data.domain
                 );
 
-                return createNewLoopState(
-                    "Training",
+                return createNewLoopState("Creating Train Job")(
                     {
                         context: current.data.context,
                         primaryDataset: current.data.primaryDataset,
@@ -100,7 +135,7 @@ export const LOOP_TRANSITIONS = {
                         evalTemplatePK: evalTemplatePK,
                         evalParameters: evalParameters
                     }
-                );
+                )
             };
         },
         error(reason: any) {
@@ -125,13 +160,12 @@ export const LOOP_TRANSITIONS = {
             return (current: LoopStateAndData) => {
                 if (current.state !== "Selecting Initial Images") return;
 
-                return createNewLoopState(
-                    "Selecting Primary Dataset",
+                return createNewLoopState("Selecting Primary Dataset")(
                     {
                         context: current.data.context,
                         from: current.data.primaryDataset.project
                     }
-                );
+                )
             };
         }
     },
@@ -188,8 +222,7 @@ export const LOOP_TRANSITIONS = {
                     framework
                 );
 
-                return createNewLoopState(
-                    "Prelabel",
+                return createNewLoopState("Creating Prelabel Job")(
                     {
                         ...otherCurrent,
                         modelOutputPK: modelOutputPK,
@@ -202,7 +235,7 @@ export const LOOP_TRANSITIONS = {
                         evalTemplatePK: evalTemplatePK,
                         evalParameters: evalParameters
                     }
-                );
+                )
             };
         },
         error(reason: any) {
@@ -219,15 +252,43 @@ export const LOOP_TRANSITIONS = {
             return (current: LoopStateAndData) => {
                 if (current.state !== "Selecting Prelabel Images") return;
 
-                return createNewLoopState(
-                    "Selecting Initial Images",
+                return createNewLoopState("Selecting Initial Images")(
                     {
                         ...current.data,
                         targetDataset: current.data.primaryDataset
                     }
-                );
+                )
             };
         }
+    },
+    "Creating Train Job": {
+        async [AUTOMATIC](
+            current: LoopStateAndData<"Creating Train Job">,
+            changeState: Dispatch<LoopStateTransition>
+        ) {
+            const handleErrorResponse = createErrorResponseTransitionHandler(current, changeState);
+
+            // Make sure the job starts properly before doing anything else
+            const jobPK = await handleErrorResponse(current.data.jobPK)
+            if (jobPK === HANDLED_ERROR_RESPONSE) return;
+
+            changeState(
+                (newCurrent) => {
+                    if (newCurrent !== current) {
+                        silentlyCancelJob(current.data.context, jobPK);
+                        return;
+                    }
+
+                    return createNewLoopState("Training")(
+                        {
+                            ...current.data,
+                            jobPK: jobPK
+                        }
+                    )
+                }
+            );
+        },
+        cancel: cancelJobTransition
     },
     "Training": {
         async [AUTOMATIC](
@@ -236,8 +297,27 @@ export const LOOP_TRANSITIONS = {
         ) {
             const handleErrorResponse = createErrorResponseTransitionHandler(current, changeState);
 
-            // Make sure the job starts properly before doing anything else
-            if (await handleErrorResponse(current.data.jobPK) === HANDLED_ERROR_RESPONSE) return;
+            // Wait for the training to complete successfully
+            try {
+                await completionPromise(current.data.progress);
+            } catch (e) {
+                if (e === CANCELLED) return;
+                return tryTransitionToErrorState(current, changeState, e);
+            }
+
+            if (await hasStateChanged(current, changeState)) return;
+
+            // Get the model created by the training job
+            const modelOutputPK = await handleErrorResponse(
+                getModelOutputPK(
+                    current.data.context,
+                    current.data.jobPK,
+                    current.data.domain,
+                    current.data.framework
+                )
+            );
+
+            if (modelOutputPK === HANDLED_ERROR_RESPONSE) return;
 
             if (await hasStateChanged(current, changeState)) return;
 
@@ -250,28 +330,6 @@ export const LOOP_TRANSITIONS = {
                 silentlyCancelJob(current.data.context, current.data.jobPK);
                 return
             }
-
-            if (await hasStateChanged(current, changeState)) return;
-
-            // Wait for the training to complete successfully
-            try {
-                await completionPromise(current.data.progress);
-            } catch (e) {
-                if (e === CANCELLED) return;
-                return tryTransitionToErrorState(current, changeState, e);
-            }
-
-            // Get the model created by the training job
-            const modelOutputPK = await handleErrorResponse(
-                getModelOutputPK(
-                    current.data.context,
-                    await current.data.jobPK,
-                    current.data.domain,
-                    current.data.framework
-                )
-            );
-
-            if (modelOutputPK === HANDLED_ERROR_RESPONSE) return;
 
             if (await hasStateChanged(current, changeState)) return;
 
@@ -293,8 +351,7 @@ export const LOOP_TRANSITIONS = {
                         return;
                     }
 
-                    return createNewLoopState(
-                        "Evaluating",
+                    return createNewLoopState("Creating Evaluate Job")(
                         {
                             ...current.data,
                             evaluationDataset: evaluationDataset,
@@ -302,22 +359,42 @@ export const LOOP_TRANSITIONS = {
                             progress: progress,
                             jobPK: jobPK
                         }
-                    );
+                    )
                 }
             );
         },
         cancel: cancelJobTransition
+    },
+    "Creating Evaluate Job": {
+        async [AUTOMATIC](
+            current: LoopStateAndData<"Creating Evaluate Job">,
+            changeState: Dispatch<LoopStateTransition>
+        ) {
+            const handleErrorResponse = createErrorResponseTransitionHandler(current, changeState);
+
+            // Make sure the job starts properly before doing anything else
+            const jobPK = await handleErrorResponse(current.data.jobPK)
+            if (jobPK === HANDLED_ERROR_RESPONSE) return;
+
+            changeState(
+                (newCurrent) => {
+                    if (newCurrent !== current) return;
+
+                    return createNewLoopState("Evaluating")(
+                        {
+                            ...current.data,
+                            jobPK: jobPK
+                        }
+                    )
+                }
+            );
+        }
     },
     "Evaluating": {
         async [AUTOMATIC](
             current: LoopStateAndData<"Evaluating">,
             changeState: Dispatch<LoopStateTransition>
         ) {
-            const handleErrorResponse = createErrorResponseTransitionHandler(current, changeState);
-
-            // Make sure the job starts properly before doing anything else
-            if (await handleErrorResponse(current.data.jobPK) === HANDLED_ERROR_RESPONSE) return;
-
             // Wait for the training to complete successfully
             try {
                 await completionPromise(current.data.progress);
@@ -330,10 +407,7 @@ export const LOOP_TRANSITIONS = {
                 (newCurrent) => {
                     if (newCurrent !== current) return;
 
-                    return createNewLoopState(
-                        "Checking",
-                        current.data
-                    );
+                    return createNewLoopState("Checking")(current.data);
                 }
             );
         },
@@ -344,16 +418,14 @@ export const LOOP_TRANSITIONS = {
             return (current: LoopStateAndData) => {
                 if (current.state !== "Checking") return;
                 if (isGoodEnough) {
-                    return createNewLoopState(
-                        "Finished",
+                    return createNewLoopState("Finished")(
                         {
                             context: current.data.context,
                             modelOutputPK: current.data.modelOutputPK
                         }
                     )
                 } else {
-                    return createNewLoopState(
-                        "Creating Addition Dataset",
+                    return createNewLoopState("Creating Addition Dataset")(
                         {
                             ...current.data,
                             additionDataset: copyDataset(
@@ -377,11 +449,35 @@ export const LOOP_TRANSITIONS = {
                 );
             }
         },
+        reevaluate() {
+            return (current: LoopStateAndData) => {
+                if (current.state !== "Checking") return;
+
+                // Create the evaluation job
+                const [jobPK, progress] = evaluate(
+                    current.data.context,
+                    current.data.evalTemplatePK,
+                    current.data.evaluationDataset,
+                    current.data.modelOutputPK,
+                    current.data.evalParameters,
+                    current.data.domain,
+                    current.data.framework
+                );
+
+                return createNewLoopState("Creating Evaluate Job")(
+                    {
+                        ...current.data,
+                        jobPK,
+                        progress
+                    }
+                )
+            };
+        },
         back() {
             return (current: LoopStateAndData) => {
                 if (current.state !== "Checking") return;
-                return createNewLoopState(
-                    "Selecting Initial Images",
+
+                return createNewLoopState("Selecting Initial Images")(
                     {
                         ...current.data,
                         targetDataset: current.data.primaryDataset
@@ -405,8 +501,7 @@ export const LOOP_TRANSITIONS = {
                 (newCurrent) => {
                     if (newCurrent !== current) return;
 
-                    return createNewLoopState(
-                        "Selecting Prelabel Images",
+                    return createNewLoopState("Selecting Prelabel Images")(
                         {
                             ...current.data,
                             targetDataset: targetDataset
@@ -415,6 +510,32 @@ export const LOOP_TRANSITIONS = {
                 }
             );
         }
+    },
+    "Creating Prelabel Job": {
+        async [AUTOMATIC](
+            current: LoopStateAndData<"Creating Prelabel Job">,
+            changeState: Dispatch<LoopStateTransition>
+        ) {
+            const handleErrorResponse = createErrorResponseTransitionHandler(current, changeState);
+
+            // Make sure the job starts properly before doing anything else
+            const jobPK = await handleErrorResponse(current.data.jobPK)
+            if (jobPK === HANDLED_ERROR_RESPONSE) return;
+
+            changeState(
+                (newCurrent) => {
+                    if (newCurrent !== current) return;
+
+                    return createNewLoopState("Prelabel")(
+                        {
+                            ...current.data,
+                            jobPK
+                        }
+                    );
+                }
+            );
+        },
+        cancel: cancelJobTransition
     },
     "Prelabel": {
         async [AUTOMATIC](
@@ -433,8 +554,7 @@ export const LOOP_TRANSITIONS = {
                 (newCurrent) => {
                     if (newCurrent !== current) return;
 
-                    return createNewLoopState(
-                        "User Fixing Categories",
+                    return createNewLoopState("User Fixing Categories")(
                         current.data
                     );
                 }
@@ -447,8 +567,7 @@ export const LOOP_TRANSITIONS = {
             return (current: LoopStateAndData) => {
                 if (current.state !== "User Fixing Categories") return;
 
-                return createNewLoopState(
-                    "Merging Additional Images",
+                return createNewLoopState("Merging Additional Images")(
                     {
                         ...current.data,
                         mergeJobPK: merge(
@@ -465,8 +584,7 @@ export const LOOP_TRANSITIONS = {
             return (current: LoopStateAndData) => {
                 if (current.state !== "User Fixing Categories") return;
 
-                return createNewLoopState(
-                    "Selecting Prelabel Images",
+                return createNewLoopState("Selecting Prelabel Images")(
                     {
                         ...current.data,
                         targetDataset: current.data.additionDataset
@@ -501,8 +619,7 @@ export const LOOP_TRANSITIONS = {
                         return;
                     }
 
-                    return createNewLoopState(
-                        "Training",
+                    return createNewLoopState("Creating Train Job")(
                         {
                             ...current.data,
                             jobPK: pk,
@@ -527,8 +644,7 @@ export const LOOP_TRANSITIONS = {
         },
         reset() {
             return (current: LoopStateAndData) => {
-                return createNewLoopState(
-                    "Selecting Primary Dataset",
+                return createNewLoopState("Selecting Primary Dataset")(
                     {
                         context: current.data.context,
                         from: undefined
@@ -540,8 +656,7 @@ export const LOOP_TRANSITIONS = {
     "Error": {
         reset() {
             return (current: LoopStateAndData) => {
-                return createNewLoopState(
-                    "Selecting Primary Dataset",
+                return createNewLoopState("Selecting Primary Dataset")(
                     {
                         context: current.data.context,
                         from: undefined

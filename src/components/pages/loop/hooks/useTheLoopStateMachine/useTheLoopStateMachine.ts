@@ -13,8 +13,8 @@ export default function useTheLoopStateMachine(
         constantInitialiser(LOOP_TRANSITIONS),
         () => {
             return {
-                state: "Selecting Primary Dataset",
-                data: {context: context, from: undefined}
+                state: "Initial",
+                data: {context: context}
             }
         }
     );

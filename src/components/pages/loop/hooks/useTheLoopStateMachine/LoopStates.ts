@@ -3,8 +3,12 @@ import {DatasetPK, ProjectPK, TeamPK} from "../../../../../server/pk";
 import {BehaviorSubject} from "rxjs";
 import {DomainName} from "../../../../../server/domains";
 import {ParameterValue} from "../../../../../../../ufdl-ts-client/dist/json/generated/CreateJobSpec";
+import {ValidStates} from "../../../../../util/react/hooks/useStateMachine/types";
 
-export type LoopStates = {
+export type LoopStates = ValidStates<{
+    "Initial": {
+        context: UFDLServerContext
+    }
     "Selecting Primary Dataset": {
         context: UFDLServerContext
         from: TeamPK | ProjectPK | undefined
@@ -28,7 +32,7 @@ export type LoopStates = {
         evalTemplatePK: number
         evalParameters: { [name: string]: ParameterValue }
     }
-    "Training": {
+    "Creating Train Job": {
         context: UFDLServerContext
         primaryDataset: DatasetPK
         jobPK: Promise<number>
@@ -41,10 +45,38 @@ export type LoopStates = {
         evalTemplatePK: number
         evalParameters: { [name: string]: ParameterValue }
     }
-    "Evaluating": {
+    "Training": {
+        context: UFDLServerContext
+        primaryDataset: DatasetPK
+        jobPK: number
+        progress: BehaviorSubject<number>
+        domain: DomainName
+        framework: [string, string]
+        modelType: string
+        trainTemplatePK: number
+        trainParameters: { [name: string]: ParameterValue }
+        evalTemplatePK: number
+        evalParameters: { [name: string]: ParameterValue }
+    }
+    "Creating Evaluate Job": {
         context: UFDLServerContext
         primaryDataset: DatasetPK
         jobPK: Promise<number>
+        progress: BehaviorSubject<number>
+        evaluationDataset: DatasetPK
+        modelOutputPK: number
+        domain: DomainName
+        framework: [string, string]
+        modelType: string
+        trainTemplatePK: number
+        trainParameters: { [name: string]: ParameterValue }
+        evalTemplatePK: number
+        evalParameters: { [name: string]: ParameterValue }
+    }
+    "Evaluating": {
+        context: UFDLServerContext
+        primaryDataset: DatasetPK
+        jobPK: number
         progress: BehaviorSubject<number>
         evaluationDataset: DatasetPK
         modelOutputPK: number
@@ -82,12 +114,27 @@ export type LoopStates = {
         evalTemplatePK: number
         evalParameters: { [name: string]: ParameterValue }
     }
-    "Prelabel": {
+    "Creating Prelabel Job": {
         context: UFDLServerContext
         primaryDataset: DatasetPK
         modelOutputPK: number
         additionDataset: DatasetPK
         jobPK: Promise<number>
+        progress: BehaviorSubject<number>
+        domain: DomainName
+        framework: [string, string]
+        modelType: string
+        trainTemplatePK: number
+        trainParameters: { [name: string]: ParameterValue }
+        evalTemplatePK: number
+        evalParameters: { [name: string]: ParameterValue }
+    }
+    "Prelabel": {
+        context: UFDLServerContext
+        primaryDataset: DatasetPK
+        modelOutputPK: number
+        additionDataset: DatasetPK
+        jobPK: number
         progress: BehaviorSubject<number>
         domain: DomainName
         framework: [string, string]
@@ -131,4 +178,4 @@ export type LoopStates = {
         context: UFDLServerContext
         reason: any
     }
-}
+}>

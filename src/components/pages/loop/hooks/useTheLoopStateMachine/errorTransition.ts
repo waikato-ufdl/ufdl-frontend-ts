@@ -14,8 +14,7 @@ export function createErrorState(
     context: UFDLServerContext,
     reason: any
 ): ErrorStateAndData {
-    return createNewLoopState(
-        "Error",
+    return createNewLoopState("Error")(
         {
             context: context,
             reason: reason

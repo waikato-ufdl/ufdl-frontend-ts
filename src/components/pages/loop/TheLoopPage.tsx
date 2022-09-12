@@ -15,8 +15,9 @@ import {ClassColours} from "../../../server/util/classification";
 import SelectTemplateModal from "./SelectTemplateModal";
 import {JobTemplateInstance} from "ufdl-ts-client/types/core/jobs/job_template";
 import * as job_template from "ufdl-ts-client/functional/core/jobs/job_template"
-import {ParameterValue} from "../../../../../ufdl-ts-client/dist/json/generated/CreateJobSpec";
+import {ParameterValue} from "ufdl-ts-client/json/generated/CreateJobSpec";
 import LoopAnnotatorPage from "./LoopAnnotatorPage";
+import {isAllowedStateAndData} from "../../../util/react/hooks/useStateMachine/isAllowedState";
 
 
 const FRAMEWORK_REGEXP = /^Framework<'(.*)', '(.*)'>$/
@@ -47,6 +48,8 @@ export default function TheLoopPage(
     const [modelType, setModelType] = useStateSafe<string | undefined>(constantInitialiser(undefined))
 
     switch (stateMachine.state) {
+        case "Initial":
+            return <div></div>
         case "Selecting Primary Dataset":
             return <SelectDatasetPage
                 onDatasetSelected={stateMachine.transitions.setSelected}
@@ -176,21 +179,39 @@ export default function TheLoopPage(
                 />
             </>;
 
+        case "Creating Evaluate Job":
+        case "Creating Train Job":
+        case "Creating Prelabel Job":
         case "Merging Additional Images":
         case "Training":
         case "Evaluating":
         case "Prelabel":
-            let progress = stateMachine.state === "Merging Additional Images" ?
-                    0.0 :
-                    tryGetBehaviourSubjectValue(
-                        stateMachine.data.progress,
-                        constantInitialiser(0.0)
-                    );
+            const progress = isAllowedStateAndData(
+                stateMachine,
+                "Training",
+                "Evaluating",
+                "Prelabel"
+            ) ?
+                tryGetBehaviourSubjectValue(
+                    stateMachine.data.progress,
+                    constantInitialiser(0.0)
+                )
+                : 0.0
+
+            const onCancel = isAllowedStateAndData(
+                stateMachine,
+                "Training",
+                "Evaluating",
+                "Prelabel",
+                "Merging Additional Images"
+            ) ?
+                stateMachine.transitions.cancel
+                : () => undefined
 
             return <WorkingPage
                 title={stateMachine.state}
                 progress={progress}
-                onCancel={stateMachine.transitions.cancel}
+                onCancel={onCancel}
             />;
 
         case "Checking":
@@ -206,7 +227,7 @@ export default function TheLoopPage(
                     context={ufdlServerContext}
                     setSelectableTemplates={setSelectableTemplates}
                     templateModal={refineOrDoneModal}
-                    onBack={stateMachine.transitions.back}
+                    onBack={stateMachine.transitions.reevaluate}
                     onError={stateMachine.transitions.error}
                 />
                 <RefineOrDoneModal

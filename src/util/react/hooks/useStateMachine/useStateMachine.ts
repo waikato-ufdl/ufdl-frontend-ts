@@ -5,7 +5,7 @@ import {
     StateAndData,
     StatesBase,
     StatesTransitionsBase,
-    StatesTransitionsDispatch, StateTransition, StateMachineReducer, StateMachineReducerState
+    StatesTransitionsDispatch, StateTransition, StateMachineReducer, StateMachineReducerState, ValidStates
 } from "./types";
 import useDerivedState from "../useDerivedState";
 import {AUTOMATIC} from "./AUTOMATIC";
@@ -43,7 +43,7 @@ export default function useStateMachine<
     );
 
     // Get the transitions that apply to the current state of the state machine
-    const transitionsForCurrentState = transitions[state.state.state as keyof States];
+    const transitionsForCurrentState = transitions[state.state.state];
 
     // Create an object which can be used to trigger any of the manual
     // transitions of the state machine
@@ -53,8 +53,8 @@ export default function useStateMachine<
                 transitionsForCurrentState,
                 {
                     get(
-                        target: StatesTransitions[keyof States],
-                        p: keyof StatesTransitions[keyof States]
+                        target: StatesTransitions[keyof ValidStates<States>],
+                        p: keyof StatesTransitions[keyof ValidStates<States>]
                     ): any {
                         // The automatic transition is not available on the external dispatch
                         if (p === AUTOMATIC) return undefined;
@@ -62,7 +62,7 @@ export default function useStateMachine<
                         return (...args: any) => dispatch(target[p](...args))
                     }
                 }
-            ) as StatesTransitionsDispatch<States, StatesTransitions>[keyof States]
+            ) as StatesTransitionsDispatch<States, StatesTransitions>[keyof ValidStates<States>]
         },
         [state] as const
     );

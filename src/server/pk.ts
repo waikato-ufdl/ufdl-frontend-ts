@@ -26,6 +26,13 @@ export class TeamPK {
         else
             return undefined
     }
+
+    toJSON() {
+        return {
+            type: "TeamPK",
+            asNumber: this.asNumber
+        }
+    }
 }
 
 @memoInstances
@@ -52,6 +59,14 @@ export class ProjectPK {
         else
             return this.team.commonBase(pk)
     }
+
+    toJSON() {
+        return {
+            type: "ProjectPK",
+            asNumber: this.asNumber,
+            team: this.team.toJSON()
+        }
+    }
 }
 
 @memoInstances
@@ -71,6 +86,29 @@ export class DatasetPK {
         else
             return this.project.commonBase(pk)
     }
+
+    toJSON() {
+        return {
+            type: "DatasetPK",
+            asNumber: this.asNumber,
+            project: this.project.toJSON()
+        }
+    }
+}
+
+export function fromJSON(
+    json: any
+): AnyPK {
+    if (json === undefined) return undefined
+    switch (json.type) {
+        case "DatasetPK":
+            return new DatasetPK(json['project'] as ProjectPK, json['asNumber']);
+        case "ProjectPK":
+            return new ProjectPK(json['team'] as TeamPK, json['asNumber']);
+        case "TeamPK":
+            return new TeamPK(json['asNumber']);
+    }
+    return undefined
 }
 
 export function getCommonBasePK(
