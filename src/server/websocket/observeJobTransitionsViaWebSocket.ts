@@ -9,7 +9,10 @@ export const CANCELLED = Symbol("The job was cancelled");
 export const WEB_SOCKET_CLOSED_UNEXPECTEDLY = Symbol("The web-socket closed without warning");
 
 export class WebSocketError {
-    constructor(public readonly event: Event) {}
+    constructor(
+        public readonly closeEvent: CloseEvent,
+        public readonly errorEvent: Event | typeof WEB_SOCKET_CLOSED_UNEXPECTEDLY
+    ) {}
 }
 
 /**
@@ -60,13 +63,21 @@ function createJobTransitionHandlers(
  *          The subscriber to finalise.
  * @param manuallyClosed
  *          Whether the websocket was asked to close client-side.
+ * @param closeEvent
+ *          The event that closed the web-socket.
+ * @param errorEvent
+ *          The preceding error event, if any.
  */
 function finaliseSubscriberOnWebsocketClose(
     subscriber: Subscriber<JobTransitionMessage>,
-    manuallyClosed: boolean
+    manuallyClosed: boolean,
+    closeEvent: CloseEvent,
+    errorEvent: Event | undefined
 ) {
-    if (!manuallyClosed)
-        subscriber.error(WEB_SOCKET_CLOSED_UNEXPECTEDLY);
+    if (errorEvent !== undefined)
+        subscriber.error(new WebSocketError(closeEvent, errorEvent))
+    else if (!manuallyClosed)
+        subscriber.error(new WebSocketError(closeEvent, WEB_SOCKET_CLOSED_UNEXPECTEDLY));
     else if (!subscriber.closed)
         subscriber.complete();
 }
@@ -94,12 +105,15 @@ export default function observeJobTransitionsViaWebSocket(
         (subscriber) => {
             const handlers = createJobTransitionHandlers(subscriber, errorOnError, errorOnCancel)
 
+            let errorEvent: Event | undefined = undefined
+
             Job.connect_to_job(
                 context,
                 jobPK,
                 handlers,
-                (manuallyClosed) => finaliseSubscriberOnWebsocketClose(subscriber, manuallyClosed),
-                (event) => subscriber.error(new WebSocketError(event))
+                (event, manuallyClosed) =>
+                    finaliseSubscriberOnWebsocketClose(subscriber, manuallyClosed, event, errorEvent),
+                (event) => { errorEvent = event }
             );
         }
     )
