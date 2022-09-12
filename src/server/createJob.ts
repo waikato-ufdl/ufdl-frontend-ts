@@ -28,6 +28,14 @@ export default function createJob(
         throwOnError
     );
 
+    return [jobPK, monitorJob(jobPK, createJobSpec.description, context)];
+}
+
+export function monitorJob(
+    jobPK: Promise<number>,
+    description: string | undefined,
+    context: UFDLServerContext
+) {
     // Create a behaviour subject to monitor the job's progress
     const jobMonitor = behaviourSubjectFromSubscribable<JobTransitionMessage | Empty>(
         immediateObservable(
@@ -45,12 +53,12 @@ export default function createJob(
             try {
                 pk = await jobPK;
             } catch (e) {
-                console.error(`Error creating job '${createJobSpec.description}'`, e)
+                console.error(`Error creating job '${description}'`, e)
                 return
             }
 
             if (!success) {
-                console.error(`Error monitoring job #${pk} (${createJobSpec.description})`, result)
+                console.error(`Error monitoring job #${pk} (${description})`, result)
             }
 
             console.group(`Job log for job #${pk}`)
@@ -75,5 +83,5 @@ export default function createJob(
         }
     );
 
-    return [jobPK, jobMonitor];
+    return jobMonitor
 }
