@@ -3,7 +3,6 @@ import {UFDL_SERVER_REACT_CONTEXT} from "../../../server/UFDLServerContextProvid
 import useStateSafe from "../../../util/react/hooks/useStateSafe";
 import SelectDatasetPage from "../SelectDatasetPage";
 import {FunctionComponentReturnType} from "../../../util/react/types";
-import ImageClassificationAnnotatorPage from "../annotation/icap/ImageClassificationAnnotatorPage";
 import Page from "../Page";
 import useTheLoopStateMachine from "./hooks/useTheLoopStateMachine/useTheLoopStateMachine";
 import WorkingPage from "./WorkingPage";
@@ -72,7 +71,7 @@ export default function TheLoopPage(
                     setClassColours={setClassColours}
                     context={ufdlServerContext}
                     setSelectableTemplates={setSelectableTemplates}
-                    templateModal={trainConfigureModal}
+                    onNext={trainConfigureModal.show}
                     onBack={stateMachine.transitions.back}
                     onError={stateMachine.transitions.error}
                 />
@@ -164,7 +163,7 @@ export default function TheLoopPage(
                     setClassColours={setClassColours}
                     context={ufdlServerContext}
                     setSelectableTemplates={setSelectableTemplates}
-                    templateModal={evalConfigureModal}
+                    onNext={evalConfigureModal.show}
                     onBack={stateMachine.transitions.back}
                     onError={stateMachine.transitions.error}
                 />
@@ -226,7 +225,7 @@ export default function TheLoopPage(
                     setClassColours={setClassColours}
                     context={ufdlServerContext}
                     setSelectableTemplates={setSelectableTemplates}
-                    templateModal={refineOrDoneModal}
+                    onNext={refineOrDoneModal.show}
                     onBack={stateMachine.transitions.reevaluate}
                     onError={stateMachine.transitions.error}
                 />
@@ -244,16 +243,20 @@ export default function TheLoopPage(
             </Page>;
 
         case "User Fixing Categories":
-            return <ImageClassificationAnnotatorPage
-                lockedPK={stateMachine.data.additionDataset}
-                initialColours={classColours}
+            return <LoopAnnotatorPage
+                domain={stateMachine.data.domain}
+                targetDataset={stateMachine.data.additionDataset}
+                evalDatasetPK={undefined}
                 nextLabel={"Accept"}
-                onNext={(_, __, labelColours) => {
-                    setClassColours(labelColours);
-                    stateMachine.transitions.finishedFixing();
-                }}
+                contract={undefined}
+                classColours={classColours}
+                setClassColours={setClassColours}
+                context={ufdlServerContext}
+                setSelectableTemplates={() => {}}
+                onNext={stateMachine.transitions.finishedFixing}
                 onBack={stateMachine.transitions.back}
-            />;
+                onError={stateMachine.transitions.error}
+            />
 
         case "Finished":
             return <Page>

@@ -591,7 +591,17 @@ export const LOOP_TRANSITIONS = {
                     }
                 )
             };
-        }
+        },
+        error(reason: any) {
+            return (current: LoopStateAndData) => {
+                if (current.state !== "User Fixing Categories") return;
+
+                return createErrorState(
+                    current.data.context,
+                    reason
+                );
+            }
+        },
     },
     "Merging Additional Images": {
         async [AUTOMATIC](

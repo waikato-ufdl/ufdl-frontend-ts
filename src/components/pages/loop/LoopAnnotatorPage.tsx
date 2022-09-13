@@ -8,7 +8,6 @@ import {DatasetPK} from "../../../server/pk";
 import {ClassColours} from "../../../server/util/classification";
 import UFDLServerContext from "../../../../../ufdl-ts-client/dist/UFDLServerContext";
 import {JobTemplateInstance} from "../../../../../ufdl-ts-client/dist/types/core/jobs/job_template";
-import {LocalModalDispatch} from "../../../util/react/hooks/useLocalModal";
 
 export type LoopAnnotatorPageProps = {
     domain: DomainName
@@ -20,7 +19,7 @@ export type LoopAnnotatorPageProps = {
     setClassColours: Dispatch<ClassColours>
     context: UFDLServerContext
     setSelectableTemplates: Dispatch<JobTemplateInstance[]>
-    templateModal: LocalModalDispatch
+    onNext: (x: number, y: number) => void
     onBack: () => void
     onError: (reason: any) => void
 }
@@ -47,7 +46,7 @@ export default function LoopAnnotatorPage(
                         ).then(
                             props.setSelectableTemplates
                         ).catch(props.onError)
-                    props.templateModal.show(...position);
+                    props.onNext(...position);
                 }}
                 onBack={props.onBack}
             />
@@ -65,7 +64,7 @@ export default function LoopAnnotatorPage(
                         ).then(
                             props.setSelectableTemplates
                         ).catch(props.onError)
-                    props.templateModal.show(...position);
+                    props.onNext(...position);
                 }}
                 onBack={props.onBack}
             />
