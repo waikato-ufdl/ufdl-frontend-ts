@@ -2,16 +2,28 @@ import {Dispatch} from "react";
 import useStateSafe from "./useStateSafe";
 import useDerivedState from "./useDerivedState";
 
-export class ArrayStateDispatch<T> extends Array<T> implements Array<T> {
+export class ArrayStateDispatch<T> extends Array<T> {
+
+    private readonly _dispatch?: Dispatch<Array<T>>
+
+    constructor(arrayLength: number);
+    constructor(...items: T[]);
+    constructor(dispatch: Dispatch<Array<T>>, ...items: T[]);
     constructor(
-        _state: Array<T>,
-        private readonly _dispatch: Dispatch<Array<T>>
+        first: number | T | Dispatch<Array<T>>,
+        ...others: T[]
     ) {
-        super(..._state)
+        if (typeof first === "number")
+            super(first)
+        else if (typeof first === "function") {
+            super(...others)
+            this._dispatch = first as Dispatch<T[]>
+        } else
+            super(first, ...others)
     }
 
     private refresh() {
-        this._dispatch([...this])
+        if (this._dispatch !== undefined) this._dispatch([...this])
     }
 
     copyWithin(target: number, start: number, end?: number): this {
@@ -80,7 +92,7 @@ export default function useArrayState<T>(
     const [state, setState] = useStateSafe<T[]>(() => [])
 
     return useDerivedState(
-        ([state, setState]) => new ArrayStateDispatch<T>(state, setState),
+        ([state, setState]) => new ArrayStateDispatch<T>(setState, ...state),
         [state, setState] as const
     )
 }
