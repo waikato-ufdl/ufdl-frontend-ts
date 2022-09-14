@@ -36,7 +36,7 @@ export type LoopStates = ValidStates<{
         context: UFDLServerContext
         primaryDataset: DatasetPK
         jobPK: Promise<number>
-        progress: BehaviorSubject<number>
+        progress: BehaviorSubject<[number, string | undefined]>
         domain: DomainName
         framework: [string, string]
         modelType: string
@@ -49,7 +49,7 @@ export type LoopStates = ValidStates<{
         context: UFDLServerContext
         primaryDataset: DatasetPK
         jobPK: number
-        progress: BehaviorSubject<number>
+        progress: BehaviorSubject<[number, string | undefined]>
         domain: DomainName
         framework: [string, string]
         modelType: string
@@ -62,7 +62,7 @@ export type LoopStates = ValidStates<{
         context: UFDLServerContext
         primaryDataset: DatasetPK
         jobPK: Promise<number>
-        progress: BehaviorSubject<number>
+        progress: BehaviorSubject<[number, string | undefined]>
         evaluationDataset: DatasetPK
         modelOutputPK: number
         domain: DomainName
@@ -77,7 +77,7 @@ export type LoopStates = ValidStates<{
         context: UFDLServerContext
         primaryDataset: DatasetPK
         jobPK: number
-        progress: BehaviorSubject<number>
+        progress: BehaviorSubject<[number, string | undefined]>
         evaluationDataset: DatasetPK
         modelOutputPK: number
         domain: DomainName
@@ -120,7 +120,7 @@ export type LoopStates = ValidStates<{
         modelOutputPK: number
         additionDataset: DatasetPK
         jobPK: Promise<number>
-        progress: BehaviorSubject<number>
+        progress: BehaviorSubject<[number, string | undefined]>
         domain: DomainName
         framework: [string, string]
         modelType: string
@@ -135,7 +135,7 @@ export type LoopStates = ValidStates<{
         modelOutputPK: number
         additionDataset: DatasetPK
         jobPK: number
-        progress: BehaviorSubject<number>
+        progress: BehaviorSubject<[number, string | undefined]>
         domain: DomainName
         framework: [string, string]
         modelType: string

@@ -15,7 +15,7 @@ export default function evaluate(
     parameter_values: { [name: string]: ParameterValue },
     domain: DomainName,
     framework: [string, string]
-): [Promise<number>, BehaviorSubject<number>] {
+): [Promise<number>, BehaviorSubject<[number, string | undefined]>] {
     const createJobSpec: CreateJobSpec = {
         description: `Evaluate-job created for ${domain} dataset ${datasetPK.asNumber}`,
         input_values: {

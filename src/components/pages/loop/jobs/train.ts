@@ -15,7 +15,7 @@ export default function train(
     domain: DomainName
 ): [
     Promise<number>,
-    BehaviorSubject<number>
+    BehaviorSubject<[number, string | undefined]>
 ] {
     const createJobSpec: CreateJobSpec = {
         description: `Train-job created for ${domain} dataset ${pk.asNumber}`,

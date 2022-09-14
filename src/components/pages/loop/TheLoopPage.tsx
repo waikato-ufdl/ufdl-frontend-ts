@@ -8,7 +8,6 @@ import useTheLoopStateMachine from "./hooks/useTheLoopStateMachine/useTheLoopSta
 import WorkingPage from "./WorkingPage";
 import {constantInitialiser} from "../../../util/typescript/initialisers";
 import RefineOrDoneModal from "./RefineOrDoneModal";
-import tryGetBehaviourSubjectValue from "../../../util/rx/tryGetBehaviourSubjectValue";
 import useLocalModal from "../../../util/react/hooks/useLocalModal";
 import {ClassColours} from "../../../server/util/classification";
 import SelectTemplateModal from "./SelectTemplateModal";
@@ -191,10 +190,7 @@ export default function TheLoopPage(
                 "Evaluating",
                 "Prelabel"
             ) ?
-                tryGetBehaviourSubjectValue(
-                    stateMachine.data.progress,
-                    constantInitialiser(0.0)
-                )
+                stateMachine.data.progress
                 : 0.0
 
             const onCancel = isAllowedStateAndData(
