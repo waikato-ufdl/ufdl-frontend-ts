@@ -24,13 +24,16 @@ export default async function getVideoStats(
     // Create a dummy video element
     const dummyVideoElement = document.createElement("video")
 
+    // Create a promise to await the loading of the video's metadata
     const loaded = loadedAwaitable(dummyVideoElement, identity, "onloadedmetadata")
 
-    // Add a URL to the file-data
+    // Add a URL to the file-data to trigger loading
     dummyVideoElement.src = URL.createObjectURL(videoFile)
 
+    // Await the meta-data to finish loading
     await loaded
 
+    // Interrogate the dummy element for the video's stats (now they are loaded)
     return {
         width: dummyVideoElement.videoWidth,
         height: dummyVideoElement.videoHeight,
