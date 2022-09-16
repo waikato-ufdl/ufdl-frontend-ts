@@ -14,6 +14,7 @@ import {Reducer} from "react";
 import "./SubmitCancelVideoAnnotation.css"
 import {identity} from "../../identity";
 import {anyToString} from "../../typescript/strings/anyToString";
+import useStateSafe from "../hooks/useStateSafe";
 
 export type SubmitCancelVideoAnnotationProps = Omit<SubmitCancelPictureAnnotationProps, "annotationData" | "onChange" | "image" | "onSubmit"> & {
     annotationData?: ReadonlyMap<number, IAnnotation[]>
@@ -22,8 +23,18 @@ export type SubmitCancelVideoAnnotationProps = Omit<SubmitCancelPictureAnnotatio
     onSubmit: (annotationData: ReadonlyMap<number, IAnnotation[]>) => void
 }
 
-/** Reducer which simply joins the items from the action into the state. */
-const ANNOTATIONS_MAP_REDUCER: Reducer<ReadonlyMap<number, IAnnotation[]>, readonly [number, IAnnotation[]]> = spreadJoinMaps
+/** Reducer which joins the items from the action into the state. */
+const ANNOTATIONS_MAP_REDUCER: Reducer<ReadonlyMap<number, IAnnotation[]>, readonly [number, IAnnotation[]]> =
+    (state, [frametime, annotations]) => {
+        // If the annotations are empty, remove the frametime from the map
+        if (annotations.length === 0) {
+            const result = spreadJoinMaps(state)
+            result.delete(frametime)
+            return result
+        }
+
+        return spreadJoinMaps(state, [frametime, annotations])
+    }
 
 /**
  * Initialiser which initialises to the given dependency map, or to an empty
@@ -131,6 +142,9 @@ export function SubmitCancelVideoAnnotation(
     const frameURL = usePromise(
         useDerivedState(
             ([videoElement, frameCache, frametime]) => {
+                // Seek the video to the current frame-time
+                videoElement.currentTime = frametime
+
                 return mapGetDefault(
                     frameCache,
                     frametime,
@@ -160,7 +174,7 @@ export function SubmitCancelVideoAnnotation(
     // Create a range element to control the frame time, or a message to display the error if
     // one occurred
     const [status, element] = useDerivedState(
-        ([videoStats, frametime, setFrameTime, videoElement, annotationsMap]) => {
+        ([videoStats, frametime, setFrameTime, annotationsMap]) => {
             // If an error occurred while getting the video stats, just display it
             if (videoStats.status === "rejected") {
                 return [
@@ -183,10 +197,7 @@ export function SubmitCancelVideoAnnotation(
                     max={videoStats.status === "resolved" ? videoStats.value.length : 100.0}
                     value={frametime}
                     step={1/24}
-                    onChange={asChangeEventHandler((t) => {
-                        setFrameTime(t)
-                        videoElement.currentTime = t
-                    }, Number.parseFloat)}
+                    onChange={asChangeEventHandler(setFrameTime, Number.parseFloat)}
                     disabled={videoStats.status === "pending"}
                     list={"annotation_marks"}
                 />
@@ -198,7 +209,49 @@ export function SubmitCancelVideoAnnotation(
 
             return [videoStats.status, element]
         },
-        [videoStats, frametime, setFrameTime, videoElement, annotationsMap] as const
+        [videoStats, frametime, setFrameTime, annotationsMap] as const
+    )
+
+    // Sort the frame-times of the annotated frames for display in a multi-select
+    const sortedAnnotatedFrameTimes = useDerivedState(
+        (annotatedFrames) => [...annotatedFrames].sort(),
+        [...annotationsMap.keys()]
+    )
+
+    // Keep track of which frame-times the user has multi-selected
+    const [selectedFrameTimes, setSelectedFrameTimes] = useStateSafe<readonly string[]>(constantInitialiser([]))
+
+    // Create an on-change handler for updating the selected frame-times when the
+    // user interacts with the multi-select
+    const selectedFramesHandler = useDerivedState(
+        ([setSelectedFrameTimes]) =>
+            (event: React.ChangeEvent<HTMLSelectElement>) => {
+                const selectedFrameTimes: string[] = []
+                for (const frameTimeOption of event.target.selectedOptions) {
+                    selectedFrameTimes.push(frameTimeOption.value)
+                }
+                setSelectedFrameTimes(selectedFrameTimes)
+            },
+        [setSelectedFrameTimes] as const
+    )
+
+    // Create a key-press handler which removes the annotations for the multi-selected
+    // frames whenever the user presses delete or backspace
+    const keyPressHandler = useDerivedState(
+        ([selectedFrameTimes, setSelectedFrameTimes, setAnnotationsForFrame]) =>
+            (event: React.KeyboardEvent<HTMLSelectElement>) => {
+                // Abort if not delete or backspace pressed
+                if (event.key !== "Delete" && event.key !== "Backspace") return
+
+                // Clear the annotations for all selected frame-times
+                for (const frameTime of selectedFrameTimes) {
+                    setAnnotationsForFrame([Number.parseFloat(frameTime), []])
+                }
+
+                // Clear the list of selected frame-times
+                setSelectedFrameTimes([])
+        },
+        [selectedFrameTimes, setSelectedFrameTimes, setAnnotationsForFrame] as const
     )
 
     // If getting the video stats errored, just display the error
@@ -215,7 +268,32 @@ export function SubmitCancelVideoAnnotation(
     if (frameURLBuffered === "" && frameURL.status === "pending")
         return <>{element}</>
 
-    // Display the annotator for the frame, along with the frame-time slider
+    // Create the multi-select with an option for each annotated frame-time
+    const frameDropDown = <select
+        className={"FrameMultiSelect"}
+        value={selectedFrameTimes}
+        onChange={selectedFramesHandler}
+        multiple
+        onKeyPress={keyPressHandler}
+    >
+        {
+            sortedAnnotatedFrameTimes.map(
+                value => <option
+                    key={value.toString()}
+                    value={value.toString()}
+                    onDoubleClick={
+                        // If the user double-clicks the option for a given frame-time,
+                        // seek to that frame-time
+                        () => setFrameTime(value)
+                    }
+                >
+                    {value.toFixed(3)}
+                </option>
+            )
+        }
+    </select>
+
+    // Display the annotator for the frame, along with the frame-time slider and frame-time multi-select
     return <>
         <SubmitCancelPictureAnnotation
             annotationData={annotationsMap.get(frametime)}
@@ -225,6 +303,7 @@ export function SubmitCancelVideoAnnotation(
             {...otherProps}
         />
         {element}
+        {frameDropDown}
     </>
 
 }
