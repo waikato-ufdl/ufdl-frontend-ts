@@ -8,6 +8,7 @@ import {DatasetPK} from "../../../server/pk";
 import {ClassColours} from "../../../server/util/classification";
 import UFDLServerContext from "../../../../../ufdl-ts-client/dist/UFDLServerContext";
 import {JobTemplateInstance} from "../../../../../ufdl-ts-client/dist/types/core/jobs/job_template";
+import SpeechAnnotatorPage from "../annotation/spap/SpeechAnnotatorPage";
 
 export type LoopAnnotatorPageProps = {
     domain: DomainName
@@ -53,6 +54,23 @@ export default function LoopAnnotatorPage(
         case "Object Detection":
             // TODO: Add eval dataset capability
             return <ObjectDetectionAnnotatorPage
+                lockedPK={props.targetDataset}
+                nextLabel={props.nextLabel}
+                onNext={(_, __, position) => {
+                    if (props.contract !== undefined)
+                        job_template.get_all_matching_templates(
+                            props.context,
+                            props.contract,
+                            {dataset: datasetPKType}
+                        ).then(
+                            props.setSelectableTemplates
+                        ).catch(props.onError)
+                    props.onNext(...position);
+                }}
+                onBack={props.onBack}
+            />
+        case "Speech":
+            return <SpeechAnnotatorPage
                 lockedPK={props.targetDataset}
                 nextLabel={props.nextLabel}
                 onNext={(_, __, position) => {

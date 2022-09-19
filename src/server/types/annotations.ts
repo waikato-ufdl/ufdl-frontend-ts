@@ -14,3 +14,6 @@ export type Classification = string
 
 /** The type of annotation for image object-detection tasks. */
 export type DetectedObjects = [ImageAnnotation, ...ImageAnnotation[]] | [VideoAnnotation, ...VideoAnnotation[]]
+
+/** The type of annotation for speech tasks. */
+export type Transcription = string

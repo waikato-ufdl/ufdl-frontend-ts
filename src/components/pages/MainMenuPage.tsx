@@ -12,6 +12,7 @@ import {UNCONTROLLED_KEEP} from "../../util/react/hooks/useControllableState";
 import NewUserPage from "./NewUserPage";
 import {DEFAULT} from "../../util/typescript/default";
 import ObjectDetectionAnnotatorPage from "./annotation/odap/ObjectDetectionAnnotatorPage";
+import SpeechAnnotatorPage from "./annotation/spap/SpeechAnnotatorPage";
 
 export function MainMenuPage() {
 
@@ -25,7 +26,7 @@ export function MainMenuPage() {
         />
     }
 
-    return <MenuPage titleGenerator={["Dummy Page", "New User", "New Team", "New Project", "New Dataset", "ICAP", "ODAP", "The Loop"]}>
+    return <MenuPage titleGenerator={["Dummy Page", "New User", "New Team", "New Project", "New Dataset", "ICAP", "ODAP", "SPAP", "The Loop"]}>
         <DummyPage pings={42} />
         <NewUserPage />
         <NewTeamPage />
@@ -33,6 +34,7 @@ export function MainMenuPage() {
         <NewDatasetPage domain={UNCONTROLLED_KEEP} licencePK={UNCONTROLLED_KEEP} isPublic={UNCONTROLLED_KEEP}/>
         <ImageClassificationAnnotatorPage nextLabel={DEFAULT} />
         <ObjectDetectionAnnotatorPage nextLabel={DEFAULT} />
+        <SpeechAnnotatorPage nextLabel={DEFAULT} />
         <TheLoopPage />
     </MenuPage>
 }

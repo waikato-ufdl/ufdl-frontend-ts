@@ -64,3 +64,7 @@ export class Image extends ImageOrVideo {
     }
 
 }
+
+export class Audio extends Data {
+
+}

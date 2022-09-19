@@ -2,8 +2,8 @@ import * as ICDataset from "ufdl-ts-client/functional/image_classification/datas
 import * as ODDataset from "ufdl-ts-client/functional/object_detection/dataset";
 import * as ISDataset from "ufdl-ts-client/functional/image_segmentation/dataset";
 import * as SPDataset from "ufdl-ts-client/functional/speech/dataset";
-import {Data, Image, ImageOrVideo} from "./types/data";
-import {Classification, DetectedObjects} from "./types/annotations";
+import {Data, Image, ImageOrVideo, Audio} from "./types/data";
+import {Classification, DetectedObjects, Transcription} from "./types/annotations";
 import {ownPropertyIterator} from "../util/typescript/object";
 import iteratorMap from "../util/typescript/iterate/map";
 
@@ -17,7 +17,7 @@ type DomainItemTypes = {
     'Image Classification': Domain<Image, Classification>
     'Object Detection': Domain<ImageOrVideo, DetectedObjects>
     'Image Segmentation': Domain<Image, never>
-    'Speech': Domain<Data, never>
+    'Speech': Domain<Audio, Transcription>
 }
 
 export const DOMAIN_DATASET_METHODS = {
