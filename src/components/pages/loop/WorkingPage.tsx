@@ -40,8 +40,10 @@ export default function WorkingPage(
         message => <p>{message}</p>
     )
 
+    const progressTitle = `${props.title}: ${(progress[0] * 100).toFixed(2)}%`
+
     return <Page>
-        {props.title}: {(progress[0] * 100).toFixed(2)}%
+        {progressTitle}
         <button onClick={props.onCancel}>
             Cancel
         </button>
