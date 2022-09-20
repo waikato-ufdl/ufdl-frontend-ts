@@ -45,6 +45,7 @@ export function ImageOrVideoRenderer<D extends DatasetDispatchItemDataType<Image
             playsInline
             autoPlay
             loop
+            muted
         />
     }
 
