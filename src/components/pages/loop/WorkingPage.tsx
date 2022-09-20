@@ -30,6 +30,13 @@ export default function WorkingPage(
 
     useEffect(
         () => {
+            messages.clear()
+        },
+        [props.title]
+    )
+
+    useEffect(
+        () => {
             if (message !== undefined)
                 messages.push(message)
         },
