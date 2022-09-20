@@ -26,6 +26,12 @@ export class ArrayStateDispatch<T> extends Array<T> {
         if (this._dispatch !== undefined) this._dispatch([...this])
     }
 
+    clear(): this {
+        while (super.length > 0) super.pop()
+        this.refresh()
+        return this
+    }
+
     copyWithin(target: number, start: number, end?: number): this {
         super.copyWithin(target, start, end)
         this.refresh()
