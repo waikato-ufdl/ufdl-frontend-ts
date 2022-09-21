@@ -5,7 +5,7 @@ import {
     ItemSelectFragmentRenderer
 } from "../../../../server/components/AnnotatorTopMenu";
 import useStateSafe from "../../../../util/react/hooks/useStateSafe";
-import {AnyPK, getDatasetPK} from "../../../../server/pk";
+import {AnyPK, DatasetPK, getDatasetPK} from "../../../../server/pk";
 import {NO_ANNOTATION, Transcription} from "../../../../server/types/annotations";
 import useDerivedState from "../../../../util/react/hooks/useDerivedState";
 import {DatasetItem} from "../../../../server/types/DatasetItem";
@@ -18,14 +18,16 @@ import passOnUndefined from "../../../../util/typescript/functions/passOnUndefin
 import "./SpeechAnnotatorPage.css"
 import {AnnotationRenderer} from "../../../../server/components/DatasetItem";
 import {DatasetDispatchItemAnnotationType} from "../../../../server/hooks/useDataset/types";
-import {Possible} from "../../../../util/typescript/types/Possible";
+import {Absent, Possible} from "../../../../util/typescript/types/Possible";
 import SpeechDatasetDispatch from "../../../../server/hooks/useSpeechDataset/SpeechDatasetDispatch";
 import useSpeechDataset from "../../../../server/hooks/useSpeechDataset/useSpeechDataset";
 import {AudioRenderer} from "../../../../server/components/audio/AudioRenderer";
 import hasData from "../../../../util/react/query/hasData";
+import MinimumEditDistance from "./MinimumEditDistance";
 
 export type SPAPProps = {
     lockedPK?: AnyPK,
+    evalPK?: DatasetPK,
     nextLabel: WithDefault<string>
     onNext?: (
         selectedPK: AnyPK,
@@ -45,6 +47,11 @@ export default function SpeechAnnotatorPage(
     const dataset = useSpeechDataset(
         ufdlServerContext,
         getDatasetPK(selectedPK)
+    );
+
+    const evalDataset = useSpeechDataset(
+        ufdlServerContext,
+        props.evalPK
     );
 
     // Sub-page displays
@@ -83,11 +90,21 @@ export default function SpeechAnnotatorPage(
                 _filename: string,
                 _selected: boolean,
                 annotation: DatasetDispatchItemAnnotationType<Transcription>,
-                _evalAnnotation: Possible<DatasetDispatchItemAnnotationType<Transcription>>
+                evalAnnotation: Possible<DatasetDispatchItemAnnotationType<Transcription>>
             ) => {
-                if (hasData(annotation))
-                    return <>{annotation.data}</>
+                if (hasData(annotation)) {
+                    if (evalAnnotation !== Absent && hasData(evalAnnotation)) {
+                        const targetString = evalAnnotation.data === NO_ANNOTATION?
+                            ""
+                            : evalAnnotation.data
+                        const startingString = annotation.data === NO_ANNOTATION?
+                            ""
+                            : annotation.data
+                        return <MinimumEditDistance targetString={targetString} startingString={startingString}/>
+                    }
 
+                    return <>{annotation.data}</>
+                }
                 return <>...</>
             }
         },
@@ -111,7 +128,7 @@ export default function SpeechAnnotatorPage(
         onSelectedPKChanged={setSelectedPK}
         selectedPK={selectedPK}
         dataset={dataset}
-        evalDataset={undefined} // TODO: Implement eval datasets
+        evalDataset={evalDataset}
         lockedPK={props.lockedPK}
         onBack={props.onBack}
         onNext={(selectedPK, position) => passOnUndefined(props.onNext)(selectedPK, dataset, position)}

@@ -72,6 +72,7 @@ export default function LoopAnnotatorPage(
         case "Speech":
             return <SpeechAnnotatorPage
                 lockedPK={props.targetDataset}
+                evalPK={props.evalDatasetPK}
                 nextLabel={props.nextLabel}
                 onNext={(_, __, position) => {
                     if (props.contract !== undefined)
