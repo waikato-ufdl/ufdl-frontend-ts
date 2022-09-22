@@ -1,6 +1,6 @@
 import "./DatasetItem.css";
 import {FunctionComponentReturnType} from "../../util/react/types";
-import {Possible} from "../../util/typescript/types/Possible";
+import {Absent, Possible} from "../../util/typescript/types/Possible";
 import React, {ReactElement, ReactNode, useEffect} from "react";
 import CenterContent from "../../components/CenterContent";
 import {augmentClassName} from "../../util/react/augmentClass";
@@ -71,6 +71,7 @@ export default function DatasetItem<D extends DomainName>(
         () => {
             const itemDiv = ref.current;
             const item = props.item;
+            const evalAnnotation = props.evalAnnotation
 
             if (itemDiv === null) return;
 
@@ -82,6 +83,7 @@ export default function DatasetItem<D extends DomainName>(
                             if (entry.isIntersecting) {
                                 if (item.data.isIdle) item.data.refetch({cancelRefetch: true})
                                 if (item.annotations.isIdle) item.annotations.refetch({cancelRefetch: true})
+                                if (evalAnnotation !== Absent && evalAnnotation.isIdle) evalAnnotation.refetch({cancelRefetch: true})
                                 observer.unobserve(entry.target)
                             }
                         }
@@ -94,7 +96,7 @@ export default function DatasetItem<D extends DomainName>(
 
             return () => { observer.unobserve(itemDiv) }
         },
-        [ref, props.item]
+        [ref, props.item, props.evalAnnotation]
     )
 
     return <div
