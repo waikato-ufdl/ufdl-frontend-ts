@@ -1,18 +1,17 @@
-span.med-insert {
-    background-color: lawngreen;
-}
-
+/*
 span.med-delete {
-    width: 0;
-    overflow: hidden;
-    border-color: darkgrey;
+    border-color: #444444;
+    border-left-width: 1px;
+    border-style: solid;
+    font-size: 0;
 }
+*/
 
-span.med-replace-delete {
+span.med-replace-delete, span.med-delete {
     background-color: red;
     text-decoration: line-through;
 }
 
-span.med-replace-insert {
+span.med-replace-insert, span.med-insert {
     background-color: lawngreen;
 }
