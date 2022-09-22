@@ -73,6 +73,7 @@ export default function TheLoopPage(
                     onNext={trainConfigureModal.show}
                     onBack={stateMachine.transitions.back}
                     onError={stateMachine.transitions.error}
+                    modelType={undefined}
                 />
                 <SelectTemplateModal
                     onDone={
@@ -165,6 +166,7 @@ export default function TheLoopPage(
                     onNext={evalConfigureModal.show}
                     onBack={stateMachine.transitions.back}
                     onError={stateMachine.transitions.error}
+                    modelType={stateMachine.data.modelType}
                 />
                 <SelectTemplateModal
                     onDone={(template_pk, parameter_values) => {
@@ -224,6 +226,7 @@ export default function TheLoopPage(
                     onNext={refineOrDoneModal.show}
                     onBack={stateMachine.transitions.reevaluate}
                     onError={stateMachine.transitions.error}
+                    modelType={stateMachine.data.modelType}
                 />
                 <RefineOrDoneModal
                     onRefine={() => {refineOrDoneModal.hide(); stateMachine.transitions.goodEnough(false)}}
@@ -252,6 +255,7 @@ export default function TheLoopPage(
                 onNext={stateMachine.transitions.finishedFixing}
                 onBack={stateMachine.transitions.back}
                 onError={stateMachine.transitions.error}
+                modelType={stateMachine.data.modelType}
             />
 
         case "Finished":

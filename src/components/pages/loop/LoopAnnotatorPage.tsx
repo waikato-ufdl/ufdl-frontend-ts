@@ -20,6 +20,7 @@ export type LoopAnnotatorPageProps = {
     setClassColours: Dispatch<ClassColours>
     context: UFDLServerContext
     setSelectableTemplates: Dispatch<JobTemplateInstance[]>
+    modelType: string | undefined
     onNext: (x: number, y: number) => void
     onBack: () => void
     onError: (reason: any) => void
@@ -30,6 +31,23 @@ export default function LoopAnnotatorPage(
 ): FunctionComponentReturnType {
     const datasetPKType = `PK<Dataset<Domain<'${props.domain}'>>>`
 
+    function updateMatchingTemplates() {
+        if (props.contract !== undefined) {
+            const types: {[p: string]: string} = {dataset: datasetPKType}
+
+            if (props.modelType !== undefined)
+                types['model'] = `JobOutput<${props.modelType}>`
+
+            job_template.get_all_matching_templates(
+                props.context,
+                props.contract,
+                types
+            ).then(
+                props.setSelectableTemplates
+            ).catch(props.onError)
+        }
+    }
+
     switch (props.domain) {
         case "Image Classification":
             return <ImageClassificationAnnotatorPage
@@ -39,14 +57,7 @@ export default function LoopAnnotatorPage(
                 nextLabel={props.nextLabel}
                 onNext={(_, __, labelColours, position) => {
                     props.setClassColours(labelColours);
-                    if (props.contract !== undefined)
-                        job_template.get_all_matching_templates(
-                            props.context,
-                            props.contract,
-                            {dataset: datasetPKType}
-                        ).then(
-                            props.setSelectableTemplates
-                        ).catch(props.onError)
+                    updateMatchingTemplates()
                     props.onNext(...position);
                 }}
                 onBack={props.onBack}
@@ -57,14 +68,7 @@ export default function LoopAnnotatorPage(
                 lockedPK={props.targetDataset}
                 nextLabel={props.nextLabel}
                 onNext={(_, __, position) => {
-                    if (props.contract !== undefined)
-                        job_template.get_all_matching_templates(
-                            props.context,
-                            props.contract,
-                            {dataset: datasetPKType}
-                        ).then(
-                            props.setSelectableTemplates
-                        ).catch(props.onError)
+                    updateMatchingTemplates()
                     props.onNext(...position);
                 }}
                 onBack={props.onBack}
@@ -75,14 +79,7 @@ export default function LoopAnnotatorPage(
                 evalPK={props.evalDatasetPK}
                 nextLabel={props.nextLabel}
                 onNext={(_, __, position) => {
-                    if (props.contract !== undefined)
-                        job_template.get_all_matching_templates(
-                            props.context,
-                            props.contract,
-                            {dataset: datasetPKType}
-                        ).then(
-                            props.setSelectableTemplates
-                        ).catch(props.onError)
+                    updateMatchingTemplates()
                     props.onNext(...position);
                 }}
                 onBack={props.onBack}
