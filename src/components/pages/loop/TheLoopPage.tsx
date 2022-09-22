@@ -238,7 +238,7 @@ export default function TheLoopPage(
 
         case "Creating Addition Dataset":
             return <Page>
-                {`${stateMachine.state}`}
+                {stateMachine.state}
             </Page>;
 
         case "User Fixing Categories":
