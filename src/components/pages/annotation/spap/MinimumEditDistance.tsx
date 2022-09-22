@@ -2,6 +2,7 @@ import {FunctionComponentReturnType} from "../../../../util/react/types";
 import useDerivedState from "../../../../util/react/hooks/useDerivedState";
 import UNREACHABLE from "../../../../util/typescript/UNREACHABLE";
 import "./MinimumEditDistance.css"
+import {MultiKeyMap} from "../../../../util/typescript/datastructures/MultiKeyMap";
 
 export type MinimumEditDistanceProps = {
     targetString: string,
@@ -83,7 +84,7 @@ type Edit = Insert | Delete | Replace | Pass
 function minimum_edit_list(
     startingString: string,
     targetString: string,
-    memo: Map<readonly [number, number], readonly Edit[]> = new Map()
+    memo: MultiKeyMap<readonly [number, number], readonly Edit[]> = new MultiKeyMap()
 ): readonly Edit[] {
     const string_pair = [startingString.length, targetString.length] as const
     const memoed = memo.get(string_pair)
