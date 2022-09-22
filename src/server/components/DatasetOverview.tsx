@@ -52,6 +52,8 @@ const FLEX_CONTAINER_STYLE = {
     alignContent: "flex-start"
 } as const
 
+const DatasetItemMemo = React.memo(DatasetItem) as typeof DatasetItem
+
 export default function DatasetOverview<D extends DomainName>(
     props: DatasetOverviewProps<D>
 ) {
@@ -72,17 +74,29 @@ export default function DatasetOverview<D extends DomainName>(
 
     // Create a display item for each dataset item
     const renderedItems = useDerivedStates(
-        (item) => {
-            return <DatasetItem<D>
+        (
+            item,
+            evalAnnotation,
+            renderData,
+            renderAnnotation,
+            onItemClicked
+        ) => {
+            return <DatasetItemMemo<D>
                 key={item.filename}
                 item={item}
-                evalAnnotation={undefinedAsAbsent(props.evalDataset?.get(item.filename)?.annotations)}
-                renderData={props.renderData}
-                renderAnnotation={props.renderAnnotation}
-                onClick={props.onItemClicked}
+                evalAnnotation={evalAnnotation}
+                renderData={renderData}
+                renderAnnotation={renderAnnotation}
+                onClick={onItemClicked}
             />
         },
-        items.map(item => [item] as const)
+        items.map(item => [
+            item,
+            undefinedAsAbsent(props.evalDataset?.get(item.filename)?.annotations),
+            props.renderData,
+            props.renderAnnotation,
+            props.onItemClicked
+        ] as const)
     )
 
     // Create the submission function for adding new files to the dataset
