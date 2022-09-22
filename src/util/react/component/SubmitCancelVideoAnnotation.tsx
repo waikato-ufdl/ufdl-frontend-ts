@@ -214,7 +214,7 @@ export function SubmitCancelVideoAnnotation(
 
     // Sort the frame-times of the annotated frames for display in a multi-select
     const sortedAnnotatedFrameTimes = useDerivedState(
-        (annotatedFrames) => [...annotatedFrames].sort(),
+        (annotatedFrames) => [...annotatedFrames].sort((a, b) => a - b),
         [...annotationsMap.keys()]
     )
 
