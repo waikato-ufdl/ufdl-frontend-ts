@@ -83,9 +83,9 @@ type Edit = Insert | Delete | Replace | Pass
 function minimum_edit_list(
     startingString: string,
     targetString: string,
-    memo: Map<readonly [string, string], readonly Edit[]> = new Map()
+    memo: Map<readonly [number, number], readonly Edit[]> = new Map()
 ): readonly Edit[] {
-    const string_pair = [startingString, targetString] as const
+    const string_pair = [startingString.length, targetString.length] as const
     const memoed = memo.get(string_pair)
     if (memoed !== undefined) return memoed
 
