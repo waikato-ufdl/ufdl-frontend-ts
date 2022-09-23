@@ -158,7 +158,7 @@ export function SubmitCancelVideoAnnotation(
 
     // Create a buffer, so that when the frame changes, the previous frame is still
     // shown until the new frame is ready
-    const [frameURLBuffered] = useDerivedReducer<string, never, readonly [Resolution<string>]>(
+    const [frameURLBuffered] = useDerivedReducer<string, string, never, readonly [Resolution<string>]>(
         identity,
         ([frameURL], state) => {
             // If the new frame is ready, return it

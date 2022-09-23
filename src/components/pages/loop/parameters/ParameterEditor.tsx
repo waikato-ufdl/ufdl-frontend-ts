@@ -6,8 +6,9 @@ import {Absent} from "../../../../util/typescript/types/Possible";
 import Form from "@rjsf/core";
 import {DEFAULT, WithDefault} from "../../../../util/typescript/default";
 import {ParameterSpec} from "./ParameterSpec";
-import useDerivedReducer, {UNINITIALISED} from "../../../../util/react/hooks/useDerivedReducer";
+import useDerivedReducer from "../../../../util/react/hooks/useDerivedReducer";
 import {createSimpleStateReducer} from "../../../../util/react/hooks/SimpleStateReducer";
+import {ParameterValue} from "../../../../../../ufdl-ts-client/dist/json/generated/CreateJobSpec";
 
 /**
  * @property onChange
@@ -24,6 +25,7 @@ import {createSimpleStateReducer} from "../../../../util/react/hooks/SimpleState
 export type ParameterEditorProps = {
     onChange: (parameter_value: any, parameter_type: string) => void
     parameterSpec: ParameterSpec
+    initial: ParameterValue | undefined
     name: string
     position: [number, number] | undefined
     onCancel: () => void
@@ -69,19 +71,20 @@ export default function ParameterEditor(
     const [selectedType, setSelectedType] = useDerivedReducer(
         createSimpleStateReducer<WithDefault<string>>(),
         ([parameterDefaultSpec, allowedTypeNames], currentState) => {
-            if (currentState !== UNINITIALISED && allowedTypeNames.indexOf(currentState) !== -1)
+            if (currentState !== undefined && allowedTypeNames.indexOf(currentState) !== -1)
                 return currentState
             else if (parameterDefaultSpec !== undefined && allowedTypeNames[0] !== DEFAULT)
                 return parameterDefaultSpec.type
             else
                 return allowedTypeNames[0]
         },
-        [parameterDefaultSpec, allowedTypeNames] as const
+        [parameterDefaultSpec, allowedTypeNames] as const,
+        () => props.initial?.type
     )
 
     // Create a form which lets the user specify the value for the parameter according to the selected type
     const formElement = useDerivedState(
-        ([selectedType, parameterTypes, parameterDefaultSpec, onChange]) => {
+        ([selectedType, parameterTypes, parameterDefaultSpec, onChange, initial]) => {
             // Get the schema of the selected type
             const schema = selectedType === DEFAULT
                 ? parameterDefaultSpec!.schema
@@ -89,11 +92,11 @@ export default function ParameterEditor(
 
             // Set the initial value of the form to the default value of the parameter
             // (if the default type is selected)
-            const formData = parameterDefaultSpec !== undefined
-                ? selectedType === DEFAULT || selectedType === parameterDefaultSpec.type
+            const formData = initial !== undefined
+                ? initial
+                : parameterDefaultSpec !== undefined && (selectedType === DEFAULT || selectedType === parameterDefaultSpec.type)
                     ? parameterDefaultSpec.value
                     : undefined
-                : undefined;
 
             // Disable the form if a non-editable default type is selected
             const disabled = parameterDefaultSpec !== undefined && selectedType === DEFAULT
@@ -112,7 +115,7 @@ export default function ParameterEditor(
                 />
             </div>
         },
-        [selectedType, props.parameterSpec.types, props.parameterSpec.default, props.onChange] as const
+        [selectedType, props.parameterSpec.types, props.parameterSpec.default, props.onChange, props.initial?.value] as const
     )
 
     return <LocalModal position={props.position} onCancel={props.onCancel}>

@@ -2,6 +2,7 @@ import {FunctionComponentReturnType} from "../../../../util/react/types";
 import useLocalModal from "../../../../util/react/hooks/useLocalModal";
 import ParameterEditor from "./ParameterEditor";
 import {ParameterSpec} from "./ParameterSpec";
+import {ParameterValue} from "../../../../../../ufdl-ts-client/dist/json/generated/CreateJobSpec";
 
 /**
  * @property onChange
@@ -15,7 +16,8 @@ import {ParameterSpec} from "./ParameterSpec";
  */
 export type ParameterEditorButtonProps = {
     onChange: (parameter_value: any, parameter_type: string) => void
-    parameterSpec: ParameterSpec,
+    parameterSpec: ParameterSpec
+    initial: ParameterValue | undefined
     name: string,
     hasValue: boolean
 }
@@ -47,6 +49,7 @@ export default function ParameterEditorButton(
                 }
             }
             parameterSpec={props.parameterSpec}
+            initial={props.initial}
             name={props.name}
             position={editorModal.position}
             onCancel={() => editorModal.hide()}

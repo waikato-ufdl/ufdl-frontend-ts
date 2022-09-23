@@ -74,11 +74,11 @@ export default function useDerivedReducer<S, A, D extends readonly unknown[]>(
  *          The argument to the currentState parameter of the initialiser on first
  *          initialisation.
  */
-export default function useDerivedReducer<S, A, D extends readonly unknown[]>(
+export default function useDerivedReducer<S, I, A, D extends readonly unknown[]>(
     reducer: Reducer<S, A>,
-    initialiser: (args: D, currentState: S) => S,
+    initialiser: (args: D, currentState: I | S) => S,
     dependencies: D,
-    initialState: () => S
+    initialState: () => I
 ): [S, Dispatch<A>];
 
 /**

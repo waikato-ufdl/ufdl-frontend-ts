@@ -224,6 +224,7 @@ function parameterEditorButtonListItem(
         <ParameterEditorButton
             parameterSpec={parameterSpecs[name]}
             name={name}
+            initial={parameterValues?.[name]}
             hasValue={parameterValues.hasOwnProperty(name)}
             onChange={(value, type) => setParameterValue(name, {value: value, type: type})}
         />
