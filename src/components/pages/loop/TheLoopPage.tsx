@@ -50,20 +50,27 @@ export default function TheLoopPage(
     const [framework, setFramework] = useStateSafe<[string, string] | undefined>(constantInitialiser(undefined))
     const [modelType, setModelType] = useStateSafe<string | undefined>(constantInitialiser(undefined))
 
-    const templateControl = useDerivedState(
+    const templateControlPK = useDerivedState(
         ([stateMachine, position]) => {
             if (stateMachine.state === "Selecting Prelabel Images")
-                return new UncontrolledResetOverride(stateMachine.data.evalTemplatePK)
+                return stateMachine.data.evalTemplatePK
             else if (stateMachine.state === "Selecting Initial Images") {
                 if (position === undefined)
                     if (stateMachine.data.evalTemplatePK !== undefined)
-                        return new UncontrolledResetOverride(stateMachine.data.evalTemplatePK)
+                        return stateMachine.data.evalTemplatePK
                 else if (stateMachine.data.trainTemplatePK !== undefined)
-                        return new UncontrolledResetOverride(stateMachine.data.trainTemplatePK)
+                        return stateMachine.data.trainTemplatePK
             }
             return UNCONTROLLED_RESET
         },
         [stateMachine, trainConfigureModal.position] as const
+    )
+    const templateControl = useDerivedState(
+        ([templateControlPK]) => templateControlPK === UNCONTROLLED_RESET?
+            UNCONTROLLED_RESET
+            : new UncontrolledResetOverride(templateControlPK)
+        ,
+        [templateControlPK] as const
     )
 
     switch (stateMachine.state) {
