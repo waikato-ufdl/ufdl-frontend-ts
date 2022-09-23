@@ -16,6 +16,11 @@ import * as job_template from "ufdl-ts-client/functional/core/jobs/job_template"
 import {ParameterValue} from "ufdl-ts-client/json/generated/CreateJobSpec";
 import LoopAnnotatorPage from "./LoopAnnotatorPage";
 import {isAllowedStateAndData} from "../../../util/react/hooks/useStateMachine/isAllowedState";
+import {
+    UNCONTROLLED_RESET,
+    UncontrolledResetOverride
+} from "../../../util/react/hooks/useControllableState";
+import useDerivedState from "../../../util/react/hooks/useDerivedState";
 
 
 const FRAMEWORK_REGEXP = /^Framework<'(.*)', '(.*)'>$/
@@ -44,6 +49,22 @@ export default function TheLoopPage(
     const [trainParameters, setTrainParameters] = useStateSafe<{[name: string]: ParameterValue} | undefined>(constantInitialiser(undefined))
     const [framework, setFramework] = useStateSafe<[string, string] | undefined>(constantInitialiser(undefined))
     const [modelType, setModelType] = useStateSafe<string | undefined>(constantInitialiser(undefined))
+
+    const templateControl = useDerivedState(
+        ([stateMachine, position]) => {
+            if (stateMachine.state === "Selecting Prelabel Images")
+                return new UncontrolledResetOverride(stateMachine.data.evalTemplatePK)
+            else if (stateMachine.state === "Selecting Initial Images") {
+                if (position === undefined)
+                    if (stateMachine.data.evalTemplatePK !== undefined)
+                        return new UncontrolledResetOverride(stateMachine.data.evalTemplatePK)
+                else if (stateMachine.data.trainTemplatePK !== undefined)
+                        return new UncontrolledResetOverride(stateMachine.data.trainTemplatePK)
+            }
+            return UNCONTROLLED_RESET
+        },
+        [stateMachine, trainConfigureModal.position] as const
+    )
 
     switch (stateMachine.state) {
         case "Initial":
@@ -125,6 +146,8 @@ export default function TheLoopPage(
                         }
                     }
                     templates={selectableTemplates === undefined ? [] : selectableTemplates}
+                    templatePK={templateControl}
+                    initialValues={stateMachine.data.trainParameters ?? {}}
                     position={trainConfigureModal.position}
                     onCancel={() => trainConfigureModal.hide()}
                 />
@@ -145,6 +168,8 @@ export default function TheLoopPage(
                         )
                     }}
                     templates={selectableTemplates === undefined ? [] : selectableTemplates}
+                    templatePK={templateControl}
+                    initialValues={stateMachine.data.evalParameters ?? {}}
                     position={evalConfigureModal.position}
                     onCancel={() => evalConfigureModal.hide()}
                 />
@@ -174,6 +199,8 @@ export default function TheLoopPage(
                         stateMachine.transitions.prelabel(template_pk, parameter_values);
                     }}
                     templates={selectableTemplates === undefined ? [] : selectableTemplates}
+                    templatePK={templateControl}
+                    initialValues={stateMachine.data.evalParameters}
                     position={evalConfigureModal.position}
                     onCancel={() => evalConfigureModal.hide()}
                 />
