@@ -1,6 +1,7 @@
 import {Dispatch, useEffect} from "react";
 import useDerivedState from "./useDerivedState";
 import useControlledUpdateReducer from "./useControlledUpdateReducer";
+import {identity} from "../../identity";
 
 export const UNCONTROLLED_KEEP = Symbol(
     "Indicates that the component should manage the state for this prop, " +
@@ -84,6 +85,18 @@ function createInitialControllableReducerState<S>(
     }
 }
 
+function identityAfterFirst<S>(
+    f: (state: S) => S
+): (state: S) => S {
+    let closure: (state: S) => S = f
+
+    return (state) => {
+        const result = closure(state)
+        closure = identity
+        return result
+    }
+}
+
 export function useControllableState<S>(
     controlValue: Controllable<S>,
     init: () => S
@@ -95,23 +108,22 @@ export function useControllableState<S>(
 
     const controlled = isControlled(controlValue);
 
-    const initValue = useDerivedState(
-        ([controlValue]) => {
-            if (controlValue === UNCONTROLLED_RESET)
-                return init()
-            else if (controlValue instanceof UncontrolledResetOverride)
-                return controlValue.initialiserOverride
-            else
-                return reducerState.value
-        },
-        [controlValue]
-    );
+    const valueTransition: (state: S) => S
+        = useDerivedState(
+            ([controlValue]) => {
+                if (controlValue === UNCONTROLLED_RESET)
+                    return identityAfterFirst(init)
+                else if (controlValue instanceof UncontrolledResetOverride)
+                    return identityAfterFirst(() => controlValue.initialiserOverride)
+                else if (controlValue === UNCONTROLLED_KEEP)
+                    return identity
+                else
+                    return () => controlValue
+            },
+            [controlValue] as const
+        );
 
-    const value = controlValue === UNCONTROLLED_RESET || controlValue instanceof UncontrolledResetOverride?
-        initValue
-        : controlValue === UNCONTROLLED_KEEP?
-            reducerState.value
-            : controlValue as S;
+    const value = valueTransition(reducerState.value)
 
     useEffect(
         () => {
