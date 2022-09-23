@@ -2,7 +2,6 @@ import {FunctionComponentReturnType} from "../../../util/react/types";
 import LocalModal from "../../../util/react/component/LocalModal";
 import {JobTemplateInstance} from "../../../../../ufdl-ts-client/lib/types/core/jobs/job_template";
 import {RawJSONObjectSelect} from "../../RawJSONObjectSelect";
-import useStateSafe from "../../../util/react/hooks/useStateSafe";
 import {constantInitialiser} from "../../../util/typescript/initialisers";
 import EditParametersModal from "./parameters/EditParametersModal";
 import useLocalModal from "../../../util/react/hooks/useLocalModal";
@@ -13,6 +12,7 @@ import {ParameterValue} from "ufdl-ts-client/json/generated/CreateJobSpec";
 import {ParameterSpec} from "./parameters/ParameterSpec";
 import useDerivedState from "../../../util/react/hooks/useDerivedState";
 import usePromise from "../../../util/react/hooks/usePromise";
+import {Controllable, useControllableState} from "../../../util/react/hooks/useControllableState";
 
 /**
  * @property onDone
@@ -30,6 +30,8 @@ export type SelectTemplateModalProps = {
         parameter_values: { [parameter_name: string]: ParameterValue }
     ) => void
     templates: JobTemplateInstance[]
+    templatePK: Controllable<number>
+    initialValues: { [parameter_name: string]: ParameterValue }
     position: [number, number] | undefined
     onCancel: () => void
 }
@@ -43,7 +45,7 @@ export default function SelectTemplateModal(
 
     const ufdlServerContext = useContext(UFDL_SERVER_REACT_CONTEXT);
 
-    const [templatePK, setTemplatePK] = useStateSafe<number>(constantInitialiser(-1))
+    const [templatePK, setTemplatePK] = useControllableState(props.templatePK, constantInitialiser(-1))
 
     // Update the parameter specifications from the server when the selected job-template changes
     const parameterSpecs = usePromise<{ [parameter_name: string]: ParameterSpec }>(
@@ -92,6 +94,7 @@ export default function SelectTemplateModal(
             onDone={(parameterValues) => props.onDone(templatePK, parameterValues)}
             parameterSpecs={parameterSpecs.status === "resolved" ? parameterSpecs.value : {}}
             position={editParametersModal.position}
+            initialValues={props.initialValues}
             onCancel={() => editParametersModal.hide()}
         />
 

@@ -12,12 +12,16 @@ export const UNCONTROLLED_RESET = Symbol(
     "and reset it to its initial value."
 );
 
-export type Controllable<S> = S | typeof UNCONTROLLED_KEEP | typeof UNCONTROLLED_RESET;
+export class UncontrolledResetOverride<S> {
+    constructor(public readonly initialiserOverride: S) {}
+}
+
+export type Controllable<S> = S | typeof UNCONTROLLED_KEEP | typeof UNCONTROLLED_RESET | UncontrolledResetOverride<S>;
 
 export function isControlled<S>(
     value: Controllable<S>
 ): value is S {
-    return value !== UNCONTROLLED_KEEP && value !== UNCONTROLLED_RESET;
+    return value !== UNCONTROLLED_KEEP && value !== UNCONTROLLED_RESET && !(value instanceof UncontrolledResetOverride);
 }
 
 export type ControllableReducerState<S> = {
@@ -67,6 +71,11 @@ function createInitialControllableReducerState<S>(
             value: controlValue,
             controlled: true
         }
+    } else if (controlValue instanceof UncontrolledResetOverride) {
+        return {
+            value: controlValue.initialiserOverride,
+            controlled: false
+        }
     } else {
         return {
             value: init(),
@@ -87,11 +96,22 @@ export function useControllableState<S>(
     const controlled = isControlled(controlValue);
 
     const initValue = useDerivedState(
-        () => controlValue === UNCONTROLLED_RESET ? init() : reducerState.value,
+        ([controlValue]) => {
+            if (controlValue === UNCONTROLLED_RESET)
+                return init()
+            else if (controlValue instanceof UncontrolledResetOverride)
+                return controlValue.initialiserOverride
+            else
+                return reducerState.value
+        },
         [controlValue]
     );
 
-    const value = controlValue === UNCONTROLLED_RESET ? initValue : controlValue === UNCONTROLLED_KEEP ? reducerState.value : controlValue as S;
+    const value = controlValue === UNCONTROLLED_RESET || controlValue instanceof UncontrolledResetOverride?
+        initValue
+        : controlValue === UNCONTROLLED_KEEP?
+            reducerState.value
+            : controlValue as S;
 
     useEffect(
         () => {

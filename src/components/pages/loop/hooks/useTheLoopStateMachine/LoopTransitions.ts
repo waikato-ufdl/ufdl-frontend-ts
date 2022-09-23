@@ -75,7 +75,11 @@ export const LOOP_TRANSITIONS = {
                             ...current.data,
                             primaryDataset: selection,
                             targetDataset: selection,
-                            domain: domain
+                            domain: domain,
+                            trainTemplatePK: undefined,
+                            trainParameters: undefined,
+                            evalTemplatePK: undefined,
+                            evalParameters: undefined
                         }
                     );
                 } else {

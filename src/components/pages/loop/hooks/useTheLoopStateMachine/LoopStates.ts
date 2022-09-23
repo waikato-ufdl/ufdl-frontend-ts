@@ -18,6 +18,10 @@ export type LoopStates = ValidStates<{
         primaryDataset: DatasetPK
         targetDataset: DatasetPK
         domain: DomainName
+        trainTemplatePK: number | undefined
+        trainParameters: { [name: string]: ParameterValue } | undefined
+        evalTemplatePK: number | undefined
+        evalParameters: { [name: string]: ParameterValue } | undefined
     }
     "Selecting Prelabel Images": {
         context: UFDLServerContext

@@ -24,6 +24,7 @@ export type EditParametersModalProps = {
         parameter_values: { [parameter_name: string]: ParameterValue }
     ) => void
     parameterSpecs: { [parameter_name: string]: ParameterSpec }
+    initialValues: { [parameter_name: string]: ParameterValue }
     position: [number, number] | undefined
     onCancel: () => void
 }
@@ -106,7 +107,7 @@ export default function EditParametersModal(
 
             return newState
         },
-        {} // Start with an empty mapping, as no parameters have been set
+        props.initialValues
     )
 
     // Derive some buttons which allow the user to change which additional parameters are displayed
