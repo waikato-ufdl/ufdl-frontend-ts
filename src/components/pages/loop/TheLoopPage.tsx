@@ -52,19 +52,22 @@ export default function TheLoopPage(
 
     const templateControlPK = useDerivedState(
         ([stateMachine, position]) => {
-            if (stateMachine.state === "Selecting Prelabel Images")
+            if (stateMachine.state === "Selecting Prelabel Images") {
                 return stateMachine.data.evalTemplatePK
-            else if (stateMachine.state === "Selecting Initial Images") {
-                if (position === undefined)
-                    if (stateMachine.data.evalTemplatePK !== undefined)
+            } else if (stateMachine.state === "Selecting Initial Images") {
+                if (position === undefined) {
+                    if (stateMachine.data.evalTemplatePK !== undefined) {
                         return stateMachine.data.evalTemplatePK
-                else if (stateMachine.data.trainTemplatePK !== undefined)
-                        return stateMachine.data.trainTemplatePK
+                    }
+                } else if (stateMachine.data.trainTemplatePK !== undefined) {
+                    return stateMachine.data.trainTemplatePK
+                }
             }
             return UNCONTROLLED_RESET
         },
         [stateMachine, trainConfigureModal.position] as const
     )
+
     const templateControl = useDerivedState(
         ([templateControlPK]) => templateControlPK === UNCONTROLLED_RESET?
             UNCONTROLLED_RESET
