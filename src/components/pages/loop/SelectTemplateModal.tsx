@@ -111,6 +111,7 @@ export default function SelectTemplateModal(
 
         {/* A modal dialogue to edit the parameters of the job-template */}
         <EditParametersModal
+            key={templatePK} // Force internal state of parameter editor to reset on template changes
             onDone={(parameterValues) => props.onDone(templatePK, parameterValues)}
             parameterSpecs={parameterSpecs.status === "resolved" ? parameterSpecs.value : {}}
             position={editParametersModal.position}
