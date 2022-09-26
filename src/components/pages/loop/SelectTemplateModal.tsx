@@ -12,7 +12,11 @@ import {ParameterValue} from "ufdl-ts-client/json/generated/CreateJobSpec";
 import {ParameterSpec} from "./parameters/ParameterSpec";
 import useDerivedState from "../../../util/react/hooks/useDerivedState";
 import usePromise from "../../../util/react/hooks/usePromise";
-import {Controllable, useControllableState} from "../../../util/react/hooks/useControllableState";
+import {
+    Controllable,
+    UncontrolledResetOverride,
+    useControllableState
+} from "../../../util/react/hooks/useControllableState";
 
 /**
  * @property onDone
@@ -61,6 +65,22 @@ export default function SelectTemplateModal(
         )
     )
 
+    // The initial value prop is only valid if we've selected the same template as the control/reset PK
+    const initialValues = useDerivedState(
+        ([templatePK, templatePKProp, initialValuesProp]) => {
+            // Unwrap the reset override value if the prop was given as one
+            const templatePKPropUnwrapped = templatePKProp instanceof UncontrolledResetOverride
+                ? templatePKProp.initialiserOverride
+                : templatePKProp
+
+            if (templatePKPropUnwrapped === templatePK)
+                return initialValuesProp
+            else
+                return {}
+        },
+        [templatePK, props.templatePK, props.initialValues] as const
+    )
+
     const editParametersModal = useLocalModal()
 
     return <LocalModal
@@ -94,7 +114,7 @@ export default function SelectTemplateModal(
             onDone={(parameterValues) => props.onDone(templatePK, parameterValues)}
             parameterSpecs={parameterSpecs.status === "resolved" ? parameterSpecs.value : {}}
             position={editParametersModal.position}
-            initialValues={props.initialValues}
+            initialValues={initialValues}
             onCancel={() => editParametersModal.hide()}
         />
 
