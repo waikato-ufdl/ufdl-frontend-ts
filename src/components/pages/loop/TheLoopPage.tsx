@@ -243,6 +243,7 @@ export default function TheLoopPage(
                 : () => undefined
 
             return <WorkingPage
+                key={stateMachine.state} // Reset internal state on state-machine transition
                 title={stateMachine.state}
                 progress={progress}
                 onCancel={onCancel}
