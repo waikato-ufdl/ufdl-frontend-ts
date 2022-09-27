@@ -139,3 +139,16 @@ export function useControllableState<S>(
 
     return [value, setState, controlled];
 }
+
+export function mapControllable<T, R>(
+    controllable: Controllable<T>,
+    mapFunc: (value: T) => R
+): Controllable<R> {
+    if (controllable === UNCONTROLLED_RESET || controllable === UNCONTROLLED_KEEP) {
+        return controllable
+    } else if (controllable instanceof UncontrolledResetOverride) {
+        return new UncontrolledResetOverride(mapFunc(controllable.initialiserOverride))
+    } else {
+        return mapFunc(controllable)
+    }
+}

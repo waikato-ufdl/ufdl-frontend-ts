@@ -34,7 +34,7 @@ export function MainMenuPage() {
         <NewDatasetPage domain={UNCONTROLLED_KEEP} licencePK={UNCONTROLLED_KEEP} isPublic={UNCONTROLLED_KEEP}/>
         <ImageClassificationAnnotatorPage nextLabel={DEFAULT} />
         <ObjectDetectionAnnotatorPage nextLabel={DEFAULT} />
-        <SpeechAnnotatorPage nextLabel={DEFAULT} />
+        <SpeechAnnotatorPage nextLabel={DEFAULT}  evalPK={UNCONTROLLED_KEEP}/>
         <TheLoopPage />
     </MenuPage>
 }

@@ -1,11 +1,11 @@
-import React, {useContext} from "react";
+import React, {Dispatch, useContext} from "react";
 import {UFDL_SERVER_REACT_CONTEXT} from "../../../../server/UFDLServerContextProvider";
 import {
     AnnotatorTopMenuExtraControlsRenderer,
     ItemSelectFragmentRenderer
 } from "../../../../server/components/AnnotatorTopMenu";
 import useStateSafe from "../../../../util/react/hooks/useStateSafe";
-import {AnyPK, DatasetPK, getDatasetPK} from "../../../../server/pk";
+import {AnyPK, DatasetPK, getDatasetPK, getProjectPK, ProjectPK} from "../../../../server/pk";
 import {NO_ANNOTATION, Transcription} from "../../../../server/types/annotations";
 import useDerivedState from "../../../../util/react/hooks/useDerivedState";
 import {DatasetItem} from "../../../../server/types/DatasetItem";
@@ -24,10 +24,16 @@ import useSpeechDataset from "../../../../server/hooks/useSpeechDataset/useSpeec
 import {AudioRenderer} from "../../../../server/components/audio/AudioRenderer";
 import hasData from "../../../../util/react/query/hasData";
 import MinimumEditDistance from "./MinimumEditDistance";
+import {Controllable, mapControllable, useControllableState} from "../../../../util/react/hooks/useControllableState";
+import {ListSelect} from "../../../ListSelect";
+import {DatasetInstance} from "../../../../../../ufdl-ts-client/dist/types/core/dataset";
+import {DOMAIN_DATASET_METHODS, DomainName} from "../../../../server/domains";
+import nameFromSignature from "../../../../server/util/nameFromSignature";
+import {exactFilter} from "../../../../server/util/exactFilter";
 
 export type SPAPProps = {
     lockedPK?: AnyPK,
-    evalPK?: DatasetPK,
+    evalPK: Controllable<DatasetPK | undefined>,
     nextLabel: WithDefault<string>
     onNext?: (
         selectedPK: AnyPK,
@@ -52,9 +58,14 @@ export default function SpeechAnnotatorPage(
         props.queryDependencies
     );
 
+    const [evalPK, setEvalPK, evalPKLocked] = useControllableState(
+        props.evalPK,
+        constantInitialiser(undefined)
+    )
+
     const evalDataset = useSpeechDataset(
         ufdlServerContext,
-        props.evalPK,
+        evalPK,
         props.evalQueryDependencies
     );
 
@@ -70,7 +81,16 @@ export default function SpeechAnnotatorPage(
 
     const [itemSelectFragmentRenderer] = useStateSafe(createSpeechSelectFragmentRenderer)
 
-    const [extraControls] = useStateSafe(createObjectDetectionExtraControlsRenderer)
+    const extraControls = useDerivedState(
+        ([selectedPK, evalPK, setEvalPK, evalPKLocked]) => createSpeechExtraControlsRenderer(
+            "Speech",
+            getProjectPK(selectedPK),
+            evalPK,
+            setEvalPK,
+            evalPKLocked
+        ),
+        [selectedPK, evalPK, setEvalPK, evalPKLocked] as const
+    )
 
     const [filesDetectedObjectsModalRenderer] = useStateSafe(
         () => addFilesRenderer<Audio, Transcription>(
@@ -139,11 +159,29 @@ export default function SpeechAnnotatorPage(
     />
 }
 
-function createObjectDetectionExtraControlsRenderer(
+function createSpeechExtraControlsRenderer(
+    domain: DomainName,
+    projectPK: ProjectPK | undefined,
+    evalPK: Controllable<DatasetPK | undefined>,
+    setEvalPK: Dispatch<DatasetPK | undefined>,
+    evalPKLocked: boolean
     // No parameters
 ): AnnotatorTopMenuExtraControlsRenderer {
     return () => {
-        return <></>
+        return <>
+            <label>
+                Eval Dataset:
+                <ListSelect<DatasetInstance>
+                    list={DOMAIN_DATASET_METHODS[domain].list}
+                    labelFunction={nameFromSignature}
+                    onChange={(_, pk) => setEvalPK(projectPK!.dataset(pk))}
+                    filter={projectPK === undefined ? undefined : exactFilter("project", projectPK.asNumber)}
+                    forceEmpty={projectPK === undefined}
+                    value={mapControllable(evalPK, pk => pk?.asNumber ?? -1)}
+                    disabled={evalPKLocked}
+                />
+            </label>
+        </>
     }
 }
 
