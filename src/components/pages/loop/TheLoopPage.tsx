@@ -76,6 +76,14 @@ export default function TheLoopPage(
         [templateControlPK] as const
     )
 
+    const queryDependencies = useDerivedState(
+        ([state]) => state === "User Fixing Categories"
+            ? [state] as const
+            : undefined
+        ,
+        [stateMachine.state] as const
+    )
+
     switch (stateMachine.state) {
         case "Initial":
             return <div></div>
@@ -294,6 +302,7 @@ export default function TheLoopPage(
                 onBack={stateMachine.transitions.back}
                 onError={stateMachine.transitions.error}
                 modelType={stateMachine.data.modelType}
+                queryDependencies={queryDependencies}
             />
 
         case "Finished":

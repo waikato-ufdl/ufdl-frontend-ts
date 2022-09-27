@@ -81,7 +81,8 @@ async function setAnnotations(
 
 export default function useObjectDetectionDataset(
     serverContext: UFDLServerContext,
-    datasetPK?: DatasetPK
+    datasetPK?: DatasetPK,
+    queryDependencies?: readonly unknown[]
 ): ObjectDetectionDatasetDispatch | undefined {
     return useDataset(
         serverContext,
@@ -91,6 +92,7 @@ export default function useObjectDetectionDataset(
         setAnnotations,
         ObjectDetectionDatasetDispatchItem,
         ObjectDetectionDatasetDispatch,
-        datasetPK
+        datasetPK,
+        queryDependencies
     )
 }

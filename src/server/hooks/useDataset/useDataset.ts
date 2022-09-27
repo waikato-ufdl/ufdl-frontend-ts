@@ -45,6 +45,7 @@ import useCachedObject, {useCachedObjects} from "../../../util/react/hooks/useCa
 import {tuple} from "../../../util/typescript/arrays/tuple";
 import useRenderNotify from "../../../util/react/hooks/useRenderNotify";
 import useDatasetMutationMethods from "./useDatasetMutationMethods";
+import {useEffect} from "react";
 
 
 /**
@@ -81,7 +82,8 @@ export default function useDataset<
     setAnnotations: AnnotationsSetterFunction<A>,
     itemConstructor: MutableDatasetDispatchItemConstructor<D, A, I>,
     dispatchConstructor: MutableDatasetDispatchConstructor<D, A, I, DIS>,
-    datasetPK?: DatasetPK
+    datasetPK?: DatasetPK,
+    queryDependencies?: readonly unknown[]
 ): DIS | undefined {
 
     // Get the React-Query client instance
@@ -204,6 +206,15 @@ export default function useDataset<
         [fileOrdering, serverContext, datasetResult.data, getAnnotations, queryClient] as const
     )
     const fileAnnotationResults = useCachedObjects(...useQueries(fileAnnotationQueries))
+
+    useEffect(
+        () => {
+            if (queryDependencies === undefined) return
+
+            queryClient.invalidateQueries(datasetQueryKey(datasetPK))
+        },
+        queryDependencies ?? []
+    )
 
     // Create a mutation for adding new files to the dataset
     const addFilesMutationOptions: UseMutationOptions<NamedFileInstance[], unknown, ReadonlyMap<string, D>>

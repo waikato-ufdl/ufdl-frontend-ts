@@ -23,7 +23,9 @@ export type LoopAnnotatorPageProps = {
     modelType: string | undefined
     onNext: (x: number, y: number) => void
     onBack: () => void
-    onError: (reason: any) => void
+    onError: (reason: any) => void,
+    queryDependencies?: readonly unknown[],
+    evalQueryDependencies?: readonly unknown[]
 }
 
 export default function LoopAnnotatorPage(
@@ -61,6 +63,8 @@ export default function LoopAnnotatorPage(
                     props.onNext(...position);
                 }}
                 onBack={props.onBack}
+                queryDependencies={props.queryDependencies}
+                evalQueryDependencies={props.evalQueryDependencies}
             />
         case "Object Detection":
             // TODO: Add eval dataset capability
@@ -72,6 +76,8 @@ export default function LoopAnnotatorPage(
                     props.onNext(...position);
                 }}
                 onBack={props.onBack}
+                queryDependencies={props.queryDependencies}
+                evalQueryDependencies={props.evalQueryDependencies}
             />
         case "Speech":
             return <SpeechAnnotatorPage
@@ -83,6 +89,8 @@ export default function LoopAnnotatorPage(
                     props.onNext(...position);
                 }}
                 onBack={props.onBack}
+                queryDependencies={props.queryDependencies}
+                evalQueryDependencies={props.evalQueryDependencies}
             />
         default:
             props.onError(`No annotator page for domain ${props.domain}`)

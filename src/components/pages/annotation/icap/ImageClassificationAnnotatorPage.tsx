@@ -58,7 +58,9 @@ export type ICAPProps = {
         labelColours: ClassColours,
         position: [number, number]
     ) => void
-    onBack?: () => void
+    onBack?: () => void,
+    queryDependencies?: readonly unknown[],
+    evalQueryDependencies?: readonly unknown[]
 }
 
 export default function ImageClassificationAnnotatorPage(
@@ -70,12 +72,14 @@ export default function ImageClassificationAnnotatorPage(
 
     const dataset = useImageClassificationDataset(
         ufdlServerContext,
-        getDatasetPK(selectedPK)
+        getDatasetPK(selectedPK),
+        props.queryDependencies
     );
 
     const evalDataset = useImageClassificationDataset(
         ufdlServerContext,
-        props.evalPK
+        props.evalPK,
+        props.evalQueryDependencies
     );
 
     const classColoursDispatch = useClassColours(dataset, props.initialColours);

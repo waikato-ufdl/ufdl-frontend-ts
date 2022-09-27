@@ -34,7 +34,9 @@ export type SPAPProps = {
         dataset: SpeechDatasetDispatch | undefined,
         position: [number, number]
     ) => void
-    onBack?: () => void
+    onBack?: () => void,
+    queryDependencies?: readonly unknown[],
+    evalQueryDependencies?: readonly unknown[]
 }
 
 export default function SpeechAnnotatorPage(
@@ -46,12 +48,14 @@ export default function SpeechAnnotatorPage(
 
     const dataset = useSpeechDataset(
         ufdlServerContext,
-        getDatasetPK(selectedPK)
+        getDatasetPK(selectedPK),
+        props.queryDependencies
     );
 
     const evalDataset = useSpeechDataset(
         ufdlServerContext,
-        props.evalPK
+        props.evalPK,
+        props.evalQueryDependencies
     );
 
     // Sub-page displays

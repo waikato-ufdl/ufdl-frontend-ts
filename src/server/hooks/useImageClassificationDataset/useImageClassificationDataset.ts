@@ -69,7 +69,8 @@ async function setAnnotations(
 
 export default function useImageClassificationDataset(
     serverContext: UFDLServerContext,
-    datasetPK?: DatasetPK
+    datasetPK?: DatasetPK,
+    queryDependencies?: readonly unknown[]
 ): ImageClassificationDatasetDispatch | undefined {
     return useDataset<Image, Classification, MutableDatasetDispatchItem<Image, Classification>, ImageClassificationDatasetDispatch>(
         serverContext,
@@ -79,6 +80,7 @@ export default function useImageClassificationDataset(
         setAnnotations,
         MutableDatasetDispatchItem,
         ImageClassificationDatasetDispatch,
-        datasetPK
+        datasetPK,
+        queryDependencies
     )
 }

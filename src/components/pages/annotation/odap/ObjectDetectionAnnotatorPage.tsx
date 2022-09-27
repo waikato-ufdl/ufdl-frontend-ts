@@ -52,7 +52,9 @@ export type ODAPProps = {
         dataset: ObjectDetectionDatasetDispatch | undefined,
         position: [number, number]
     ) => void
-    onBack?: () => void
+    onBack?: () => void,
+    queryDependencies?: readonly unknown[],
+    evalQueryDependencies?: readonly unknown[]
 }
 
 export default function ObjectDetectionAnnotatorPage(
@@ -64,7 +66,8 @@ export default function ObjectDetectionAnnotatorPage(
 
     const dataset = useObjectDetectionDataset(
         ufdlServerContext,
-        getDatasetPK(selectedPK)
+        getDatasetPK(selectedPK),
+        props.queryDependencies
     );
 
     // Sub-page displays

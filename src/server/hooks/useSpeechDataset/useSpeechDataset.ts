@@ -59,7 +59,8 @@ async function setAnnotations(
 
 export default function useSpeechDataset(
     serverContext: UFDLServerContext,
-    datasetPK?: DatasetPK
+    datasetPK?: DatasetPK,
+    queryDependencies?: readonly unknown[]
 ): SpeechDatasetDispatch | undefined {
     return useDataset(
         serverContext,
@@ -69,6 +70,7 @@ export default function useSpeechDataset(
         setAnnotations,
         SpeechDatasetDispatchItem,
         SpeechDatasetDispatch,
-        datasetPK
+        datasetPK,
+        queryDependencies
     )
 }
