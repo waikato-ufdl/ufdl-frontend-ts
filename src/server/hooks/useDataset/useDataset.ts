@@ -210,8 +210,12 @@ export default function useDataset<
     useEffect(
         () => {
             if (queryDependencies === undefined) return
-
-            queryClient.invalidateQueries(datasetQueryKey(datasetPK))
+            function refetch(result: QueryObserverResult) {
+                result.refetch({ cancelRefetch: false })
+            }
+            refetch(datasetResult)
+            fileDataResults.forEach(refetch)
+            fileAnnotationResults.forEach(refetch)
         },
         queryDependencies ?? []
     )
