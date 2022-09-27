@@ -100,6 +100,7 @@ export default function TheLoopPage(
         case "Selecting Initial Images": {
             return <>
                 <LoopAnnotatorPage
+                    key={stateMachine.state}
                     domain={stateMachine.data.domain}
                     targetDataset={stateMachine.data.targetDataset}
                     evalDatasetPK={undefined}
@@ -197,6 +198,7 @@ export default function TheLoopPage(
         case "Selecting Prelabel Images":
             return <>
                 <LoopAnnotatorPage
+                    key={stateMachine.state}
                     domain={stateMachine.data.domain}
                     targetDataset={stateMachine.data.targetDataset}
                     evalDatasetPK={undefined}
@@ -260,6 +262,7 @@ export default function TheLoopPage(
         case "Checking":
             return <>
                 <LoopAnnotatorPage
+                    key={stateMachine.state}
                     domain={stateMachine.data.domain}
                     targetDataset={stateMachine.data.evaluationDataset}
                     evalDatasetPK={stateMachine.data.primaryDataset}
@@ -289,6 +292,7 @@ export default function TheLoopPage(
 
         case "User Fixing Categories":
             return <LoopAnnotatorPage
+                key={stateMachine.state}
                 domain={stateMachine.data.domain}
                 targetDataset={stateMachine.data.additionDataset}
                 evalDatasetPK={undefined}
