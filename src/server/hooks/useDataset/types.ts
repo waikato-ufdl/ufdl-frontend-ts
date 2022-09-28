@@ -5,7 +5,7 @@ import {BlobSubject} from "../../../util/rx/data/BlobSubject";
 import {Data} from "../../types/data";
 import {NO_ANNOTATION, OptionalAnnotations} from "../../types/annotations";
 import {DatasetPK} from "../../pk";
-import {UseMutationResult, UseQueryResult} from "react-query";
+import {UseMutateFunction, UseQueryResult} from "react-query";
 import {TOGGLE} from "./selection";
 import {DatasetItem} from "../../types/DatasetItem";
 import {Dataset} from "../../types/Dataset";
@@ -115,7 +115,7 @@ export type MutableDatasetDispatchItemConstructor<D extends Data, A, I extends M
         annotations: DatasetDispatchItemAnnotationType<A>,
         selected: boolean,
         setSelected: React.Dispatch<[string, boolean | typeof TOGGLE]>,
-        setAnnotationsMutation: UseMutationResult<void, unknown, [string, OptionalAnnotations<A>]>
+        setAnnotationsMutation: UseMutateFunction<void, unknown, [string, OptionalAnnotations<A>]>
     ) => I
 
 export type DatasetDispatchItemSelector<D extends Data, A>

@@ -6,7 +6,9 @@ import forDownload from "../../forDownload";
 import {mapMap, mapToObject} from "../../../util/map";
 import useDerivedState from "../../../util/react/hooks/useDerivedState";
 import {
-    QueryClient, QueryObserverResult, UseBaseMutationResult,
+    QueryClient,
+    QueryObserverResult,
+    UseMutateFunction,
     useMutation,
     UseMutationOptions,
     useQueries,
@@ -41,7 +43,6 @@ import zip from "../../../util/typescript/iterate/zip";
 import {toReadonlyQueryResult} from "../../../util/react/query/util";
 import mapQueryResult from "../../../util/react/query/mapQueryResult";
 import repeat from "../../../util/typescript/iterate/repeat";
-import useCachedObject, {useCachedObjects} from "../../../util/react/hooks/useCachedObject";
 import {tuple} from "../../../util/typescript/arrays/tuple";
 import useDatasetMutationMethods from "./useDatasetMutationMethods";
 import {useEffect} from "react";
@@ -106,7 +107,7 @@ export default function useDataset<
         },
         [serverContext, datasetPK] as const
     )
-    const datasetResult = useCachedObject(useQuery(datasetQuery))
+    const datasetResult = useQuery(datasetQuery)
 
     // Create a constant ordering of the files in the dataset
     const filenameMap = useDerivedStates<readonly [string, string], readonly [string, string]>(
@@ -174,7 +175,7 @@ export default function useDataset<
         },
         [fileOrdering, serverContext, datasetResult.data, getData, datasetPK, queryClient] as const
     )
-    const fileDataResults = useCachedObjects(...useQueries(fileDataQueries))
+    const fileDataResults = useQueries(fileDataQueries)
 
     // Create queries for the annotations for each of the files in the dataset
     const fileAnnotationQueries = useDerivedState(
@@ -204,7 +205,7 @@ export default function useDataset<
         },
         [fileOrdering, serverContext, datasetResult.data, getAnnotations, queryClient] as const
     )
-    const fileAnnotationResults = useCachedObjects(...useQueries(fileAnnotationQueries))
+    const fileAnnotationResults = useQueries(fileAnnotationQueries)
 
     useEffect(
         () => {
@@ -309,7 +310,7 @@ export default function useDataset<
             },
             [serverContext, datasetPK, setData, datasetResult.data, queryClient] as const
         )
-    const addFilesMutation = useCachedObject(useMutation(addFilesMutationOptions))
+    const addFilesMutation = useMutation(addFilesMutationOptions)
 
     // Create a mutation for deleting files from the dataset
     const deleteFileMutationOptions: UseMutationOptions<NamedFileInstance, unknown, string>
@@ -359,7 +360,7 @@ export default function useDataset<
             },
             [serverContext, datasetPK] as const
         )
-    const deleteFileMutation = useCachedObject(useMutation(deleteFileMutationOptions))
+    const deleteFileMutation = useMutation(deleteFileMutationOptions)
 
     // Create a mutation for setting the annotations for a file in the dataset
     const setAnnotationsMutationOptions: UseMutationOptions<void, unknown, [string, OptionalAnnotations<A>]> = useDerivedState(
@@ -396,7 +397,7 @@ export default function useDataset<
         },
         [serverContext, datasetResult.data, setAnnotations] as const
     )
-    const setAnnotationsMutation = useCachedObject(useMutation(setAnnotationsMutationOptions))
+    const setAnnotationsMutation = useMutation(setAnnotationsMutationOptions)
 
     // Add some state to handle the selected-state of each dataset item (client-side only)
     const [selected, setSelected] = useDerivedReducer(
@@ -413,7 +414,7 @@ export default function useDataset<
             fileAnnotationResult:  QueryObserverResult<readonly [string, OptionalAnnotations<A>]>,
             selected: boolean,
             setSelected: React.Dispatch<[string, (boolean | typeof TOGGLE)]>,
-            setAnnotationsMutation: UseBaseMutationResult<void, unknown, [string, OptionalAnnotations<A>]>
+            setAnnotationsMutation: UseMutateFunction<void, unknown, [string, OptionalAnnotations<A>]>
         ) => {
             return new itemConstructor(
                 filename,
@@ -437,7 +438,7 @@ export default function useDataset<
             iterate(fileAnnotationResults),
             selected.values(),
             repeat(setSelected),
-            repeat(setAnnotationsMutation)
+            repeat(setAnnotationsMutation.mutate)
         )] as const
     )
 

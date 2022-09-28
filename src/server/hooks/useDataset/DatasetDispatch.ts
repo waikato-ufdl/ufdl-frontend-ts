@@ -8,7 +8,7 @@ import {
     QueryObserverResult,
     RefetchOptions,
     RefetchQueryFilters,
-    UseMutationResult,
+    UseMutateFunction,
     UseQueryResult
 } from "react-query";
 import {ReadonlyQueryResult} from "../../../util/react/query/types";
@@ -47,7 +47,7 @@ export class MutableDatasetDispatchItem<D extends Data, A>
         annotations: DatasetDispatchItemAnnotationType<A>,
         selected: boolean,
         private readonly _setSelected: React.Dispatch<[string, boolean | typeof TOGGLE]>,
-        private readonly _setAnnotationsMutation: UseMutationResult<void, unknown, [string, OptionalAnnotations<A>]>
+        private readonly _setAnnotationsMutation: UseMutateFunction<void, unknown, [string, OptionalAnnotations<A>]>
     ) {
         super(
             filename,
@@ -63,7 +63,7 @@ export class MutableDatasetDispatchItem<D extends Data, A>
     }
 
     setAnnotations(annotations: OptionalAnnotations<A>) {
-        this._setAnnotationsMutation.mutate([this.filename, annotations])
+        this._setAnnotationsMutation([this.filename, annotations])
     }
 
 }
