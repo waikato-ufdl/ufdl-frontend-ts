@@ -93,6 +93,14 @@ export default function AnnotatorTopMenu<D extends DomainName>(
         [projectPK]
     );
 
+    const extraControls = useDerivedState(
+        ([extraControls]) =>
+            extraControls !== undefined
+                ? extraControls()
+                : undefined,
+        [props.extraControls] as const
+    )
+
     const selectModal = useLocalModal();
 
     const [numSelected, outOf] = props.numSelected;
@@ -188,7 +196,7 @@ export default function AnnotatorTopMenu<D extends DomainName>(
             Extract
         </button>
 
-        {props.extraControls !== undefined ? props.extraControls() : undefined}
+        {extraControls}
 
         <label>
             {`Selected (${numSelected}/${outOf}) `}
