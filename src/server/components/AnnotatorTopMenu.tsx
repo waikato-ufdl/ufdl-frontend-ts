@@ -151,7 +151,7 @@ export default function AnnotatorTopMenu<D extends DomainName>(
             onChange={asChangeEventHandler((order) => props.onSortChanged(order, sortOrders[order]))}
         >
             {
-                Object.getOwnPropertyNames(props.sortOrders).map(
+                Object.getOwnPropertyNames(sortOrders).map(
                     (order) => {
                         return <option value={order}>{order}</option>
                     }
