@@ -13,12 +13,10 @@ import {DomainAnnotationType, DomainDataType, DomainName} from "../domains";
 import {
     DatasetDispatch,
     DatasetDispatchItem,
-    MutableDatasetDispatch,
-    MutableDatasetDispatchItem
+    MutableDatasetDispatch
 } from "../hooks/useDataset/DatasetDispatch";
 import useDerivedState from "../../util/react/hooks/useDerivedState";
 import {DatasetDispatchItemAnnotationType, DatasetDispatchItemDataType} from "../hooks/useDataset/types";
-import useDerivedStates, {DerivationFunction} from "../../util/react/hooks/useDerivedStates";
 
 export type DatasetOverviewProps<D extends DomainName> = {
     dataset: MutableDatasetDispatch<DomainDataType<D>, DomainAnnotationType<D>> | undefined
@@ -55,31 +53,6 @@ const FLEX_CONTAINER_STYLE = {
 
 const DatasetItemMemo = React.memo(DatasetItem) as typeof DatasetItem
 
-type DeriveRenderedItemsParamType<D extends DomainName> = readonly [
-    item: MutableDatasetDispatchItem<DomainDataType<D>, DomainAnnotationType<D>>,
-    evalAnnotation: Possible<DatasetDispatchItemAnnotationType<DomainAnnotationType<D>>>,
-    renderData: DataRenderer<DatasetDispatchItemDataType<DomainDataType<D>>>,
-    renderAnnotation: AnnotationRenderer<DatasetDispatchItemAnnotationType<DomainAnnotationType<D>>>,
-    onItemClicked: (item: MutableDatasetDispatchItem<DomainDataType<D>, DomainAnnotationType<D>>) => void
-]
-
-function deriveRenderedItems<D extends DomainName>(
-    item: MutableDatasetDispatchItem<DomainDataType<D>, DomainAnnotationType<D>>,
-    evalAnnotation: Possible<DatasetDispatchItemAnnotationType<DomainAnnotationType<D>>>,
-    renderData: DataRenderer<DatasetDispatchItemDataType<DomainDataType<D>>>,
-    renderAnnotation: AnnotationRenderer<DatasetDispatchItemAnnotationType<DomainAnnotationType<D>>>,
-    onItemClicked: (item: MutableDatasetDispatchItem<DomainDataType<D>, DomainAnnotationType<D>>) => void
-) {
-    return <DatasetItemMemo<D>
-        key={item.filename}
-        item={item}
-        evalAnnotation={evalAnnotation}
-        renderData={renderData}
-        renderAnnotation={renderAnnotation}
-        onClick={onItemClicked}
-    />
-}
-
 export default function DatasetOverview<D extends DomainName>(
     props: DatasetOverviewProps<D>
 ) {
@@ -99,17 +72,15 @@ export default function DatasetOverview<D extends DomainName>(
     if (sortFunction !== Absent) items.sort(sortFunction)
 
     // Create a display item for each dataset item
-    const renderedItems = useDerivedStates(
-        deriveRenderedItems as DerivationFunction<DeriveRenderedItemsParamType<D>, JSX.Element>,
-        items.map(
-            item => [
-                item,
-                undefinedAsAbsent(props.evalDataset?.get(item.filename)?.annotations),
-                props.renderData,
-                props.renderAnnotation,
-                props.onItemClicked
-            ] as const
-        )
+    const renderedItems = items.map(
+        item => <DatasetItemMemo<D>
+            key={item.filename}
+            item={item}
+            evalAnnotation={undefinedAsAbsent(props.evalDataset?.get(item.filename)?.annotations)}
+            renderData={props.renderData}
+            renderAnnotation={props.renderAnnotation}
+            onClick={props.onItemClicked}
+        />
     )
 
     // Create the submission function for adding new files to the dataset
@@ -136,7 +107,7 @@ export default function DatasetOverview<D extends DomainName>(
             onSubmit={onSubmit}
             subMenus={props.addFilesSubMenus}
         />
-        {[...renderedItems.values()]}
+        {renderedItems}
     </FlexContainer>
 
 }
