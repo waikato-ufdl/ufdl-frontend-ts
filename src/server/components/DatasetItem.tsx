@@ -11,7 +11,6 @@ import {
 } from "../hooks/useDataset/DatasetDispatch";
 import {TOGGLE} from "../hooks/useDataset/selection";
 import {DatasetDispatchItemAnnotationType, DatasetDispatchItemDataType} from "../hooks/useDataset/types";
-import useRenderNotify from "../../util/react/hooks/useRenderNotify";
 
 /** The type of component that renders the raw item data (e.g. images/videos). */
 export type DataRenderer<D> = (
@@ -42,8 +41,6 @@ export type DatasetItemProps<D extends DomainName> = {
 export default function DatasetItem<D extends DomainName>(
     props: DatasetItemProps<D>
 ): FunctionComponentReturnType {
-
-    useRenderNotify("DatasetItem", props)
 
     const renderedAnnotation = useDerivedState(
         () => props.renderAnnotation(

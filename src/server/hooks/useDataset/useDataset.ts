@@ -43,7 +43,6 @@ import mapQueryResult from "../../../util/react/query/mapQueryResult";
 import repeat from "../../../util/typescript/iterate/repeat";
 import useCachedObject, {useCachedObjects} from "../../../util/react/hooks/useCachedObject";
 import {tuple} from "../../../util/typescript/arrays/tuple";
-import useRenderNotify from "../../../util/react/hooks/useRenderNotify";
 import useDatasetMutationMethods from "./useDatasetMutationMethods";
 import {useEffect} from "react";
 
@@ -491,8 +490,6 @@ export default function useDataset<
             ...mutationMethods
         ] as const
     );
-
-    useRenderNotify("Dispatch", {dispatch: dispatch})
 
     return dispatch
 }
