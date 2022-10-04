@@ -49,7 +49,7 @@ export default async function videoHasLoadedCurrentFrame(
 
         // Check if the currentTime changed while we were waiting, and error
         // if the user has selected this functionality
-        if (currentTime !== video.currentTime && throwOnCurrentTimeChanged)
+        if (throwOnCurrentTimeChanged && currentTime !== video.currentTime)
             throw new Error("currentTime changed")
     }
 }
