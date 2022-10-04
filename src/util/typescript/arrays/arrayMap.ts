@@ -4,6 +4,6 @@ export default function arrayMap<
 >(
     array: TArray,
     mapFn: (element: TArray[number], index: number) => TReturn
-): { [TKey in keyof TArray]: TKey extends number ? TReturn : TKey extends keyof [] ? TArray[TKey] : never } {
+): { [TKey in keyof TArray]: TReturn } {
     return array.map(mapFn as any) as any
 }
