@@ -1,33 +1,16 @@
 import {FunctionComponentReturnType} from "../types";
-import {ReactPictureAnnotation} from "react-picture-annotation";
 import React from "react";
-import {IAnnotation} from "react-picture-annotation/dist/types/src/Annotation";
-import {IShapeStyle} from "react-picture-annotation/dist/types/src/Shape";
 import useDerivedState from "../hooks/useDerivedState";
-import useDerivedReducer from "../hooks/useDerivedReducer";
-import {createSimpleStateReducer} from "../hooks/SimpleStateReducer";
 import "./SubmitCancelPictureAnnotation.css"
-import {isDeepEqual} from "../../equivalency";
-import {arrayEqual} from "../../typescript/arrays/arrayEqual";
+import PictureAnnotator, {PictureAnnotatorProps} from "./pictureannotate/PictureAnnotator";
+import {Annotated} from "./pictureannotate/annotated";
+import Shape from "./pictureannotate/shapes/Shape";
+import {useControllableState} from "../hooks/useControllableState";
 
-export type SubmitCancelPictureAnnotationProps = {
-    annotationData?: IAnnotation[]
-    selectedId?: string | null
-    scrollSpeed?: number
-    marginWithInput?: number
-    onChange: (annotationData: IAnnotation[]) => void
-    onSelect: (id: string | null) => void
-    width: number
-    height: number
-    image: string
-    annotationStyle?: IShapeStyle
-    defaultAnnotationSize?: [number, number]
-    inputElement?: (value: string, onChange: (value: string) => void, onDelete: () => void) => React.ReactElement
-    onSubmit: (annotationData: IAnnotation[]) => void
+export type SubmitCancelPictureAnnotationProps = PictureAnnotatorProps & {
+    onSubmit: (annotationData: readonly Annotated<Shape>[]) => void
     onCancel: () => void
 }
-
-const ANNOTATION_REDUCER = createSimpleStateReducer<IAnnotation[]>()
 
 export function SubmitCancelPictureAnnotation(
     props: SubmitCancelPictureAnnotationProps
@@ -37,16 +20,11 @@ export function SubmitCancelPictureAnnotation(
         onSubmit,
         onCancel,
         onChange,
-        annotationData,
+        annotatedShapes,
         ...reactPictureAnnotationProps
     } = props
 
-    const [annotations, setAnnotations] = useDerivedReducer(
-        ANNOTATION_REDUCER,
-        ([annotationData]) => annotationData ?? [],
-        [annotationData] as const,
-        () => annotationData ?? []
-    )
+    const [annotations, setAnnotations] = useControllableState(props.annotatedShapes, () => [])
 
     const onSubmitActual = useDerivedState(
         ([onSubmit, annotations]) => () => {
@@ -56,18 +34,17 @@ export function SubmitCancelPictureAnnotation(
     )
 
     const onChangeActual = useDerivedState(
-        ([setAnnotations, onChange, annotations]) => (annotationData: IAnnotation[]) => {
-            if (arrayEqual(annotations, annotationData, isDeepEqual)) return
+        ([setAnnotations, onChange]) => (annotationData: readonly Annotated<Shape>[]) => {
             setAnnotations(annotationData)
             onChange(annotationData)
         },
-        [setAnnotations, onChange, annotations] as const
+        [setAnnotations, onChange] as const
     )
 
     return <div className={"SubmitCancelPictureAnnotation"}>
-        <ReactPictureAnnotation
+        <PictureAnnotator
             onChange={onChangeActual}
-            annotationData={annotations}
+            annotatedShapes={annotations}
             {...reactPictureAnnotationProps}
         />
         <div className={"SubmitCancelPictureAnnotationButtons"}>

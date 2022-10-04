@@ -1,17 +1,19 @@
 import {FunctionComponentReturnType} from "../types";
 import {SubmitCancelPictureAnnotation, SubmitCancelPictureAnnotationProps} from "./SubmitCancelPictureAnnotation";
 import {ObjectDetectionDatasetDispatchItem} from "../../../server/hooks/useObjectDetectionDataset/ObjectDetectionDatasetDispatch";
-import {IAnnotation} from "react-picture-annotation/dist/types/src/Annotation";
 import isDefined from "../../typescript/isDefined";
 import {SubmitCancelVideoAnnotation} from "./SubmitCancelVideoAnnotation";
 import useDerivedState from "../hooks/useDerivedState";
-import {IRectShapeData} from "react-picture-annotation/dist/types/src/Shape";
 import {NO_ANNOTATION} from "../../../server/types/annotations";
+import {Annotated} from "./pictureannotate/annotated";
+import Shape from "./pictureannotate/shapes/Shape";
+import {UNCONTROLLED_RESET, UncontrolledResetOverride} from "../hooks/useControllableState";
+import pass from "../../typescript/functions/pass";
 
-export type SubmitCancelPictureOrVideoAnnotationProps = Omit<SubmitCancelPictureAnnotationProps, "annotationData" | "onChange" | "image" | "onSubmit"> & {
+export type SubmitCancelPictureOrVideoAnnotationProps = Omit<SubmitCancelPictureAnnotationProps, "annotatedShapes" | "selected" | "onSelected" | "onChange" | "image" | "onSubmit"> & {
     item: ObjectDetectionDatasetDispatchItem
-    onChange: (annotationData: IAnnotation[], timestamp?: number) => void
-    onSubmit: (annotationData: ReadonlyMap<number, IAnnotation[]> | IAnnotation[]) => void
+    onChange: (annotationData: readonly Annotated<Shape>[], timestamp?: number) => void
+    onSubmit: (annotationData: ReadonlyMap<number, readonly Annotated<Shape>[]> | readonly Annotated<Shape>[]) => void
 }
 
 export function SubmitCancelPictureOrVideoAnnotation(
@@ -23,7 +25,10 @@ export function SubmitCancelPictureOrVideoAnnotation(
         ...otherProps
     } = props
 
-    const destructured: undefined | [true, Blob, Map<number, IAnnotation<IRectShapeData>[]>] | [false, string, IAnnotation<IRectShapeData>[]]
+    const destructured:
+        | undefined
+        | [true, Blob, UncontrolledResetOverride<Map<number, readonly Annotated<Shape>[]>>]
+        | [false, string, UncontrolledResetOverride<readonly Annotated<Shape>[]>]
         = useDerivedState(
         ([item]) => {
             const imageOrVideo = item.data.data?.getValue()
@@ -36,9 +41,25 @@ export function SubmitCancelPictureOrVideoAnnotation(
             if (!isDefined(annotations)) return undefined
 
             if (imageOrVideo.isVideo)
-                return [true, imageOrVideo.raw, annotations === NO_ANNOTATION ? new Map() : annotations as Map<number, IAnnotation<IRectShapeData>[]>]
+                return [
+                    true,
+                    imageOrVideo.raw,
+                    new UncontrolledResetOverride(
+                        annotations === NO_ANNOTATION
+                            ? new Map()
+                            : annotations as Map<number, readonly Annotated<Shape>[]>
+                    )
+                ]
             else
-                return [false, imageOrVideo.url, annotations === NO_ANNOTATION ? [] : annotations as IAnnotation<IRectShapeData>[]]
+                return [
+                    false,
+                    imageOrVideo.url,
+                    new UncontrolledResetOverride(
+                        annotations === NO_ANNOTATION
+                            ? []
+                            : annotations as readonly Annotated<Shape>[]
+                    )
+                ]
 
         },
         [item] as const
@@ -49,13 +70,15 @@ export function SubmitCancelPictureOrVideoAnnotation(
     if (destructured[0]) {
         return <SubmitCancelVideoAnnotation
             video={destructured[1]}
-            annotationData={destructured[2]}
+            annotatedShapes={destructured[2]}
             {...otherProps}
         />
     } else {
         return <SubmitCancelPictureAnnotation
             image={destructured[1]}
-            annotationData={destructured[2]}
+            annotatedShapes={destructured[2]}
+            selected={UNCONTROLLED_RESET}
+            onSelected={pass}
             {...otherProps}
         />
 

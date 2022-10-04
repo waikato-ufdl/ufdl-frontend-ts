@@ -1,6 +1,5 @@
 import {FunctionComponentReturnType} from "../types";
 import {SubmitCancelPictureAnnotation, SubmitCancelPictureAnnotationProps} from "./SubmitCancelPictureAnnotation";
-import {IAnnotation} from "react-picture-annotation/dist/types/src/Annotation";
 import useDerivedState from "../hooks/useDerivedState";
 import {constantInitialiser} from "../../typescript/initialisers";
 import asChangeEventHandler from "../asChangeEventHandler";
@@ -10,44 +9,21 @@ import useDerivedReducer from "../hooks/useDerivedReducer";
 import {createSimpleStateReducer} from "../hooks/SimpleStateReducer";
 import getImageFromVideo from "../../getImageFromVideo";
 import {mapGetDefault, spreadJoinMaps} from "../../map";
-import {Reducer} from "react";
 import "./SubmitCancelVideoAnnotation.css"
 import {identity} from "../../identity";
 import {anyToString} from "../../typescript/strings/anyToString";
 import useStateSafe from "../hooks/useStateSafe";
+import {Annotated} from "./pictureannotate/annotated";
+import Shape from "./pictureannotate/shapes/Shape";
+import iteratorMap from "../../typescript/iterate/map";
+import arrayFlatten from "../../typescript/arrays/arrayFlatten";
+import {Controllable, useControllableState} from "../hooks/useControllableState";
 
-export type SubmitCancelVideoAnnotationProps = Omit<SubmitCancelPictureAnnotationProps, "annotationData" | "onChange" | "image" | "onSubmit"> & {
-    annotationData?: ReadonlyMap<number, IAnnotation[]>
-    onChange: (annotationData: IAnnotation[], timestamp: number) => void
+export type SubmitCancelVideoAnnotationProps = Omit<SubmitCancelPictureAnnotationProps, "annotatedShapes" | "selected" | "onSelected" | "onChange" | "image" | "onSubmit"> & {
+    annotatedShapes: Controllable<ReadonlyMap<number, readonly Annotated<Shape>[]>>
+    onChange: (annotationData: readonly Annotated<Shape>[], timestamp: number) => void
     video: Blob
-    onSubmit: (annotationData: ReadonlyMap<number, IAnnotation[]>) => void
-}
-
-/** Reducer which joins the items from the action into the state. */
-const ANNOTATIONS_MAP_REDUCER: Reducer<ReadonlyMap<number, IAnnotation[]>, readonly [number, IAnnotation[]]> =
-    (state, [frametime, annotations]) => {
-        // If the annotations are empty, remove the frametime from the map
-        if (annotations.length === 0) {
-            const result = spreadJoinMaps(state)
-            result.delete(frametime)
-            return result
-        }
-
-        return spreadJoinMaps(state, [frametime, annotations])
-    }
-
-/**
- * Initialiser which initialises to the given dependency map, or to an empty
- * map if no dependency is given.
- *
- * @param dependency
- *          The dependent map from which to initialise.
- */
-function annotationsMapInitialiser(
-    [dependency]: readonly [ReadonlyMap<number, IAnnotation[]> | undefined]
-): ReadonlyMap<number, IAnnotation[]> {
-    if (dependency === undefined) return new Map()
-    return dependency
+    onSubmit: (annotationData: ReadonlyMap<number, readonly Annotated<Shape>[]>) => void
 }
 
 /** Reducer for controlling the time-stamp of the displayed frame. */
@@ -55,6 +31,12 @@ const FRAMETIME_REDUCER = createSimpleStateReducer<number>()
 
 /** Initialiser which resets the frame-time to zero when the video changes. */
 const FRAMETIME_INITIALISER = constantInitialiser(0.0)
+
+/** Reducer for controlling the selected annotation. */
+const SELECTED_REDUCER = createSimpleStateReducer<number | undefined>()
+
+/** Initialiser which resets the selected annotation when the frame-time changes. */
+const SELECTED_INITIALISER = constantInitialiser(undefined as number | undefined)
 
 /**
  * Component which allows for annotating a video, with submit/cancel
@@ -65,7 +47,7 @@ export function SubmitCancelVideoAnnotation(
 ): FunctionComponentReturnType {
 
     const {
-        annotationData,
+        annotatedShapes,
         onChange,
         video,
         onSubmit,
@@ -74,10 +56,21 @@ export function SubmitCancelVideoAnnotation(
 
     // Create an updateable map of annotations per frame, which resets
     // when the source annotationData prop changes
-    const [annotationsMap, setAnnotationsForFrame] = useDerivedReducer(
-        ANNOTATIONS_MAP_REDUCER,
-        annotationsMapInitialiser,
-        [annotationData] as const
+    const [annotationsMap, setAnnotations] = useControllableState(annotatedShapes, () => new Map())
+
+    const setAnnotationsForFrame = useDerivedState(
+        ([annotationsMap, setAnnotations, onChange]) =>
+            (frametime: number, annotations: readonly Annotated<Shape>[]) => {
+                const newMap = spreadJoinMaps(annotationsMap)
+                if (annotations.length > 0) {
+                    newMap.set(frametime, annotations)
+                } else {
+                    newMap.delete(frametime)
+                }
+                setAnnotations(newMap)
+                onChange(annotations, frametime)
+            },
+        [annotationsMap, setAnnotations, onChange] as const
     )
 
     // Create a submit function which submits the current state of the annotations
@@ -121,13 +114,18 @@ export function SubmitCancelVideoAnnotation(
         [videoStats] as const
     )
 
+    const [selected, setSelected] = useDerivedReducer(
+        SELECTED_REDUCER,
+        SELECTED_INITIALISER,
+        [frametime] as const
+    )
+
     // Augment the onChange callback to also update the annotations map
     const onChangeActual = useDerivedState(
-        ([onChange, frametime, setAnnotationsForFrame]) => (annotationData: IAnnotation[]) => {
-            setAnnotationsForFrame([frametime, annotationData])
-            onChange(annotationData, frametime)
+        ([frametime, setAnnotationsForFrame]) => (annotationData: readonly Annotated<Shape>[]) => {
+            setAnnotationsForFrame(frametime, annotationData)
         },
-        [onChange, frametime, setAnnotationsForFrame] as const
+        [frametime, setAnnotationsForFrame] as const
     )
 
     // Create a cache of promises of frame-data URLs so we only capture frame
@@ -245,7 +243,7 @@ export function SubmitCancelVideoAnnotation(
 
                 // Clear the annotations for all selected frame-times
                 for (const frameTime of selectedFrameTimes) {
-                    setAnnotationsForFrame([Number.parseFloat(frameTime), []])
+                    setAnnotationsForFrame(Number.parseFloat(frameTime), [])
                 }
 
                 // Clear the list of selected frame-times
@@ -293,13 +291,25 @@ export function SubmitCancelVideoAnnotation(
         }
     </select>
 
+    const options = arrayFlatten(
+        [
+            ...iteratorMap(
+                annotationsMap.values(),
+                annotations => annotations.map(annotation => annotation.annotation ?? "")
+            )
+        ]
+    ).filter(annotation => annotation !== "")
+
     // Display the annotator for the frame, along with the frame-time slider and frame-time multi-select
     return <>
         <SubmitCancelPictureAnnotation
-            annotationData={annotationsMap.get(frametime)}
+            annotatedShapes={annotationsMap.get(frametime) ?? []}
+            selected={selected}
+            onSelected={setSelected}
             onChange={onChangeActual}
             image={frameURLBuffered}
             onSubmit={onSubmitActual}
+            options={options}
             {...otherProps}
         />
         {element}

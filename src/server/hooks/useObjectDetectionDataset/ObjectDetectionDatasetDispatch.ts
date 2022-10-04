@@ -1,11 +1,11 @@
 import {MutableDatasetDispatch, MutableDatasetDispatchItem} from "../useDataset/DatasetDispatch";
 import {NO_ANNOTATION} from "../../types/annotations";
-import {IAnnotation} from "react-picture-annotation/dist/types/src/Annotation";
-import {IRectShapeData} from "react-picture-annotation/dist/types/src/Shape";
 import {DomainAnnotationType, DomainDataType} from "../../domains";
 import isDefined from "../../../util/typescript/isDefined";
 import hasData from "../../../util/react/query/hasData";
 import {detectedObjectsToIAnnotations} from "../../../util/IAnnotations";
+import {Annotated} from "../../../util/react/component/pictureannotate/annotated";
+import Shape from "../../../util/react/component/pictureannotate/shapes/Shape";
 
 export class ObjectDetectionDatasetDispatchItem
     extends MutableDatasetDispatchItem<
@@ -13,7 +13,7 @@ export class ObjectDetectionDatasetDispatchItem
         DomainAnnotationType<'Object Detection'>
     >
 {
-    public asIAnnotations(): IAnnotation<IRectShapeData>[] | Map<number, IAnnotation<IRectShapeData>[]> | typeof NO_ANNOTATION | undefined {
+    public asIAnnotations(): readonly Annotated<Shape>[] | Map<number, readonly Annotated<Shape>[]> | typeof NO_ANNOTATION | undefined {
         const annotationsResult = this.annotations
 
         if (!hasData(annotationsResult)) return undefined;
@@ -25,6 +25,24 @@ export class ObjectDetectionDatasetDispatchItem
         return detectedObjectsToIAnnotations(annotations)
     }
 
+    public allLabels(): string[] {
+        const annotationsResult = this.annotations
+
+        if (!hasData(annotationsResult)) return [];
+
+        const annotations = annotationsResult.data
+
+        if (annotations === NO_ANNOTATION) return []
+
+        const labelSet = new Set<string>()
+
+        for (const annotation of annotations) {
+            labelSet.add(annotation.label)
+        }
+
+        return [...labelSet]
+    }
+
 }
 export default class ObjectDetectionDatasetDispatch
     extends MutableDatasetDispatch<
@@ -32,12 +50,23 @@ export default class ObjectDetectionDatasetDispatch
         DomainAnnotationType<'Object Detection'>,
         ObjectDetectionDatasetDispatchItem
 > {
-    public asIAnnotations(filename: string): IAnnotation<IRectShapeData>[] | Map<number, IAnnotation<IRectShapeData>[]> | typeof NO_ANNOTATION | undefined {
+    public asIAnnotations(filename: string): readonly Annotated<Shape>[] | Map<number, readonly Annotated<Shape>[]> | typeof NO_ANNOTATION | undefined {
         const objects = this.get(filename);
 
         if (!isDefined(objects)) return undefined
 
         return objects.asIAnnotations()
+    }
+
+    public allLabels(): string[] {
+        const labelSet = new Set<string>()
+
+        for (const item of this.itemMap.values()) {
+            for (const label of item.allLabels())
+                labelSet.add(label)
+        }
+
+        return [...labelSet]
     }
 
 }

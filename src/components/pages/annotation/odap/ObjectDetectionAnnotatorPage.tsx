@@ -14,7 +14,6 @@ import {DEFAULT, WithDefault} from "../../../../util/typescript/default";
 import ObjectDetectionDatasetDispatch
     from "../../../../server/hooks/useObjectDetectionDataset/ObjectDetectionDatasetDispatch";
 import useObjectDetectionDataset from "../../../../server/hooks/useObjectDetectionDataset/useObjectDetectionDataset";
-import {IAnnotation} from "react-picture-annotation/dist/types/src/Annotation";
 import {addFilesRenderer, FileAnnotationModalRenderer} from "../../../../server/components/AddFilesButton";
 import DataVideoWithFrameExtractor from "../../../../util/react/component/DataVideoWithFrameExtractor";
 import selectFiles from "../../../../util/files/selectFiles";
@@ -30,7 +29,6 @@ import ifDefined from "../../../../util/typescript/ifDefined";
 import {identity} from "../../../../util/identity";
 import pass from "../../../../util/typescript/functions/pass";
 import {SubmitCancelPictureOrVideoAnnotation} from "../../../../util/react/component/SubmitCancelPictureOrVideoAnnotation";
-import {IRectShapeData} from "react-picture-annotation/dist/types/src/Shape";
 import {isArray} from "../../../../util/typescript/arrays/isArray";
 import {mapToArray} from "../../../../util/map";
 import arrayFlatten from "../../../../util/typescript/arrays/arrayFlatten";
@@ -43,6 +41,8 @@ import {Absent, Possible} from "../../../../util/typescript/types/Possible";
 import hasData from "../../../../util/react/query/hasData";
 import mapQueryResult from "../../../../util/react/query/mapQueryResult";
 import {RefetchOptions, RefetchQueryFilters} from "react-query/types/core/types";
+import {Annotated} from "../../../../util/react/component/pictureannotate/annotated";
+import Shape from "../../../../util/react/component/pictureannotate/shapes/Shape";
 
 export type ODAPProps = {
     lockedPK?: AnyPK,
@@ -176,7 +176,7 @@ export default function ObjectDetectionAnnotatorPage(
     )
 
     const pictureAnnotatorOnSubmit = useDerivedState(
-        ([dataset, annotating]) => (annotationData: IAnnotation[] | ReadonlyMap<number, IAnnotation<IRectShapeData>[]>) => {
+        ([dataset, annotating]) => (annotationData: readonly Annotated<Shape>[] | ReadonlyMap<number, readonly Annotated<Shape>[]>) => {
             if (dataset === undefined || annotating === undefined) {
                 UNREACHABLE("This callback should never be called without 'dataset' and 'annotating' defined");
             }
@@ -218,9 +218,8 @@ export default function ObjectDetectionAnnotatorPage(
             height={window.innerHeight}
             item={dataset?.get(annotating)!}
             onCancel={pictureAnnotatorOnCancel}
-            defaultAnnotationSize={[20, 20]}
             onChange={pass}
-            onSelect={pass}
+            options={dataset!.allLabels()}
         />
     }
 

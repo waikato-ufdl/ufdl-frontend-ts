@@ -1,0 +1,78 @@
+.rp-stage {
+    position: relative;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", Helvetica, Arial,
+    sans-serif;
+}
+
+.rp-image {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    overflow: hidden;
+}
+
+.rp-shapes {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+
+.rp-selected-input {
+    position: absolute;
+}
+
+.DeleteButton {
+    width: 20px;
+    height: 20px;
+    fill: white;
+}
+
+.rp-delete-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.AnnotationInput {
+    display: flex;
+    align-items: stretch;
+    background-color: #3384ff;
+    border: none;
+    border-radius: 5px;
+}
+
+.AnnotationInput input {
+    padding: 10px;
+    color: white;
+    background: transparent;
+    border: 0;
+    outline: none;
+}
+
+.AnnotationInput input::placeholder {
+    color: #94bfff;
+}
+
+.AnnotationInput a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 35px;
+    color: white;
+    font-size: 12px;
+    background-color: #3b5bdb;
+    border-radius: 0 5px 5px 0;
+    cursor: pointer;
+    transition: background-color 0.5s, color 0.5s;
+}
+
+.AnnotationInput a:hover,
+.AnnotationInput a:active {
+    color: #3384ff;
+    background-color: #5c7cfa;
+}
