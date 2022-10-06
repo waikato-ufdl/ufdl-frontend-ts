@@ -1,3 +1,5 @@
+import {KeysWithValueType} from "./types/KeysWithValueType";
+
 /**
  * Maps each owned property of an object into an array
  *
@@ -27,6 +29,29 @@ export function mapOwnProperties<T extends object, R>(
     )
 
     return result
+}
+
+export function mapObject<S extends object, T extends object, M extends { [TK in keyof T]: keyof S}>(
+    obj: S,
+    mapFn: {
+        [SK in keyof S]:
+            (property: SK, value: S[SK]) => { [TK in KeysWithValueType<M, SK, keyof T>]: T[TK] }
+    }[keyof S]
+): T {
+    let result: Partial<T> = {}
+
+    forEachOwnProperty(
+        obj,
+        (property, value) => {
+            const r = mapFn(property, value)
+            result = {
+                ...result,
+                ...r
+            }
+        }
+    )
+
+    return result as T
 }
 
 /**
