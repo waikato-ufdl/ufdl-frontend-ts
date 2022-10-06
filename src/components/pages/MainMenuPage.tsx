@@ -13,6 +13,7 @@ import NewUserPage from "./NewUserPage";
 import {DEFAULT} from "../../util/typescript/default";
 import ObjectDetectionAnnotatorPage from "./annotation/odap/ObjectDetectionAnnotatorPage";
 import SpeechAnnotatorPage from "./annotation/spap/SpeechAnnotatorPage";
+import SettingsPage from "./SettingsPage";
 
 export function MainMenuPage() {
 
@@ -26,7 +27,7 @@ export function MainMenuPage() {
         />
     }
 
-    return <MenuPage titleGenerator={["Dummy Page", "New User", "New Team", "New Project", "New Dataset", "ICAP", "ODAP", "SPAP", "The Loop"]}>
+    return <MenuPage titleGenerator={["Dummy Page", "New User", "New Team", "New Project", "New Dataset", "ICAP", "ODAP", "SPAP", "The Loop", "Settings"]}>
         <DummyPage pings={42} />
         <NewUserPage />
         <NewTeamPage />
@@ -36,5 +37,6 @@ export function MainMenuPage() {
         <ObjectDetectionAnnotatorPage nextLabel={DEFAULT} />
         <SpeechAnnotatorPage nextLabel={DEFAULT}  evalPK={UNCONTROLLED_KEEP}/>
         <TheLoopPage />
+        <SettingsPage />
     </MenuPage>
 }
