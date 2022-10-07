@@ -33,7 +33,7 @@ export function ListSelect<M extends RawModelInstance>(props: ListSelectProps<M>
 
     return <RawJSONObjectSelect
         values={forceEmpty === true ? [] : items}
-        value={forceEmpty === true ? -1 : value}
+        selectedPK={forceEmpty === true ? -1 : value}
         labelFunction={labelFunction}
         onChange={onChange}
         disabled={disabled === true || forceEmpty === true}

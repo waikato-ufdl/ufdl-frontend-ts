@@ -90,7 +90,7 @@ export default function SelectTemplateModal(
         {/* The list of job-templates to select from */}
         <RawJSONObjectSelect<JobTemplateInstance>
             labelFunction={(json) => `${json['name']} v${json['version']}`}
-            value={templatePK}
+            selectedPK={templatePK}
             values={props.templates}
             onChange={(_, pk) => {
                 if (pk !== undefined) setTemplatePK(pk)

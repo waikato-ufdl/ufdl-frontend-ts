@@ -2,7 +2,6 @@ import {FunctionComponentReturnType} from "../../../../util/react/types";
 import LocalModal from "../../../../util/react/component/LocalModal";
 import {ArraySelect} from "../../../../util/react/component/ArraySelect";
 import useDerivedState from "../../../../util/react/hooks/useDerivedState";
-import {Absent} from "../../../../util/typescript/types/Possible";
 import Form from "@rjsf/core";
 import {DEFAULT, WithDefault} from "../../../../util/typescript/default";
 import {ParameterSpec} from "./ParameterSpec";
@@ -121,15 +120,14 @@ export default function ParameterEditor(
     return <LocalModal position={props.position} onCancel={props.onCancel}>
         <div>
             {/* Selector of what type of value to specify for the parameter. */}
-            <ArraySelect<WithDefault<string>[]>
+            <ArraySelect<WithDefault<string>>
                 disableFirstEmptyOption
                 disabled={allowedTypeNames.length === 1}
                 labelFunction={(value) => value === DEFAULT ? "Default" : value}
                 values={allowedTypeNames}
-                value={allowedTypeNames.indexOf(selectedType)}
+                selected={allowedTypeNames.indexOf(selectedType)}
                 onChange={(value) => {
-                    if (value !== Absent)
-                        setSelectedType(value)
+                    if (value !== undefined) setSelectedType(value)
                 }}
             />
         </div>
