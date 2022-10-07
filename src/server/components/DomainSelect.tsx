@@ -1,10 +1,10 @@
 import React from "react";
-import {DomainName} from "../server/domains";
-import useDerivedState from "../util/react/hooks/useDerivedState";
-import {isPresent, Possible} from "../util/typescript/types/Possible";
-import {MapSelect, MapSelectProps} from "../util/react/component/MapSelect";
-import {Controllable} from "../util/react/hooks/useControllableState";
-import {mapFromArray} from "../util/map";
+import {DomainName} from "../domains";
+import useDerivedState from "../../util/react/hooks/useDerivedState";
+import {isPresent, Possible} from "../../util/typescript/types/Possible";
+import {MapSelect, MapSelectProps} from "../../util/react/component/MapSelect";
+import {Controllable} from "../../util/react/hooks/useControllableState";
+import {mapFromArray} from "../../util/map";
 
 export type DomainSelectProps<D extends DomainName>
     = Omit<MapSelectProps<D>, 'values' | 'value' | 'onChange'>

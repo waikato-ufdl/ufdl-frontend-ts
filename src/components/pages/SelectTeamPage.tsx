@@ -1,13 +1,13 @@
 import {FunctionComponentReturnType} from "../../util/react/types";
 import Page from "./Page";
-import {TeamSelect} from "../TeamSelect";
 import useStateSafe from "../../util/react/hooks/useStateSafe";
 import NewTeamPage from "./NewTeamPage";
 import {TeamPK} from "../../server/pk";
-import {BackButton} from "../BackButton";
 import React from "react";
 import {constantInitialiser} from "../../util/typescript/initialisers";
 import {UNCONTROLLED_KEEP} from "../../util/react/hooks/useControllableState";
+import {BackButton} from "../../util/react/component/BackButton";
+import {TeamSelect} from "../../server/components/TeamSelect";
 
 export type SelectTeamPageProps = {
     onSelected: (pk: TeamPK) => void

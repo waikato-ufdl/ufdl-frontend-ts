@@ -3,9 +3,7 @@ import {JSXFunctionElementConstructor} from "../../util/react/jsx/JSXFunctionEle
 import {UFDL_SERVER_REACT_CONTEXT} from "../../server/UFDLServerContextProvider";
 import {Controllable, useControllableState} from "../../util/react/hooks/useControllableState";
 import Page from "./Page";
-import {BackButton} from "../BackButton";
 import {Form} from "../../util/react/component/Form";
-import {TeamSelect} from "../TeamSelect";
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import * as Project from "ufdl-ts-client/functional/core/project";
 import useStateSafe from "../../util/react/hooks/useStateSafe";
@@ -13,6 +11,8 @@ import {ProjectInstance} from "ufdl-ts-client/types/core/project";
 import useDerivedState from "../../util/react/hooks/useDerivedState";
 import {DEFAULT_HANDLED_ERROR_RESPONSE, withErrorResponseHandler} from "../../server/util/responseError";
 import {constantInitialiser} from "../../util/typescript/initialisers";
+import {BackButton} from "../../util/react/component/BackButton";
+import {TeamSelect} from "../../server/components/TeamSelect";
 
 export type NewProjectPageProps = {
     teamPK: Controllable<number | undefined>

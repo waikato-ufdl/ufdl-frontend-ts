@@ -1,8 +1,8 @@
 import React from "react";
 import {list} from "ufdl-ts-client/functional/core/jobs/job_template";
 import {ListSelect, ListSelectProps} from "./ListSelect";
-import {nameFromJSON} from "../server/util/nameFromJSON";
 import {JobTemplateInstance} from "ufdl-ts-client/types/core/jobs/job_template";
+import {nameFromJSON} from "../util/nameFromJSON";
 
 export type JobTemplateSelectProps = Omit<ListSelectProps<JobTemplateInstance>, 'list' | 'labelFunction'>
 

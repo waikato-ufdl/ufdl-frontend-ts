@@ -2,7 +2,6 @@ import React, {ReactElement, useContext} from "react";
 import {JSXFunctionElementConstructor} from "../../util/react/jsx/JSXFunctionElementConstructor";
 import {UFDL_SERVER_REACT_CONTEXT} from "../../server/UFDLServerContextProvider";
 import Page from "./Page";
-import {BackButton} from "../BackButton";
 import {Form} from "../../util/react/component/Form";
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import * as Team from "ufdl-ts-client/functional/core/team";
@@ -12,6 +11,7 @@ import useDerivedState from "../../util/react/hooks/useDerivedState";
 import asChangeEventHandler from "../../util/react/asChangeEventHandler";
 import {TeamPK} from "../../server/pk";
 import {DEFAULT_HANDLED_ERROR_RESPONSE, withErrorResponseHandler} from "../../server/util/responseError";
+import {BackButton} from "../../util/react/component/BackButton";
 
 export type NewTeamPageProps = {
     onCreate?: (pk: TeamPK) => void

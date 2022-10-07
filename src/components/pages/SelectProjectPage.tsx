@@ -4,15 +4,15 @@ import useStateSafe from "../../util/react/hooks/useStateSafe";
 import {Controllable, UNCONTROLLED_KEEP, useControllableState} from "../../util/react/hooks/useControllableState";
 import Page from "./Page";
 import SelectTeamPage from "./SelectTeamPage";
-import {ProjectSelect} from "../ProjectSelect";
 import NewProjectPage from "./NewProjectPage";
-import {BackButton} from "../BackButton";
 import React from "react";
 import RenderSelectedChildren from "../../util/react/component/RenderSelectedChildren";
 import ignoreFirstNArgs from "../../util/typescript/ignoreFirstNArgs";
 import {constantInitialiser} from "../../util/typescript/initialisers";
 import useDerivedState from "../../util/react/hooks/useDerivedState";
 import {exactFilter} from "../../server/util/exactFilter";
+import {BackButton} from "../../util/react/component/BackButton";
+import {ProjectSelect} from "../../server/components/ProjectSelect";
 
 export type SelectProjectPageProps = {
     onProjectSelected: (pk: ProjectPK) => void

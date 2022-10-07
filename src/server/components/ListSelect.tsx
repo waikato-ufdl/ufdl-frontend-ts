@@ -2,10 +2,10 @@ import React, {useContext, useEffect} from "react";
 import {RawJSONObjectSelect} from "./RawJSONObjectSelect";
 import {FilterSpec} from "ufdl-ts-client/json/generated/FilterSpec";
 import {RawModelInstance} from "ufdl-ts-client/types/base";
-import {UFDL_SERVER_REACT_CONTEXT} from "../server/UFDLServerContextProvider";
-import useStateSafe from "../util/react/hooks/useStateSafe";
-import {Controllable} from "../util/react/hooks/useControllableState";
-import {ListFunction} from "../server/util/types";
+import {ListFunction} from "../util/types";
+import {Controllable} from "../../util/react/hooks/useControllableState";
+import {UFDL_SERVER_REACT_CONTEXT} from "../UFDLServerContextProvider";
+import useStateSafe from "../../util/react/hooks/useStateSafe";
 
 export type ListSelectProps<M extends RawModelInstance> = {
     list: ListFunction<M>

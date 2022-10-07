@@ -1,12 +1,12 @@
 import React from "react";
 import Page from "./Page";
-import {BackButton} from "../BackButton";
 import useStateSafe from "../../util/react/hooks/useStateSafe";
 import {constantInitialiser} from "../../util/typescript/initialisers";
 import {Form} from "../../util/react/component/Form";
 import asChangeEventHandler from "../../util/react/asChangeEventHandler";
 import {ClassColour, ClassColours, sortedClassColourArray} from "../../server/util/classification";
 import ClassAndColourPicker from "../../server/components/classification/ClassAndColourPicker";
+import {BackButton} from "../../util/react/component/BackButton";
 
 export type ClassColourPickerPageProps = {
     colours: ClassColours

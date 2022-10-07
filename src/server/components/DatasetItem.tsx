@@ -2,7 +2,6 @@ import "./DatasetItem.css";
 import {FunctionComponentReturnType} from "../../util/react/types";
 import {Absent, Possible} from "../../util/typescript/types/Possible";
 import React, {ReactElement, ReactNode, useEffect} from "react";
-import CenterContent from "../../components/CenterContent";
 import {augmentClassName} from "../../util/react/augmentClass";
 import useDerivedState from "../../util/react/hooks/useDerivedState";
 import {DomainAnnotationType, DomainDataType, DomainName} from "../domains";
@@ -11,6 +10,7 @@ import {
 } from "../hooks/useDataset/DatasetDispatch";
 import {TOGGLE} from "../hooks/useDataset/selection";
 import {DatasetDispatchItemAnnotationType, DatasetDispatchItemDataType} from "../hooks/useDataset/types";
+import CenterContent from "../../util/react/component/CenterContent";
 
 /** The type of component that renders the raw item data (e.g. images/videos). */
 export type DataRenderer<D> = (

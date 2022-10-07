@@ -1,7 +1,7 @@
 import React from "react";
 import {RawModelInstance} from "ufdl-ts-client/types/base";
-import {ArraySelect} from "../util/react/component/ArraySelect";
-import {Controllable, mapControllable} from "../util/react/hooks/useControllableState";
+import {ArraySelect} from "../../util/react/component/ArraySelect";
+import {Controllable, mapControllable} from "../../util/react/hooks/useControllableState";
 
 /**
  * Props passed to an {@link RawJSONObjectSelect} component.

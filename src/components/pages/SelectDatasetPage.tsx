@@ -6,16 +6,16 @@ import Page from "./Page";
 import SelectProjectPage from "./SelectProjectPage";
 import NewDatasetPage from "./NewDatasetPage";
 import * as Dataset from "ufdl-ts-client/functional/core/dataset";
-import {ListSelect} from "../ListSelect";
 import React from "react";
 import useDerivedState from "../../util/react/hooks/useDerivedState";
 import {exactFilter} from "../../server/util/exactFilter";
 import nameFromSignature from "../../server/util/nameFromSignature";
-import {BackButton} from "../BackButton";
 import RenderSelectedChildren from "../../util/react/component/RenderSelectedChildren";
 import {constantInitialiser} from "../../util/typescript/initialisers";
 import {DatasetInstance} from "ufdl-ts-client/types/core/dataset";
 import {DomainName} from "../../server/domains";
+import {BackButton} from "../../util/react/component/BackButton";
+import {ListSelect} from "../../server/components/ListSelect";
 
 export type SelectDatasetPageProps = {
     onDatasetSelected: (pk: DatasetPK, domain: DomainName) => void

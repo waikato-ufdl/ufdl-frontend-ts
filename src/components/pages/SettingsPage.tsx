@@ -4,8 +4,8 @@ import {APP_SETTINGS_REACT_CONTEXT, AppSettings} from "../../useAppSettings";
 import InterlatchedCheckboxes from "../../util/react/component/InterlatchedCheckboxes";
 import useDerivedState from "../../util/react/hooks/useDerivedState";
 import {identity} from "../../util/identity";
-import {BackButton} from "../BackButton";
 import {useContext} from "react";
+import {BackButton} from "../../util/react/component/BackButton";
 
 export type SettingsPageProps = {
     onBack?: () => void

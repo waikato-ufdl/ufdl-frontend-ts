@@ -5,12 +5,7 @@ import {constantInitialiser} from "../../util/typescript/initialisers";
 import useDerivedState from "../../util/react/hooks/useDerivedState";
 import {exactFilter} from "../../server/util/exactFilter";
 import Page from "./Page";
-import {BackButton} from "../BackButton";
 import {Form} from "../../util/react/component/Form";
-import {DomainSelect} from "../DomainSelect";
-import {TeamSelect} from "../TeamSelect";
-import {ProjectSelect} from "../ProjectSelect";
-import {LicenceSelect} from "../LicenceSelect";
 import useStateSafe from "../../util/react/hooks/useStateSafe";
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import {DatasetInstance} from "ufdl-ts-client/types/core/dataset";
@@ -21,6 +16,11 @@ import {
     withErrorResponseHandler
 } from "../../server/util/responseError";
 import {DOMAIN_DATASET_METHODS, DOMAIN_NAMES, DomainName} from "../../server/domains";
+import {BackButton} from "../../util/react/component/BackButton";
+import {DomainSelect} from "../../server/components/DomainSelect";
+import {TeamSelect} from "../../server/components/TeamSelect";
+import {ProjectSelect} from "../../server/components/ProjectSelect";
+import {LicenceSelect} from "../../server/components/LicenceSelect";
 
 
 export type NewDatasetPageProps = {

@@ -1,9 +1,9 @@
 import React, {ButtonHTMLAttributes, useContext} from "react";
-import {FunctionComponentReturnType} from "../util/react/types";
-import {UFDL_SERVER_REACT_CONTEXT} from "../server/UFDLServerContextProvider";
 import {ping} from "ufdl-ts-client/functional/core/nodes/node";
-import {formatResponseError, withErrorResponseHandler} from "../server/util/responseError";
-import {discard} from "../util/typescript/discard";
+import {FunctionComponentReturnType} from "../../util/react/types";
+import {UFDL_SERVER_REACT_CONTEXT} from "../UFDLServerContextProvider";
+import {formatResponseError, withErrorResponseHandler} from "../util/responseError";
+import {discard} from "../../util/typescript/discard";
 
 export type PingButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
     onSuccess?: () => void,

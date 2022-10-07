@@ -25,11 +25,11 @@ import {AudioRenderer} from "../../../../server/components/audio/AudioRenderer";
 import hasData from "../../../../util/react/query/hasData";
 import MinimumEditDistance from "./MinimumEditDistance";
 import {Controllable, mapControllable, useControllableState} from "../../../../util/react/hooks/useControllableState";
-import {ListSelect} from "../../../ListSelect";
 import {DatasetInstance} from "../../../../../../ufdl-ts-client/dist/types/core/dataset";
 import {DOMAIN_DATASET_METHODS, DomainName} from "../../../../server/domains";
 import nameFromSignature from "../../../../server/util/nameFromSignature";
 import {exactFilter} from "../../../../server/util/exactFilter";
+import {ListSelect} from "../../../../server/components/ListSelect";
 
 export type SPAPProps = {
     lockedPK?: AnyPK,

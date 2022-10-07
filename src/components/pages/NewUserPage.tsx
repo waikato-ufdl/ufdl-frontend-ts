@@ -4,7 +4,6 @@ import {UFDL_SERVER_REACT_CONTEXT} from "../../server/UFDLServerContextProvider"
 import {constantInitialiser} from "../../util/typescript/initialisers";
 import useDerivedState from "../../util/react/hooks/useDerivedState";
 import Page from "./Page";
-import {BackButton} from "../BackButton";
 import {Form} from "../../util/react/component/Form";
 import useStateSafe from "../../util/react/hooks/useStateSafe";
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
@@ -15,6 +14,7 @@ import {
     withErrorResponseHandler
 } from "../../server/util/responseError";
 import isPromise from "../../util/typescript/async/isPromise";
+import {BackButton} from "../../util/react/component/BackButton";
 
 export type NewUserPageProps = {
     onCreate?: (user: UserInstance) => void

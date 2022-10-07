@@ -7,10 +7,6 @@ import {Controllable, useControllableState} from "../../util/react/hooks/useCont
 import {constantInitialiser} from "../../util/typescript/initialisers";
 import useDerivedState from "../../util/react/hooks/useDerivedState";
 import {exactFilter} from "../util/exactFilter";
-import {BackButton} from "../../components/BackButton";
-import {TeamSelect} from "../../components/TeamSelect";
-import {ProjectSelect} from "../../components/ProjectSelect";
-import {ListSelect} from "../../components/ListSelect";
 import {DOMAIN_DATASET_METHODS, DomainAnnotationType, DomainDataType, DomainName} from "../domains";
 import nameFromSignature from "../util/nameFromSignature";
 import {augmentClassName} from "../../util/react/augmentClass";
@@ -23,6 +19,10 @@ import {Possible} from "../../util/typescript/types/Possible";
 import {BY_FILENAME} from "../sorting";
 import {DomainSortOrderFunction, DomainSortOrders} from "./types";
 import {DatasetDispatchItemSelector} from "../hooks/useDataset/types";
+import {BackButton} from "../../util/react/component/BackButton";
+import {TeamSelect} from "./TeamSelect";
+import {ProjectSelect} from "./ProjectSelect";
+import {ListSelect} from "./ListSelect";
 
 export type ItemSelectFragmentRenderer<D extends Data, A> = (
     select: Dispatch<DatasetDispatchItemSelector<D, A>>

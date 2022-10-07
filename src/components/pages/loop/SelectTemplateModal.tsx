@@ -1,7 +1,6 @@
 import {FunctionComponentReturnType} from "../../../util/react/types";
 import LocalModal from "../../../util/react/component/LocalModal";
 import {JobTemplateInstance} from "../../../../../ufdl-ts-client/lib/types/core/jobs/job_template";
-import {RawJSONObjectSelect} from "../../RawJSONObjectSelect";
 import {constantInitialiser} from "../../../util/typescript/initialisers";
 import EditParametersModal from "./parameters/EditParametersModal";
 import useLocalModal from "../../../util/react/hooks/useLocalModal";
@@ -17,6 +16,7 @@ import {
     UncontrolledResetOverride,
     useControllableState
 } from "../../../util/react/hooks/useControllableState";
+import {RawJSONObjectSelect} from "../../../server/components/RawJSONObjectSelect";
 
 /**
  * @property onDone

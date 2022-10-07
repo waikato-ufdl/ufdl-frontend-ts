@@ -1,6 +1,6 @@
 import React, {CSSProperties, ReactElement} from "react";
-import {augmentClass} from "../util/react/augmentClass";
-import {FunctionComponentReturnType} from "../util/react/types";
+import {augmentClass} from "../augmentClass";
+import {FunctionComponentReturnType} from "../types";
 
 const CENTER_CONTENT_CONSTANT_STYLE = {
     display: "flex",
