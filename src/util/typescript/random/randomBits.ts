@@ -17,6 +17,12 @@ export default function randomBits(
     prng: PRNG,
     numBits: number
 ): Uint32Array {
+    // Can't generate a negative number of bits, or fractions of bits
+    if (numBits < 0)
+        throw new Error(`Can't generate a negative number of bits (requested ${numBits} bits)`)
+    else if (!Number.isInteger(numBits))
+        throw new Error(`Can't generate a fractional number of bits (requested ${numBits} bits)`)
+
     // Create a buffer to store the randomly generated number
     const res: number[] = []
 

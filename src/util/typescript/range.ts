@@ -92,7 +92,7 @@ export class NumberRange extends Range<number> {
         const numSteps = Math.floor((this.end - this.start) / this.step)
 
         return new NumberRange(
-            this.start + this.step * numSteps,
+            this.start + this.step * (numSteps - 1), // this.start is the first step
             this.start - this.step,
             -this.step
         )
@@ -110,7 +110,7 @@ export class BigIntRange extends Range<bigint> {
         const numSteps = (this.end - this.start) / this.step
 
         return new BigIntRange(
-            this.start + this.step * numSteps,
+            this.start + this.step * (numSteps - BIG_INT_ONE), // this.start is the first step
             this.start - this.step,
             -this.step
         )

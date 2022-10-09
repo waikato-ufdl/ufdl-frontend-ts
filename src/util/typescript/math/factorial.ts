@@ -15,8 +15,13 @@ import {BIG_INT_ONE, BIG_INT_ZERO} from "../bigint/constants";
  */
 export default function factorial(
     of: bigint,
-    downTo: bigint = BigInt(1)
+    downTo?: bigint
 ): bigint {
+    // If downTo is defaulted, it should be 0 for of === 0 (so we get the
+    // expected result factorial(0) === 1) or one otherwise (so we don't do
+    // an unnecessary multiplication by 1)
+    downTo = downTo ?? of === BIG_INT_ZERO ? BIG_INT_ZERO : BIG_INT_ONE
+
     // Check pre-conditions
     if (downTo < BIG_INT_ZERO)
         throw new Error(`'downTo' cannot be less than 0, got ${downTo}`)

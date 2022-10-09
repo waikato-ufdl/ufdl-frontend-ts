@@ -1,3 +1,7 @@
+import {BIG_INT_ONE, BIG_INT_ZERO} from "../../bigint/constants";
+import factorial from "../factorial";
+import exponent from "../../bigint/exponent";
+
 /**
  * Gets the number of ways to choose [subsetSize] items from a set of
  * [setSize] possibilities.
@@ -14,10 +18,6 @@
  * @return
  *          The number of possible subsets that could be selected.
  */
-import {BIG_INT_ONE, BIG_INT_ZERO} from "../../bigint/constants";
-import factorial from "../factorial";
-import exponent from "../../bigint/exponent";
-
 export default function numberOfSubsets(
     setSize: bigint,
     subsetSize: bigint,
