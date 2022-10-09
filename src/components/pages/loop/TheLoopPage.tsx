@@ -86,7 +86,7 @@ export default function TheLoopPage(
 
     switch (stateMachine.state) {
         case "Initial":
-            return <div></div>
+            return <div />
         case "Selecting Primary Dataset":
             return <SelectDatasetPage
                 onDatasetSelected={stateMachine.transitions.setSelected}
