@@ -93,13 +93,10 @@ export default function AnnotatorTopMenu<D extends DomainName>(
         [projectPK]
     );
 
-    const extraControls = useDerivedState(
-        ([extraControls]) =>
-            extraControls !== undefined
-                ? extraControls()
-                : undefined,
-        [props.extraControls] as const
-    )
+    // Can't cache the extra controls as they may rely on hooks
+    const extraControls = props.extraControls !== undefined
+        ? props.extraControls()
+        : undefined
 
     const selectModal = useLocalModal();
 
