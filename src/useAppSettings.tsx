@@ -66,7 +66,9 @@ export function AppSettingsProvider(
 }
 
 /** Hook which maintains the app's settings as state. */
-export function useAppSettings(): [AppSettings, AppSettingsDispatch] {
+export function useAppSettings(
+    // No parameters
+): [AppSettings, AppSettingsDispatch] {
     // Create state for the prelabelMode setting
     const [prelabelMode, setPrelabelMode] = useStateSafe(constantInitialiser(DEFAULT_APP_SETTINGS.prelabelMode))
 
