@@ -5,7 +5,7 @@ import {arrayEqual} from "../../typescript/arrays/arrayEqual";
  * State which updates whenever it's list of dependencies changes.
  *
  * @param deriveState
- *          Function which derives the state from the deriving-dependencies.
+ *          Function which derives the state from the dependencies.
  * @param dependencies
  *          The list of dependencies to monitor for changes.
  */
@@ -36,10 +36,10 @@ export default function useDerivedState<S, DD extends readonly any[]>(
     dependencies: DD,
     nonDerivationDependencies: any[] = []
 ): S {
-    const joinDependencies = () => [dependencies, nonDerivationDependencies];
+    const joinDependencies = () => [dependencies, nonDerivationDependencies] as const
 
     const [getLastDependencies, setLastDependencies]
-        = useNonUpdatingState(joinDependencies);
+        = useNonUpdatingState(joinDependencies)
 
     const [lastDependencies, lastNonDerivationDependencies] = getLastDependencies()
 
@@ -47,17 +47,18 @@ export default function useDerivedState<S, DD extends readonly any[]>(
         () => deriveState(dependencies)
     );
 
-    let derivedState: S = getLastDerivedState();
-
     if (
-        !arrayEqual(lastDependencies, dependencies) ||
-        !arrayEqual(lastNonDerivationDependencies, nonDerivationDependencies)
+        arrayEqual(lastDependencies, dependencies)
+        &&
+        arrayEqual(lastNonDerivationDependencies, nonDerivationDependencies)
     ) {
-        derivedState = deriveState(dependencies);
-
-        setLastDependencies(joinDependencies());
-        setLastDerivedState(derivedState);
+        return getLastDerivedState()
     }
+
+    const derivedState = deriveState(dependencies)
+
+    setLastDependencies(joinDependencies())
+    setLastDerivedState(derivedState)
 
     return derivedState
 }
