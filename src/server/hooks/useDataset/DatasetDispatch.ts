@@ -8,7 +8,6 @@ import {
     QueryObserverResult,
     RefetchOptions,
     RefetchQueryFilters,
-    UseMutateFunction,
     UseQueryResult
 } from "react-query";
 import {ReadonlyQueryResult} from "../../../util/react/query/types";
@@ -20,9 +19,12 @@ import iteratorFilter from "../../../util/typescript/iterate/filter";
 import {SelfIterableIterator} from "../../../util/typescript/iterate/SelfIterableIterator";
 import {
     DatasetDispatchItemAnnotationType,
-    DatasetDispatchItemDataType, DatasetDispatchItemSelector,
-    DatasetDispatchItemType
+    DatasetDispatchItemDataType,
+    DatasetDispatchItemType,
+    UseMutateFunctionWithCallbacks
 } from "./types";
+import {rendezvous} from "../../../util/typescript/async/rendezvous";
+import {DatasetMutationMethods} from "./useDatasetMutationMethods";
 
 
 export class DatasetDispatchItem<D extends Data, A>
@@ -47,7 +49,7 @@ export class MutableDatasetDispatchItem<D extends Data, A>
         annotations: DatasetDispatchItemAnnotationType<A>,
         selected: boolean,
         private readonly _setSelected: React.Dispatch<[string, boolean | typeof TOGGLE]>,
-        private readonly _setAnnotationsMutation: UseMutateFunction<void, unknown, [string, OptionalAnnotations<A>]>
+        private readonly _setAnnotationsMutation: UseMutateFunctionWithCallbacks<void, unknown, [string, OptionalAnnotations<A>]>
     ) {
         super(
             filename,
@@ -62,8 +64,10 @@ export class MutableDatasetDispatchItem<D extends Data, A>
         this._setSelected([this.filename, value])
     }
 
-    setAnnotations(annotations: OptionalAnnotations<A>) {
-        this._setAnnotationsMutation([this.filename, annotations])
+    setAnnotations(annotations: OptionalAnnotations<A>): Promise<void> {
+        const [promise, onResolved, onRejected] = rendezvous<void>()
+        this._setAnnotationsMutation([[this.filename, annotations], onResolved, onRejected])
+        return promise
     }
 
 }
@@ -168,7 +172,8 @@ export class DatasetDispatch<D extends Data, A, I extends DatasetDispatchItem<D,
 }
 
 export class MutableDatasetDispatch<D extends Data, A, I extends MutableDatasetDispatchItem<D, A> = MutableDatasetDispatchItem<D, A>>
-    extends DatasetDispatch<D, A, I> {
+    extends DatasetDispatch<D, A, I>
+    implements Readonly<DatasetMutationMethods<D, A>> {
 
     constructor(
         serverContext: UFDLServerContext,
@@ -176,17 +181,7 @@ export class MutableDatasetDispatch<D extends Data, A, I extends MutableDatasetD
         fileOrdering: string[],
         datasetResult: UseQueryResult<DatasetInstance>,
         itemMap: ReadonlyMap<string, I>,
-        readonly select: (itemSelection: DatasetDispatchItemSelector<D, A>) => void,
-        readonly deselect: (itemSelection: DatasetDispatchItemSelector<D, A>) => void,
-        readonly toggleSelection: (itemSelection: DatasetDispatchItemSelector<D, A>) => void,
-        readonly selectOnly: (itemSelection: DatasetDispatchItemSelector<D, A>) => void,
-        readonly deleteSelectedFiles: () => void,
-        readonly setAnnotationsForSelected: (annotations: OptionalAnnotations<A>) => void,
-        readonly setAnnotationsForFile: (filename: string, annotations: OptionalAnnotations<A>) => void,
-        readonly setAnnotations: (modifications: ReadonlyMap<string, OptionalAnnotations<A>>) => void,
-        readonly clear: () => void,
-        readonly deleteFile: (filename: string) => boolean,
-        readonly addFiles: (files: ReadonlyMap<string, D>) => void
+        private readonly mutationMethods: Readonly<DatasetMutationMethods<D, A>>
     ) {
         super(
             serverContext,
@@ -196,4 +191,17 @@ export class MutableDatasetDispatch<D extends Data, A, I extends MutableDatasetD
             itemMap
         )
     }
+
+    get select() { return this.mutationMethods.select }
+    get deselect() { return this.mutationMethods.deselect }
+    get toggleSelection() { return this.mutationMethods.toggleSelection }
+    get selectOnly() { return this.mutationMethods.selectOnly }
+    get deleteSelectedFiles() { return this.mutationMethods.deleteSelectedFiles }
+    get setAnnotationsForSelected() { return this.mutationMethods.setAnnotationsForSelected }
+    get setAnnotationsForFile() { return this.mutationMethods.setAnnotationsForFile }
+    get setAnnotations() { return this.mutationMethods.setAnnotations }
+    get clear() { return this.mutationMethods.clear }
+    get deleteFile() { return this.mutationMethods.deleteFile }
+    get addFiles() { return this.mutationMethods.addFiles }
+
 }

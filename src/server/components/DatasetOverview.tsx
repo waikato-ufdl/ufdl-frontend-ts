@@ -17,6 +17,7 @@ import {
 } from "../hooks/useDataset/DatasetDispatch";
 import useDerivedState from "../../util/react/hooks/useDerivedState";
 import {DatasetDispatchItemAnnotationType, DatasetDispatchItemDataType} from "../hooks/useDataset/types";
+import UNREACHABLE from "../../util/typescript/UNREACHABLE";
 
 export type DatasetOverviewProps<D extends DomainName> = {
     dataset: MutableDatasetDispatch<DomainDataType<D>, DomainAnnotationType<D>> | undefined
@@ -86,13 +87,26 @@ export default function DatasetOverview<D extends DomainName>(
     // Create the submission function for adding new files to the dataset
     const onSubmit: OnSubmitFunction<DomainDataType<D>, DomainAnnotationType<D>> = useDerivedState(
         ([dataset]) =>
-            (newFiles) =>
-                dataset?.addFiles(
+            (newFiles) => {
+                if (dataset === undefined) {
+                    UNREACHABLE("dataset is always defined before this is called")
+                }
+
+                dataset.addFiles(
                     mapMap(
                         newFiles,
                         (key, value) => [[key, value[0]]] as const
                     )
-                ),
+                ).then(
+                    () => {
+                        newFiles.forEach(
+                            ([, annotations], filename) => {
+                                dataset.setAnnotationsForFile(filename, annotations)
+                            }
+                        )
+                    }
+                )
+            },
         [props.dataset] as const
     )
 
@@ -101,7 +115,6 @@ export default function DatasetOverview<D extends DomainName>(
         itemProps={GET_ITEM_PROPS}
         style={FLEX_CONTAINER_STYLE}
     >
-        {/* TODO: onSubmit currently discards the annotations */}
         <AddFilesButton<DomainDataType<D>, DomainAnnotationType<D>>
             disabled={props.dataset === undefined}
             onSubmit={onSubmit}

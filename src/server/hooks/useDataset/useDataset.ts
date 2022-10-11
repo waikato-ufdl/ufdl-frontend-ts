@@ -8,9 +8,7 @@ import useDerivedState from "../../../util/react/hooks/useDerivedState";
 import {
     QueryClient,
     QueryObserverResult,
-    UseMutateFunction,
     useMutation,
-    UseMutationOptions,
     useQueries,
     useQuery,
     useQueryClient,
@@ -24,7 +22,10 @@ import {
     AnnotationsSetterFunction,
     DataGetterFunction,
     MutableDatasetDispatchConstructor,
-    DataSetterFunction, MutableDatasetDispatchItemConstructor
+    DataSetterFunction,
+    MutableDatasetDispatchItemConstructor,
+    UseMutationOptionsWithCallbacks,
+    UseMutateFunctionWithCallbacks
 } from "./types";
 import assert from "assert";
 import {Data} from "../../types/data";
@@ -46,7 +47,9 @@ import repeat from "../../../util/typescript/iterate/repeat";
 import {tuple} from "../../../util/typescript/arrays/tuple";
 import useDatasetMutationMethods from "./useDatasetMutationMethods";
 import {useEffect} from "react";
-
+import UNREACHABLE from "../../../util/typescript/UNREACHABLE";
+import passOnUndefined from "../../../util/typescript/functions/passOnUndefined";
+import withIgnoredCallbackErrors from "../../../util/typescript/functions/withIgnoredCallbackErrors";
 
 /**
  * Baseline functionality for using a dataset on the server. Extended via the
@@ -221,49 +224,59 @@ export default function useDataset<
     )
 
     // Create a mutation for adding new files to the dataset
-    const addFilesMutationOptions: UseMutationOptions<NamedFileInstance[], unknown, ReadonlyMap<string, D>>
+    const addFilesMutationOptions: UseMutationOptionsWithCallbacks<NamedFileInstance[], unknown, ReadonlyMap<string, D>>
         = useDerivedState(
             ([serverContext, datasetPK, setData, dataset, queryClient]) => {
                 return {
-                    async mutationFn(files) {
-                        // Can't add to an undefined dataset
-                        if (datasetPK === undefined || dataset === undefined) throw new Error("Dataset undefined")
+                    async mutationFn([files, onResolved, onRejected]) {
+                        try {
+                            // Can't add to an undefined dataset
+                            if (datasetPK === undefined || dataset === undefined) {
+                                UNREACHABLE("datasetPK and dataset will always be defined before this function is called")
+                            }
 
-                        // Extract the raw data
-                        const rawData = mapMap(
-                            files,
-                            (filename, data) => [[filename, data.raw]] as const
-                        )
-
-                        // Compress the file data for bulk upload
-                        const compressed = await compressFiles(rawData);
-
-                        // Upload the files, or pass if compression failed
-                        // (need to await in case setData relies on the files being resident
-                        // on the server)
-                        const addedFiles = await DatasetCore.add_files(
-                            serverContext,
-                            datasetPK.asNumber,
-                            compressed
-                        )
-
-                        await Promise.all(
-                            iteratorMap(
-                                iterate(files),
-                                ([filename, data]) => {
-                                    setData(
-                                        serverContext,
-                                        dataset,
-                                        filename,
-                                        data
-                                    )
-                                }
+                            // Extract the raw data
+                            const rawData = mapMap(
+                                files,
+                                (filename, data) => [[filename, data.raw]] as const
                             )
-                        )
 
-                        return addedFiles
+                            // Compress the file data for bulk upload
+                            const compressed = await compressFiles(rawData);
+
+                            // Upload the files, or pass if compression failed
+                            // (need to await in case setData relies on the files being resident
+                            // on the server)
+                            const addedFiles = await DatasetCore.add_files(
+                                serverContext,
+                                datasetPK.asNumber,
+                                compressed
+                            )
+
+                            await Promise.all(
+                                iteratorMap(
+                                    iterate(files),
+                                    ([filename, data]) => {
+                                        setData(
+                                            serverContext,
+                                            dataset,
+                                            filename,
+                                            data
+                                        )
+                                    }
+                                )
+                            )
+
+                            withIgnoredCallbackErrors(passOnUndefined(onResolved))(addedFiles)
+
+                            return addedFiles
+                        } catch (e) {
+                            withIgnoredCallbackErrors(passOnUndefined(onRejected))(e)
+
+                            throw e
+                        }
                     },
-                    async onMutate(files) {
+                    async onMutate([files]) {
                         // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
                         await cancelOutgoingQueries(queryClient, datasetPK)
 
@@ -313,22 +326,34 @@ export default function useDataset<
     const addFilesMutation = useMutation(addFilesMutationOptions)
 
     // Create a mutation for deleting files from the dataset
-    const deleteFileMutationOptions: UseMutationOptions<NamedFileInstance, unknown, string>
+    const deleteFileMutationOptions: UseMutationOptionsWithCallbacks<NamedFileInstance, unknown, string>
         = useDerivedState(
             ([serverContext, datasetPK]) => {
                 return {
-                    async mutationFn(filename) {
-                        // Can't delete from an undefined dataset
-                        if (datasetPK === undefined) throw new Error("No dataset defined")
+                    async mutationFn([filename, onResolved, onRejected]) {
+                        try {
+                            // Can't delete from an undefined dataset
+                            if (datasetPK === undefined) {
+                                UNREACHABLE("dataset will always be defined before this is called")
+                            }
 
-                        // Delete the file
-                        return DatasetCore.delete_file(
-                            serverContext,
-                            datasetPK.asNumber,
-                            filename
-                        )
+                            // Delete the file
+                            const result = await DatasetCore.delete_file(
+                                serverContext,
+                                datasetPK.asNumber,
+                                filename
+                            )
+
+                            withIgnoredCallbackErrors(passOnUndefined(onResolved))(result)
+
+                            return result
+                        } catch (e) {
+                            withIgnoredCallbackErrors(passOnUndefined(onRejected))(e)
+
+                            throw e
+                        }
                     },
-                    async onMutate(filename) {
+                    async onMutate([filename]) {
                         // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
                         await cancelOutgoingQueries(queryClient, datasetPK)
 
@@ -363,22 +388,32 @@ export default function useDataset<
     const deleteFileMutation = useMutation(deleteFileMutationOptions)
 
     // Create a mutation for setting the annotations for a file in the dataset
-    const setAnnotationsMutationOptions: UseMutationOptions<void, unknown, [string, OptionalAnnotations<A>]> = useDerivedState(
+    const setAnnotationsMutationOptions: UseMutationOptionsWithCallbacks<void, unknown, [string, OptionalAnnotations<A>]> = useDerivedState(
         ([serverContext, dataset, setAnnotations]) => {
             return {
-                async mutationFn([filename, annotations]) {
-                    // Can't set annotations against an undefined dataset
-                    if (dataset === undefined) throw new Error("No dataset defined")
+                async mutationFn([[filename, annotations], onResolved, onRejected]) {
+                    try {
+                        // Can't set annotations against an undefined dataset
+                        if (dataset === undefined) {
+                            UNREACHABLE("dataset will always be defined before this is called")
+                        }
 
-                    // Set the annotations
-                    return setAnnotations(
-                        serverContext,
-                        dataset,
-                        filename,
-                        annotations
-                    )
+                        // Set the annotations
+                        await setAnnotations(
+                            serverContext,
+                            dataset,
+                            filename,
+                            annotations
+                        )
+
+                        withIgnoredCallbackErrors(passOnUndefined(onResolved))()
+                    } catch (e) {
+                        withIgnoredCallbackErrors(passOnUndefined(onRejected))(e)
+
+                        throw e
+                    }
                 },
-                async onMutate([filename, annotations]) {
+                async onMutate([[filename, annotations]]) {
                     // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
                     await cancelOutgoingQueries(queryClient, datasetPK)
 
@@ -388,7 +423,7 @@ export default function useDataset<
                         [filename, annotations]
                     )
                 },
-                onError(_, [filename]) {
+                onError(_, [[filename]]) {
                     queryClient.invalidateQueries(datasetQueryKey(datasetPK), {exact: true})
                     queryClient.invalidateQueries(fileQueryKey(datasetPK, filename), {exact: true})
                     queryClient.invalidateQueries(annotationsQueryKey(datasetPK, filename), {exact: true})
@@ -414,7 +449,7 @@ export default function useDataset<
             fileAnnotationResult:  QueryObserverResult<readonly [string, OptionalAnnotations<A>]>,
             selected: boolean,
             setSelected: React.Dispatch<[string, (boolean | typeof TOGGLE)]>,
-            setAnnotationsMutation: UseMutateFunction<void, unknown, [string, OptionalAnnotations<A>]>
+            setAnnotationsMutation: UseMutateFunctionWithCallbacks<void, unknown, [string, OptionalAnnotations<A>]>
         ) => {
             return new itemConstructor(
                 filename,
@@ -470,7 +505,7 @@ export default function useDataset<
 
     // Derive the dispatch state from the arguments which construct it and return it
     const dispatch = useDerivedState(
-        ([dispatchConstructor, serverContext, datasetPK, fileOrdering, datasetResult, itemMap, ...mutations]) => {
+        ([dispatchConstructor, serverContext, datasetPK, fileOrdering, datasetResult, itemMap, mutations]) => {
             if (datasetPK === undefined) return undefined
             return new dispatchConstructor(
                     serverContext,
@@ -478,7 +513,7 @@ export default function useDataset<
                     fileOrdering,
                     datasetResult,
                     itemMap,
-                    ...mutations
+                    mutations
                 )
         },
         [
@@ -488,7 +523,7 @@ export default function useDataset<
             fileOrderingArray,
             datasetResult,
             itemMap,
-            ...mutationMethods
+            mutationMethods
         ] as const
     );
 

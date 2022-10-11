@@ -5,7 +5,7 @@ import {BlobSubject} from "../../../util/rx/data/BlobSubject";
 import {Data} from "../../types/data";
 import {NO_ANNOTATION, OptionalAnnotations} from "../../types/annotations";
 import {DatasetPK} from "../../pk";
-import {UseMutateFunction, UseQueryResult} from "react-query";
+import {UseMutateFunction, UseMutationOptions, UseQueryResult} from "react-query";
 import {TOGGLE} from "./selection";
 import {DatasetItem} from "../../types/DatasetItem";
 import {Dataset} from "../../types/Dataset";
@@ -15,6 +15,7 @@ import {
     MutableDatasetDispatchItem
 } from "./DatasetDispatch";
 import {ReadonlyQueryResult} from "../../../util/react/query/types";
+import {DatasetMutationMethods} from "./useDatasetMutationMethods";
 
 
 /**
@@ -94,17 +95,7 @@ export type MutableDatasetDispatchConstructor<
         fileOrdering: string[],
         datasetResult: UseQueryResult<DatasetInstance>,
         itemMap: ReadonlyMap<string, I>,
-        select: (itemSelection: DatasetDispatchItemSelector<D, A>) => void,
-        deselect: (itemSelection: DatasetDispatchItemSelector<D, A>) => void,
-        toggleSelection: (itemSelection: DatasetDispatchItemSelector<D, A>) => void,
-        selectOnly: (itemSelection: DatasetDispatchItemSelector<D, A>) => void,
-        deleteSelectedFiles: () => void,
-        setAnnotationsForSelected: (annotations: OptionalAnnotations<A>) => void,
-        setAnnotationsForFile: (filename: string, annotations: OptionalAnnotations<A>) => void,
-        setAnnotations: (modifications: ReadonlyMap<string, OptionalAnnotations<A>>) => void,
-        clear: () => void,
-        deleteFile: (filename: string) => boolean,
-        addFiles: (files: ReadonlyMap<string, D>) => void
+        mutationMethods: DatasetMutationMethods<D, A>
     ) => DIS
 
 export type MutableDatasetDispatchItemConstructor<D extends Data, A, I extends MutableDatasetDispatchItem<D, A> = MutableDatasetDispatchItem<D, A>>
@@ -115,7 +106,7 @@ export type MutableDatasetDispatchItemConstructor<D extends Data, A, I extends M
         annotations: DatasetDispatchItemAnnotationType<A>,
         selected: boolean,
         setSelected: React.Dispatch<[string, boolean | typeof TOGGLE]>,
-        setAnnotationsMutation: UseMutateFunction<void, unknown, [string, OptionalAnnotations<A>]>
+        setAnnotationsMutation: UseMutateFunctionWithCallbacks<void, unknown, [string, OptionalAnnotations<A>]>
     ) => I
 
 export type DatasetDispatchItemSelector<D extends Data, A>
@@ -145,4 +136,10 @@ export type DatasetDispatchItemType<D extends Data, A>
     = DatasetItem<
     DatasetDispatchItemDataType<D>,
     DatasetDispatchItemAnnotationType<A>
-    >
+>
+
+export type UseMutationOptionsWithCallbacks<TData = unknown, TError = unknown, TVariables = void, TContext = unknown> =
+    UseMutationOptions<TData, TError, [TVariables, ((result: TData) => void)?, ((reason: any) => void)?], TContext>
+
+export type UseMutateFunctionWithCallbacks<TData = unknown, TError = unknown, TVariables = void, TContext = unknown> =
+    UseMutateFunction<TData, TError, [TVariables, ((result: TData) => void)?, ((reason: any) => void)?], TContext>

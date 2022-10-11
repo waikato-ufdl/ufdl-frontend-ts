@@ -1,11 +1,28 @@
 import {Data} from "../../types/data";
-import {UseMutateFunction} from "react-query";
 import {NamedFileInstance} from "ufdl-ts-client/types/core/named_file";
 import {OptionalAnnotations} from "../../types/annotations";
 import {TOGGLE} from "./selection";
-import {DatasetDispatchItemSelector} from "./types";
+import {DatasetDispatchItemSelector, UseMutateFunctionWithCallbacks} from "./types";
 import useDerivedState from "../../../util/react/hooks/useDerivedState";
 import {MutableDatasetDispatchItem} from "./DatasetDispatch";
+import {rendezvous} from "../../../util/typescript/async/rendezvous";
+
+export type DatasetMutationMethods<
+    D extends Data,
+    A
+> = {
+    select: (itemSelection: DatasetDispatchItemSelector<D, A>) => void,
+    deselect: (itemSelection: DatasetDispatchItemSelector<D, A>) => void,
+    toggleSelection: (itemSelection: DatasetDispatchItemSelector<D, A>) => void,
+    selectOnly: (itemSelection: DatasetDispatchItemSelector<D, A>) => void,
+    deleteSelectedFiles: () => void,
+    setAnnotationsForSelected: (annotations: OptionalAnnotations<A>) => void,
+    setAnnotationsForFile: (filename: string, annotations: OptionalAnnotations<A>) => void,
+    setAnnotations: (modifications: ReadonlyMap<string, OptionalAnnotations<A>>) => void,
+    clear: () => { [filename: string]: Promise<NamedFileInstance> },
+    deleteFile: (filename: string) => Promise<NamedFileInstance> | undefined,
+    addFiles: (files: ReadonlyMap<string, D>) => Promise<NamedFileInstance[]>
+}
 
 export default function useDatasetMutationMethods<
     D extends Data,
@@ -14,23 +31,11 @@ export default function useDatasetMutationMethods<
 >(
     itemMap: ReadonlyMap<string, I>,
     fileOrdering: string[],
-    addFilesMutate: UseMutateFunction<NamedFileInstance[], unknown, ReadonlyMap<string, D>>,
-    deleteFileMutate: UseMutateFunction<NamedFileInstance, unknown, string>,
-    setAnnotationsForFileMutate: UseMutateFunction<void, unknown, [string, OptionalAnnotations<A>]>,
+    addFilesMutate: UseMutateFunctionWithCallbacks<NamedFileInstance[], unknown, ReadonlyMap<string, D>>,
+    deleteFileMutate: UseMutateFunctionWithCallbacks<NamedFileInstance, unknown, string>,
+    setAnnotationsForFileMutate: UseMutateFunctionWithCallbacks<void, unknown, [string, OptionalAnnotations<A>]>,
     setSelected: React.Dispatch<[string, (boolean | typeof TOGGLE)]>
-): [
-    (itemSelection: DatasetDispatchItemSelector<D, A>) => void,
-    (itemSelection: DatasetDispatchItemSelector<D, A>) => void,
-    (itemSelection: DatasetDispatchItemSelector<D, A>) => void,
-    (itemSelection: DatasetDispatchItemSelector<D, A>) => void,
-    () => void,
-    (annotations: OptionalAnnotations<A>) => void,
-    (filename: string, annotations: OptionalAnnotations<A>) => void,
-    (modifications: ReadonlyMap<string, OptionalAnnotations<A>>) => void,
-    () => void,
-    (filename: string) => boolean,
-    (files: ReadonlyMap<string, D>) => void
-] {
+): DatasetMutationMethods<D, A> {
 
     const select: (itemSelection: DatasetDispatchItemSelector<D, A>) => void = useDerivedState(
         ([itemMap, fileOrdering, setSelected]) => {
@@ -86,84 +91,112 @@ export default function useDatasetMutationMethods<
         [itemMap, fileOrdering, setSelected] as const
     )
 
-    const deleteSelectedFiles: () => void = useDerivedState(
-        ([itemMap, fileOrdering, deleteFileMutate]) => {
-            return () => {
-                for (const filename of fileOrdering) {
-                    if (itemMap.get(filename)!.selected) {
-                        deleteFileMutate(filename)
+    const deleteSelectedFiles: () => { [filename: string]: Promise<NamedFileInstance> }
+        = useDerivedState(
+            ([itemMap, fileOrdering, deleteFileMutate]) => {
+                return () => {
+                    const results: { [filename: string]: Promise<NamedFileInstance> } = {}
+                    for (const filename of fileOrdering) {
+                        if (itemMap.get(filename)!.selected) {
+                            const [promise, resolve, reject] = rendezvous<NamedFileInstance>()
+                            deleteFileMutate([filename, resolve, reject])
+                            results[filename] = promise
+                        }
                     }
+                    return results
                 }
-            }
-        },
-        [itemMap, fileOrdering, deleteFileMutate] as const
-    )
+            },
+            [itemMap, fileOrdering, deleteFileMutate] as const
+        )
 
-    const setAnnotationsForSelected: (annotations: OptionalAnnotations<A>) => void = useDerivedState(
-        ([itemMap, fileOrdering, setAnnotationsForFileMutate]) => {
-            return (annotations) => {
-                for (const filename of fileOrdering) {
-                    if (itemMap.get(filename)!.selected) {
-                        setAnnotationsForFileMutate([filename, annotations])
+    const setAnnotationsForSelected: (annotations: OptionalAnnotations<A>) => { [filename: string]: Promise<void> }
+        = useDerivedState(
+            ([itemMap, fileOrdering, setAnnotationsForFileMutate]) => {
+                return (annotations) => {
+                    const results: { [filename: string]: Promise<void> } = {}
+                    for (const filename of fileOrdering) {
+                        if (itemMap.get(filename)!.selected) {
+                            const [promise, resolve, reject] = rendezvous<void>()
+                            setAnnotationsForFileMutate([[filename, annotations], resolve, reject])
+                            results[filename] = promise
+                        }
                     }
+                    return results
                 }
-            }
-        },
-        [itemMap, fileOrdering, setAnnotationsForFileMutate] as const
-    )
+            },
+            [itemMap, fileOrdering, setAnnotationsForFileMutate] as const
+        )
 
-    const setAnnotationsForFile: (filename: string, annotations: OptionalAnnotations<A>) => void = useDerivedState(
-        ([setAnnotationsForFileMutate]) => {
-            return (filename, annotations) => {
-                setAnnotationsForFileMutate([filename, annotations])
-            }
-        },
-        [setAnnotationsForFileMutate] as const
-    )
-
-    const setAnnotations: (modifications: ReadonlyMap<string, OptionalAnnotations<A>>) => void = useDerivedState(
-        ([setAnnotationsForFileMutate]) => {
-            return (modifications) => {
-                for (const modification of modifications) {
-                    setAnnotationsForFileMutate(modification)
+    const setAnnotationsForFile: (filename: string, annotations: OptionalAnnotations<A>) => Promise<void>
+        = useDerivedState(
+            ([setAnnotationsForFileMutate]) => {
+                return (filename, annotations) => {
+                    const [promise, resolve, reject] = rendezvous<void>()
+                    setAnnotationsForFileMutate([[filename, annotations], resolve, reject])
+                    return promise
                 }
-            }
-        },
-        [setAnnotationsForFileMutate] as const
-    )
+            },
+            [setAnnotationsForFileMutate] as const
+        )
 
-    const clear: () => void = useDerivedState(
-        ([fileOrdering, deleteFileMutate]) => {
-            return () => {
-                for (const filename of fileOrdering) {
-                    deleteFileMutate(filename)
+    const setAnnotations: (modifications: ReadonlyMap<string, OptionalAnnotations<A>>) => { [filename: string]: Promise<void> }
+        = useDerivedState(
+            ([setAnnotationsForFileMutate]) => {
+                return (modifications) => {
+                    const results: { [filename: string]: Promise<void> } = {}
+                    for (const modification of modifications) {
+                        const [promise, resolve, reject] = rendezvous<void>()
+                        setAnnotationsForFileMutate([modification, resolve, reject])
+                        results[modification[0]] = promise
+                    }
+                    return results
                 }
-            }
-        },
-        [fileOrdering, deleteFileMutate] as const
-    )
+            },
+            [setAnnotationsForFileMutate] as const
+        )
 
-    const deleteFile: (filename: string) => boolean = useDerivedState(
-        ([itemMap, deleteFileMutate]) => {
-            return (filename) => {
-                if (!itemMap.has(filename)) return false;
-                deleteFileMutate(filename)
-                return true;
-            }
-        },
-        [itemMap, deleteFileMutate] as const
-    )
+    const clear: () => { [filename: string]: Promise<NamedFileInstance> }
+        = useDerivedState(
+            ([fileOrdering, deleteFileMutate]) => {
+                return () => {
+                    const results: { [filename: string]: Promise<NamedFileInstance> } = {}
+                    for (const filename of fileOrdering) {
+                        const [promise, resolve, reject] = rendezvous<NamedFileInstance>()
+                        deleteFileMutate([filename, resolve, reject])
+                        results[filename] = promise
+                    }
+                    return results
+                }
+            },
+            [fileOrdering, deleteFileMutate] as const
+        )
 
-    const addFiles: (files: ReadonlyMap<string, D>) => void = useDerivedState(
-        ([addFilesMutate]) => {
-            return (files) => {
-                addFilesMutate(files)
-            }
-        },
-        [addFilesMutate] as const
-    )
+    const deleteFile: (filename: string) => Promise<NamedFileInstance> | undefined
+        = useDerivedState(
+            ([itemMap, deleteFileMutate]) => {
+                return (filename) => {
+                    if (!itemMap.has(filename)) return undefined
+                    const [promise, resolve, reject] = rendezvous<NamedFileInstance>()
+                    deleteFileMutate([filename, resolve, reject])
+                    return promise;
+                }
+            },
+            [itemMap, deleteFileMutate] as const
+        )
 
-    return [
+    const addFiles: (files: ReadonlyMap<string, D>) => Promise<NamedFileInstance[]>
+        = useDerivedState(
+            ([addFilesMutate]) => {
+                return (files) => {
+                    const [promise, resolve, reject] = rendezvous<NamedFileInstance[]>()
+                    addFilesMutate([files, resolve, reject])
+                    return promise
+                }
+            },
+            [addFilesMutate] as const
+        )
+
+    return {
         select,
         deselect,
         toggleSelection,
@@ -175,5 +208,5 @@ export default function useDatasetMutationMethods<
         clear,
         deleteFile,
         addFiles
-    ]
+    }
 }
