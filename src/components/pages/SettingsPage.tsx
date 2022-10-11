@@ -1,11 +1,12 @@
 import {FunctionComponentReturnType} from "../../util/react/types";
 import Page from "./Page";
-import {APP_SETTINGS_REACT_CONTEXT, AppSettings} from "../../useAppSettings";
+import {APP_SETTINGS_REACT_CONTEXT, AppSettings, saveSettingsToContext} from "../../useAppSettings";
 import InterlatchedCheckboxes from "../../util/react/component/InterlatchedCheckboxes";
 import useDerivedState from "../../util/react/hooks/useDerivedState";
 import {identity} from "../../util/identity";
 import {useContext} from "react";
 import {BackButton} from "../../util/react/component/BackButton";
+import {UFDL_SERVER_REACT_CONTEXT} from "../../server/UFDLServerContextProvider";
 
 export type SettingsPageProps = {
     onBack?: () => void
@@ -19,7 +20,9 @@ export default function SettingsPage(
 
     const [settings, settingsDispatch] = useContext(APP_SETTINGS_REACT_CONTEXT)
 
-    const changeMode = useDerivedState(
+    const ufdlServerContext = useContext(UFDL_SERVER_REACT_CONTEXT)
+
+    const setPrelabelMode = useDerivedState(
         ([onModeChanged]) => (mode: AppSettings['prelabelMode'] | undefined) => {
             onModeChanged(mode ?? 'Default')
         },
@@ -35,9 +38,17 @@ export default function SettingsPage(
                 labelExtractor={identity}
                 canSelectNone={true}
                 selected={PRELABEL_MODES.indexOf(settings.prelabelMode)}
-                onChanged={changeMode}
+                onChanged={setPrelabelMode}
             />
         </label>
+        <button
+            className={"SaveButton"}
+            onClick={
+                () => saveSettingsToContext(settings, ufdlServerContext)
+            }
+        >
+            Save
+        </button>
 
     </Page>
 }

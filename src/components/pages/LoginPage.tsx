@@ -11,6 +11,7 @@ import "../../logo.css";
 import {constantInitialiser} from "../../util/typescript/initialisers";
 import asChangeEventHandler from "../../util/react/asChangeEventHandler";
 import isPromise from "../../util/typescript/async/isPromise";
+import {APP_SETTINGS_REACT_CONTEXT, AppSettingsDispatch, loadSettingsFromContext} from "../../useAppSettings";
 
 export type LoginPageProps = {
     id: "Log In"
@@ -28,6 +29,8 @@ export default function LoginPage(props: LoginPageProps) {
 
     const ufdlServerContext = useContext(UFDL_SERVER_REACT_CONTEXT);
 
+    const [, setSettings] = useContext(APP_SETTINGS_REACT_CONTEXT)
+
     const [password, setPassword] = useStateSafe<string>(constantInitialiser(""));
 
     return <Page className={"LoginPage"} id={props.id}>
@@ -35,7 +38,7 @@ export default function LoginPage(props: LoginPageProps) {
             {"Powered by React "}
             <img src={logo} className="App-logo" alt="logo" />
         </div>
-        <Form onSubmit={() => login(ufdlServerContext, username, password, props.onLogin)}>
+        <Form onSubmit={() => login(ufdlServerContext, username, password, props.onLogin, setSettings)}>
             <label>
                 Username:
                 <input
@@ -63,7 +66,8 @@ async function login(
     context: UFDLServerContext,
     username: string,
     password: string,
-    onSuccess: () => void
+    onSuccess: () => void,
+    settingsDispatch: AppSettingsDispatch
 ): Promise<void> {
     // Change the context to the specified user
     context.change_user(username, password);
@@ -73,6 +77,9 @@ async function login(
 
     // Ping the backend to validate the user
     const success = !isPromise(userRecord) || (await handleErrorResponse(userRecord)) !== DEFAULT_HANDLED_ERROR_RESPONSE;
+
+    // Load the settings from the context
+    await loadSettingsFromContext(context, settingsDispatch)
 
     // Run the success handler if succesfully
     if (success) onSuccess();

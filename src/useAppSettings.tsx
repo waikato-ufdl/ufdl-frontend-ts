@@ -1,8 +1,9 @@
 import React, {Dispatch, ReactNode} from "react";
 import useStateSafe from "./util/react/hooks/useStateSafe";
 import {constantInitialiser} from "./util/typescript/initialisers";
-import {mapObject} from "./util/typescript/object";
+import {mapObject, mapOwnProperties} from "./util/typescript/object";
 import capitalize from "./util/typescript/strings/capitalize";
+import UFDLServerContext from "../../ufdl-ts-client/dist/UFDLServerContext";
 
 /** The type of the settings for the single-page app. */
 export type AppSettings = {
@@ -80,4 +81,37 @@ export function useAppSettings(
             setPrelabelMode
         }
     ]
+}
+
+export async function saveSettingsToContext(
+    settings: AppSettings,
+    context: UFDLServerContext
+) {
+    context.store_item(
+        "AppSettings",
+        JSON.stringify(settings),
+        true
+    ).catch(
+        reason => console.error("Failed to save settings to context", reason)
+    )
+}
+
+export async function loadSettingsFromContext(
+    context: UFDLServerContext,
+    dispatch?: AppSettingsDispatch
+): Promise<AppSettings> {
+    const serialised = await context.get_item("AppSettings", true)
+
+    const deserialised: AppSettings = serialised !== null
+        ? JSON.parse(serialised)
+        : {...DEFAULT_APP_SETTINGS}
+
+    if (dispatch !== undefined) {
+        mapOwnProperties(
+            deserialised,
+            (setting, value) => dispatch[getSettingDispatchName(setting)](value)
+        )
+    }
+
+    return deserialised
 }
