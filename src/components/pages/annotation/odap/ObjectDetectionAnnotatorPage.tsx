@@ -116,7 +116,7 @@ export default function ObjectDetectionAnnotatorPage(
             console.log(`Selected video '${file.name}' for frame-extraction`)
 
             // Create a frame-extractor to manage the frame selection
-            return <DataVideoWithFrameExtractor
+            return () => <DataVideoWithFrameExtractor
                 controls
                 src={file}
                 type={"jpeg"}

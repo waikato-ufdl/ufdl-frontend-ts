@@ -9,10 +9,12 @@ export default function createClassificationModalRenderer<D extends Data>(
     colours: ClassColours,
     getData: (file: File) => D
 ): FileAnnotationModalRenderer<D, Classification> {
-    return (onSubmit, onCancel) => {
-        return <PickClassForm
+    return (onSubmit) => {
+        return () => <PickClassForm
             onSubmit={
-                (classification) => addFilesRenderer("multiple", getData,() => classification)(onSubmit, onCancel)
+                (classification) => {
+                    addFilesRenderer("multiple", getData, () => classification)(onSubmit)
+                }
             }
             colours={colours}
             confirmText={"Select files..."}
