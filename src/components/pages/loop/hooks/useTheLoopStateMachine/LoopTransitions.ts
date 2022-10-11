@@ -418,28 +418,37 @@ export const LOOP_TRANSITIONS = {
         cancel: cancelJobTransition
     },
     "Checking": {
-        goodEnough(isGoodEnough: boolean) {
+        finishChecking(next: "Finished" | "Prelabel" | "Edit") {
             return (current: LoopStateAndData) => {
                 if (current.state !== "Checking") return;
-                if (isGoodEnough) {
-                    return createNewLoopState("Finished")(
-                        {
-                            context: current.data.context,
-                            modelOutputPK: current.data.modelOutputPK
-                        }
-                    )
-                } else {
-                    return createNewLoopState("Creating Addition Dataset")(
-                        {
-                            ...current.data,
-                            additionDataset: copyDataset(
-                                current.data.context,
-                                current.data.primaryDataset,
-                                true,
-                                current.data.domain
-                            )
-                        }
-                    )
+
+                switch (next) {
+                    case "Finished":
+                        return createNewLoopState("Finished")(
+                            {
+                                context: current.data.context,
+                                modelOutputPK: current.data.modelOutputPK
+                            }
+                        )
+                    case "Prelabel":
+                        return createNewLoopState("Creating Addition Dataset")(
+                            {
+                                ...current.data,
+                                additionDataset: copyDataset(
+                                    current.data.context,
+                                    current.data.primaryDataset,
+                                    true,
+                                    current.data.domain
+                                )
+                            }
+                        )
+                    case "Edit":
+                        return createNewLoopState("Selecting Initial Images")(
+                            {
+                                ...current.data,
+                                targetDataset: current.data.primaryDataset
+                            }
+                        )
                 }
             };
         },

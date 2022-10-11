@@ -21,6 +21,7 @@ import {
     UncontrolledResetOverride
 } from "../../../util/react/hooks/useControllableState";
 import useDerivedState from "../../../util/react/hooks/useDerivedState";
+import {APP_SETTINGS_REACT_CONTEXT} from "../../../useAppSettings";
 
 
 const FRAMEWORK_REGEXP = /^Framework<'(.*)', '(.*)'>$/
@@ -34,6 +35,8 @@ export default function TheLoopPage(
 ): FunctionComponentReturnType {
 
     const ufdlServerContext = useContext(UFDL_SERVER_REACT_CONTEXT);
+
+    const [appSettings] = useContext(APP_SETTINGS_REACT_CONTEXT);
 
     const stateMachine = useTheLoopStateMachine(ufdlServerContext);
 
@@ -278,8 +281,8 @@ export default function TheLoopPage(
                     modelType={stateMachine.data.modelType}
                 />
                 <RefineOrDoneModal
-                    onRefine={() => {refineOrDoneModal.hide(); stateMachine.transitions.goodEnough(false)}}
-                    onDone={() => {refineOrDoneModal.hide(); stateMachine.transitions.goodEnough(true)}}
+                    onRefine={() => {refineOrDoneModal.hide(); stateMachine.transitions.finishChecking(appSettings.prelabelMode === "None" ? "Edit" : "Prelabel")}}
+                    onDone={() => {refineOrDoneModal.hide(); stateMachine.transitions.finishChecking("Finished")}}
                     position={refineOrDoneModal.position}
                     onCancel={() => refineOrDoneModal.hide()}
                 />
