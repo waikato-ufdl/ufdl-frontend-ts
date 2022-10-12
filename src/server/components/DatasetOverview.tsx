@@ -50,6 +50,7 @@ export type DatasetOverviewProps<D extends DomainName> = {
     className?: string
 }
 
+// TODO: Move to CSS
 const ITEM_STYLE: FlexItemProps["style"] = {
     margin: "1.25%",
     border: 0,
@@ -60,10 +61,13 @@ const ITEM_STYLE: FlexItemProps["style"] = {
     width: "22.5%"
 };
 
+// TODO: Move to CSS
 const ITEM_PROPS = {style: ITEM_STYLE};
 
+// TODO: Move to CSS
 const GET_ITEM_PROPS = constantInitialiser(ITEM_PROPS);
 
+// TODO: Move to CSS
 const FLEX_CONTAINER_STYLE = {
     flexDirection: "row",
     flexWrap: "wrap",

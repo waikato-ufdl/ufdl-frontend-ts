@@ -7,6 +7,7 @@ export type FlexItemProps = JSX.IntrinsicElements["div"] & {
 
 }
 
+// TODO: Move to CSS
 export default function FlexItem(
     props: FlexItemProps
 ): FunctionComponentReturnType {

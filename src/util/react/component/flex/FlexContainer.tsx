@@ -17,6 +17,7 @@ export type FlexContainerProps = JSX.IntrinsicElements["div"] & {
     itemProps?: (child: ReactNode, index: number) => FlexItemProps
 }
 
+// TODO: Move to CSS
 export default function FlexContainer(
     props: FlexContainerProps
 ): FunctionComponentReturnType {
