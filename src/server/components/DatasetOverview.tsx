@@ -1,11 +1,11 @@
 import React from "react";
-import {handleSingleDefault, WithDefault} from "../../util/typescript/default";
+import {DEFAULT, WithDefault} from "../../util/typescript/default";
 import {FlexItemProps} from "../../util/react/component/flex/FlexItem";
 import {constantInitialiser} from "../../util/typescript/initialisers";
 import {mapMap, mapToArray} from "../../util/map";
 import FlexContainer from "../../util/react/component/flex/FlexContainer";
 import AddFilesButton, {OnSubmitFunction, SubMenus} from "./AddFilesButton";
-import {Absent, Possible, undefinedAsAbsent} from "../../util/typescript/types/Possible";
+import {undefinedAsAbsent} from "../../util/typescript/types/Possible";
 import DatasetItem, {AnnotationComponent, DataComponent} from "./DatasetItem";
 import {augmentClassName} from "../../util/react/augmentClass";
 import {DomainSortOrderFunction} from "./types";
@@ -19,13 +19,33 @@ import useDerivedState from "../../util/react/hooks/useDerivedState";
 import {DatasetDispatchItemAnnotationType, DatasetDispatchItemDataType} from "../hooks/useDataset/types";
 import UNREACHABLE from "../../util/typescript/UNREACHABLE";
 
+/**
+ * Props to the {@link DatasetOverview} component.
+ *
+ * @property dataset
+ *          The dataset with which to work. The overview is empty if this is undefined.
+ * @property comparisonDataset
+ *          An optional dataset against which to compare items in the primary dataset.
+ * @property DataComponent
+ *          Component which renders the data-type of the domain.
+ * @property AnnotationComponent
+ *          Component which renders the annotation-type of the domain.
+ * @property onItemClicked
+ *          Callback which is fired whenever an item is clicked.
+ * @property sortFunction
+ *          An optional function to sort the dataset items. By default items are unsorted.
+ * @property addFilesSubMenus
+ *          The methods for adding new items to the dataset.
+ * @property className
+ *          An optional CSS-classname.
+ */
 export type DatasetOverviewProps<D extends DomainName> = {
     dataset: MutableDatasetDispatch<DomainDataType<D>, DomainAnnotationType<D>> | undefined
-    evalDataset: DatasetDispatch<DomainDataType<D>, DomainAnnotationType<D>> | undefined
+    comparisonDataset: DatasetDispatch<DomainDataType<D>, DomainAnnotationType<D>> | undefined
     DataComponent: DataComponent<DatasetDispatchItemDataType<DomainDataType<D>>>
     AnnotationComponent: AnnotationComponent<DatasetDispatchItemAnnotationType<DomainAnnotationType<D>>>
     onItemClicked: (item: DatasetDispatchItem<DomainDataType<D>, DomainAnnotationType<D>>) => void
-    sortFunction: WithDefault<Possible<DomainSortOrderFunction<D>>>
+    sortFunction?: WithDefault<DomainSortOrderFunction<D>>
     addFilesSubMenus: SubMenus<DomainDataType<D>, DomainAnnotationType<D>>
     className?: string
 }
@@ -55,32 +75,37 @@ const FLEX_CONTAINER_STYLE = {
 const DatasetItemMemo = React.memo(DatasetItem) as typeof DatasetItem
 
 export default function DatasetOverview<D extends DomainName>(
-    props: DatasetOverviewProps<D>
+    {
+        dataset,
+        comparisonDataset,
+        DataComponent,
+        AnnotationComponent,
+        onItemClicked,
+        sortFunction = DEFAULT,
+        addFilesSubMenus,
+        className
+    }: DatasetOverviewProps<D>
 ) {
-    // Handle the default values for the props
-    const sortFunction = handleSingleDefault(props.sortFunction, constantInitialiser(Absent))
-
     // Extract the dataset items, if any
-    const items
-        = props.dataset === undefined
-        ? []
-        : mapToArray(
-            props.dataset,
+    const items = dataset !== undefined
+        ? mapToArray(
+            dataset,
             (_filename, item) => item
-        );
+        )
+        : []
 
     // Sort them according to the given sort function
-    if (sortFunction !== Absent) items.sort(sortFunction)
+    if (sortFunction !== DEFAULT) items.sort(sortFunction)
 
     // Create a display item for each dataset item
     const renderedItems = items.map(
         item => <DatasetItemMemo<D>
             key={item.filename}
             item={item}
-            evalAnnotation={undefinedAsAbsent(props.evalDataset?.get(item.filename)?.annotations)}
-            DataComponent={props.DataComponent}
-            AnnotationComponent={props.AnnotationComponent}
-            onClick={props.onItemClicked}
+            comparisonAnnotation={undefinedAsAbsent(comparisonDataset?.get(item.filename)?.annotations)}
+            DataComponent={DataComponent}
+            AnnotationComponent={AnnotationComponent}
+            onClick={onItemClicked}
         />
     )
 
@@ -107,18 +132,18 @@ export default function DatasetOverview<D extends DomainName>(
                     }
                 )
             },
-        [props.dataset] as const
+        [dataset] as const
     )
 
     return <FlexContainer
-        className={augmentClassName(props.className, "DatasetOverview")}
+        className={augmentClassName(className, "DatasetOverview")}
         itemProps={GET_ITEM_PROPS}
         style={FLEX_CONTAINER_STYLE}
     >
         <AddFilesButton<DomainDataType<D>, DomainAnnotationType<D>>
-            disabled={props.dataset === undefined}
+            disabled={dataset === undefined}
             onSubmit={onSubmit}
-            subMenus={props.addFilesSubMenus}
+            subMenus={addFilesSubMenus}
         />
         {renderedItems}
     </FlexContainer>

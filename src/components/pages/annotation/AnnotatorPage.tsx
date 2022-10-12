@@ -10,7 +10,7 @@ import NewDatasetPage from "../NewDatasetPage";
 import {AnyPK, DatasetPK, getProjectPK, getTeamPK, TeamPK} from "../../../server/pk";
 import {UNCONTROLLED_KEEP} from "../../../util/react/hooks/useControllableState";
 import useDerivedState from "../../../util/react/hooks/useDerivedState";
-import {WithDefault} from "../../../util/typescript/default";
+import {DEFAULT, WithDefault} from "../../../util/typescript/default";
 import DatasetOverview from "../../../server/components/DatasetOverview";
 import {
     DatasetDispatch,
@@ -19,7 +19,7 @@ import {
 } from "../../../server/hooks/useDataset/DatasetDispatch";
 import {DOMAIN_DATASET_METHODS, DomainAnnotationType, DomainDataType, DomainName} from "../../../server/domains";
 import isDefined from "../../../util/typescript/isDefined";
-import {Absent, Possible} from "../../../util/typescript/types/Possible";
+import {Absent} from "../../../util/typescript/types/Possible";
 import {DomainSortOrderFunction, DomainSortOrders} from "../../../server/components/types";
 import {AnnotationComponent, DataComponent} from "../../../server/components/DatasetItem";
 import {SubMenus} from "../../../server/components/AddFilesButton";
@@ -56,8 +56,8 @@ export default function AnnotatorPage<D extends DomainName>(
     // Get the server context
     const ufdlServerContext = useContext(UFDL_SERVER_REACT_CONTEXT);
 
-    const [sortOrder, setSortOrder] = useStateSafe<Possible<DomainSortOrderFunction<D>>>(
-        () => Absent
+    const [sortOrder, setSortOrder] = useStateSafe<WithDefault<DomainSortOrderFunction<D>>>(
+        () => DEFAULT
     )
 
     // Sub-page displays
@@ -180,7 +180,7 @@ export default function AnnotatorPage<D extends DomainName>(
         onBack={props.onBack}
         className={"menuBar"}
         sortOrders={props.sortOrders}
-        onSortChanged={(_, order) => setSortOrder(order)}
+        onSortChanged={(_, order) => setSortOrder(order === Absent ? DEFAULT : order)}
         onSelect={topMenuOnSelect}
         itemSelectFragmentRenderer={props.itemSelectFragmentRenderer}
         onDeleteSelected={isDefined(props.dataset) ? props.dataset.deleteSelectedFiles.bind(props.dataset) : undefined}
@@ -191,7 +191,7 @@ export default function AnnotatorPage<D extends DomainName>(
 
     const overview = <DatasetOverview<D>
         dataset={props.dataset}
-        evalDataset={props.evalDataset}
+        comparisonDataset={props.evalDataset}
         DataComponent={props.DataComponent}
         AnnotationComponent={props.AnnotationComponent}
         onItemClicked={props.onItemClicked}

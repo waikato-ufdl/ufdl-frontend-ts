@@ -1,4 +1,4 @@
-import React, {MouseEventHandler, useContext} from "react";
+import React, {Dispatch, MouseEventHandler, useContext} from "react";
 import {UFDL_SERVER_REACT_CONTEXT} from "../../../../server/UFDLServerContextProvider";
 import {
     AnnotatorTopMenuExtraControlsRenderer,
@@ -11,7 +11,7 @@ import DataImage from "../../../../util/react/component/DataImage";
 import {BehaviorSubject} from "rxjs";
 import useStateSafe from "../../../../util/react/hooks/useStateSafe";
 import "./ImageClassificationAnnotatorPage.css";
-import {AnyPK, DatasetPK, getDatasetPK} from "../../../../server/pk";
+import {AnyPK, DatasetPK, getDatasetPK, getProjectPK, ProjectPK} from "../../../../server/pk";
 import ImageClassificationDatasetDispatch
     from "../../../../server/hooks/useImageClassificationDataset/ImageClassificationDatasetDispatch";
 import {Classification, NO_ANNOTATION, OptionalAnnotations} from "../../../../server/types/annotations";
@@ -41,6 +41,8 @@ import hasData from "../../../../util/react/query/hasData";
 import passOnUndefined from "../../../../util/typescript/functions/passOnUndefined";
 import {DatasetDispatchItemAnnotationType} from "../../../../server/hooks/useDataset/types";
 import {ImageOrVideoRenderer} from "../../../../server/components/image/ImageOrVideoRenderer";
+import {Controllable, useControllableState} from "../../../../util/react/hooks/useControllableState";
+import {DatasetSelect} from "../../../../server/components/DatasetSelect";
 
 export const SORT_ORDERS = {
     "filename": BY_FILENAME,
@@ -49,7 +51,7 @@ export const SORT_ORDERS = {
 
 export type ICAPProps = {
     lockedPK?: AnyPK,
-    evalPK?: DatasetPK,
+    evalPK: Controllable<DatasetPK | undefined>,
     initialColours?: ClassColours
     nextLabel: WithDefault<string>
     onNext?: (
@@ -70,6 +72,11 @@ export default function ImageClassificationAnnotatorPage(
 
     const [selectedPK, setSelectedPK] = useStateSafe(constantInitialiser(props.lockedPK))
 
+    const [evalPK, setEvalPK, evalPKLocked] = useControllableState(
+        props.evalPK,
+        constantInitialiser(undefined)
+    )
+
     const dataset = useImageClassificationDataset(
         ufdlServerContext,
         getDatasetPK(selectedPK),
@@ -78,7 +85,7 @@ export default function ImageClassificationAnnotatorPage(
 
     const evalDataset = useImageClassificationDataset(
         ufdlServerContext,
-        props.evalPK,
+        evalPK,
         props.evalQueryDependencies
     );
 
@@ -172,9 +179,13 @@ export default function ImageClassificationAnnotatorPage(
         () => createImageClassificationExtraControlsRenderer(
             dataset?.setAnnotationsForSelected?.bind(dataset),
             classColoursDispatch.state,
-            () => setShowLabelColourPickerPage(true)
+            () => setShowLabelColourPickerPage(true),
+            getProjectPK(selectedPK),
+            evalPK,
+            setEvalPK,
+            evalPKLocked
         ),
-        [dataset, classColoursDispatch.state, setShowLabelColourPickerPage]
+        [dataset, classColoursDispatch.state, setShowLabelColourPickerPage, selectedPK, evalPK, setEvalPK, evalPKLocked]
     )
 
     const filesClassificationModalRenderer = useDerivedState(
@@ -259,7 +270,11 @@ export default function ImageClassificationAnnotatorPage(
 function createImageClassificationExtraControlsRenderer(
     onRelabelSelected: ((label: OptionalAnnotations<Classification>) => void) | undefined,
     colours: ClassColours,
-    onRequestLabelColourPickerOverlay: (() => void) | undefined
+    onRequestLabelColourPickerOverlay: (() => void) | undefined,
+    projectPK: ProjectPK | undefined,
+    evalPK: Controllable<DatasetPK | undefined>,
+    setEvalPK: Dispatch<DatasetPK | undefined>,
+    evalPKLocked: boolean
 ): AnnotatorTopMenuExtraControlsRenderer {
     return () => {
 
@@ -290,6 +305,17 @@ function createImageClassificationExtraControlsRenderer(
             >
                 Labels...
             </button>
+
+            <label>
+                Eval Dataset:
+                <DatasetSelect
+                    domain={"Image Classification"}
+                    projectPK={projectPK}
+                    value={evalPK}
+                    onChanged={setEvalPK}
+                    disabled={evalPKLocked}
+                />
+            </label>
         </>
     }
 }

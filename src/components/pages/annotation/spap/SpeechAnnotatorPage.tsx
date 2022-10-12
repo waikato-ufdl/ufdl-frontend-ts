@@ -18,18 +18,16 @@ import passOnUndefined from "../../../../util/typescript/functions/passOnUndefin
 import "./SpeechAnnotatorPage.css"
 import {AnnotationComponent} from "../../../../server/components/DatasetItem";
 import {DatasetDispatchItemAnnotationType} from "../../../../server/hooks/useDataset/types";
-import {Absent, Possible} from "../../../../util/typescript/types/Possible";
+import {Absent} from "../../../../util/typescript/types/Possible";
 import SpeechDatasetDispatch from "../../../../server/hooks/useSpeechDataset/SpeechDatasetDispatch";
 import useSpeechDataset from "../../../../server/hooks/useSpeechDataset/useSpeechDataset";
 import {AudioRenderer} from "../../../../server/components/audio/AudioRenderer";
 import hasData from "../../../../util/react/query/hasData";
 import MinimumEditDistance from "./MinimumEditDistance";
-import {Controllable, mapControllable, useControllableState} from "../../../../util/react/hooks/useControllableState";
-import {DatasetInstance} from "../../../../../../ufdl-ts-client/dist/types/core/dataset";
-import {DOMAIN_DATASET_METHODS, DomainName} from "../../../../server/domains";
-import nameFromSignature from "../../../../server/util/nameFromSignature";
-import {exactFilter} from "../../../../server/util/exactFilter";
-import {ListSelect} from "../../../../server/components/ListSelect";
+import {Controllable, useControllableState} from "../../../../util/react/hooks/useControllableState";
+
+
+import {DatasetSelect} from "../../../../server/components/DatasetSelect";
 
 export type SPAPProps = {
     lockedPK?: AnyPK,
@@ -83,7 +81,6 @@ export default function SpeechAnnotatorPage(
 
     const extraControls = useDerivedState(
         ([selectedPK, evalPK, setEvalPK, evalPKLocked]) => createSpeechExtraControlsRenderer(
-            "Speech",
             getProjectPK(selectedPK),
             evalPK,
             setEvalPK,
@@ -114,14 +111,14 @@ export default function SpeechAnnotatorPage(
             return (
                 {
                     annotation,
-                    evalAnnotation
+                    comparisonAnnotation
                 }
             ) => {
                 if (hasData(annotation)) {
-                    if (evalAnnotation !== Absent && hasData(evalAnnotation)) {
-                        const targetString = evalAnnotation.data === NO_ANNOTATION?
+                    if (comparisonAnnotation !== Absent && hasData(comparisonAnnotation)) {
+                        const targetString = comparisonAnnotation.data === NO_ANNOTATION?
                             ""
-                            : evalAnnotation.data
+                            : comparisonAnnotation.data
                         const startingString = annotation.data === NO_ANNOTATION?
                             ""
                             : annotation.data
@@ -161,7 +158,6 @@ export default function SpeechAnnotatorPage(
 }
 
 function createSpeechExtraControlsRenderer(
-    domain: DomainName,
     projectPK: ProjectPK | undefined,
     evalPK: Controllable<DatasetPK | undefined>,
     setEvalPK: Dispatch<DatasetPK | undefined>,
@@ -172,13 +168,11 @@ function createSpeechExtraControlsRenderer(
         return <>
             <label>
                 Eval Dataset:
-                <ListSelect<DatasetInstance>
-                    list={DOMAIN_DATASET_METHODS[domain].list}
-                    labelFunction={nameFromSignature}
-                    onChange={(_, pk) => setEvalPK(projectPK!.dataset(pk))}
-                    filter={projectPK === undefined ? undefined : exactFilter("project", projectPK.asNumber)}
-                    forceEmpty={projectPK === undefined}
-                    value={mapControllable(evalPK, pk => pk?.asNumber ?? -1)}
+                <DatasetSelect
+                    domain={"Speech"}
+                    projectPK={projectPK}
+                    value={evalPK}
+                    onChanged={setEvalPK}
                     disabled={evalPKLocked}
                 />
             </label>

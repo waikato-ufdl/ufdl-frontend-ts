@@ -169,7 +169,7 @@ export default function ObjectDetectionAnnotatorPage(
                 filename={filename}
                 selected={selected}
                 annotation={mapResult(annotation)}
-                evalAnnotation={Absent}
+                comparisonAnnotation={Absent}
             />
         },
         []

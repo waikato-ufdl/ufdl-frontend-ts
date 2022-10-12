@@ -21,7 +21,7 @@ export default function createClassificationComponent(
             filename,
             selected,
             annotation: classification,
-            evalAnnotation: evalClassification
+            comparisonAnnotation: evalClassification
         }
     ) => {
 
