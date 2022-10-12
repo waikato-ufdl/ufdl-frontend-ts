@@ -26,7 +26,7 @@ import {BY_FILENAME} from "../../../../server/sorting";
 import {BY_CLASSIFICATION} from "../../../../server/components/classification/sorting";
 import createFileClassificationModalRenderer
     from "../../../../server/components/classification/createClassificationModalRenderer";
-import createClassificationRenderer from "../../../../server/components/classification/createClassificationRenderer";
+import createClassificationComponent from "../../../../server/components/classification/createClassificationComponent";
 import useLocalModal from "../../../../util/react/hooks/useLocalModal";
 import LocalModal from "../../../../util/react/component/LocalModal";
 import PickClassForm from "../../../../server/components/classification/PickClassForm";
@@ -197,9 +197,9 @@ export default function ImageClassificationAnnotatorPage(
         )
     )
 
-    const classificationRenderer = useDerivedState(
+    const ClassificationComponent = useDerivedState(
         ([classColours, datasetOverviewOnReclassify]) =>
-            createClassificationRenderer(classColours, datasetOverviewOnReclassify),
+            createClassificationComponent(classColours, datasetOverviewOnReclassify),
         [classColoursDispatch.state, datasetOverviewOnReclassify] as const
     )
 
@@ -240,8 +240,8 @@ export default function ImageClassificationAnnotatorPage(
         domain={"Image Classification"}
         nextLabel={props.nextLabel}
         sortOrders={SORT_ORDERS}
-        renderData={ImageOrVideoRenderer}
-        renderAnnotation={classificationRenderer}
+        DataComponent={ImageOrVideoRenderer}
+        AnnotationComponent={ClassificationComponent}
         onItemClicked={imagesDisplayOnFileClicked}
         addFilesSubMenus={addFilesSubMenus}
         extraControls={extraControls}

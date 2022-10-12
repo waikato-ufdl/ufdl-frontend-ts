@@ -21,7 +21,7 @@ import {DOMAIN_DATASET_METHODS, DomainAnnotationType, DomainDataType, DomainName
 import isDefined from "../../../util/typescript/isDefined";
 import {Absent, Possible} from "../../../util/typescript/types/Possible";
 import {DomainSortOrderFunction, DomainSortOrders} from "../../../server/components/types";
-import {AnnotationRenderer, DataRenderer} from "../../../server/components/DatasetItem";
+import {AnnotationComponent, DataComponent} from "../../../server/components/DatasetItem";
 import {SubMenus} from "../../../server/components/AddFilesButton";
 import {augmentClassName} from "../../../util/react/augmentClass";
 import "./AnnotatorPage.css"
@@ -40,8 +40,8 @@ export type AnnotatorPageProps<D extends DomainName> = {
     dataset: MutableDatasetDispatch<DomainDataType<D>, DomainAnnotationType<D>> | undefined
     evalDataset: DatasetDispatch<DomainDataType<D>, DomainAnnotationType<D>> | undefined
     sortOrders: WithDefault<DomainSortOrders<D>>
-    renderData: DataRenderer<DatasetDispatchItemDataType<DomainDataType<D>>>
-    renderAnnotation: AnnotationRenderer<DatasetDispatchItemAnnotationType<DomainAnnotationType<D>>>
+    DataComponent: DataComponent<DatasetDispatchItemDataType<DomainDataType<D>>>
+    AnnotationComponent: AnnotationComponent<DatasetDispatchItemAnnotationType<DomainAnnotationType<D>>>
     onItemClicked: (item: DatasetDispatchItem<DomainDataType<D>, DomainAnnotationType<D>>) => void
     addFilesSubMenus: SubMenus<DomainDataType<D>, DomainAnnotationType<D>>
     extraControls: AnnotatorTopMenuExtraControlsRenderer | undefined
@@ -192,8 +192,8 @@ export default function AnnotatorPage<D extends DomainName>(
     const overview = <DatasetOverview<D>
         dataset={props.dataset}
         evalDataset={props.evalDataset}
-        renderData={props.renderData}
-        renderAnnotation={props.renderAnnotation}
+        DataComponent={props.DataComponent}
+        AnnotationComponent={props.AnnotationComponent}
         onItemClicked={props.onItemClicked}
         sortFunction={sortOrder}
         addFilesSubMenus={props.addFilesSubMenus}

@@ -6,7 +6,7 @@ import {mapMap, mapToArray} from "../../util/map";
 import FlexContainer from "../../util/react/component/flex/FlexContainer";
 import AddFilesButton, {OnSubmitFunction, SubMenus} from "./AddFilesButton";
 import {Absent, Possible, undefinedAsAbsent} from "../../util/typescript/types/Possible";
-import DatasetItem, {AnnotationRenderer, DataRenderer} from "./DatasetItem";
+import DatasetItem, {AnnotationComponent, DataComponent} from "./DatasetItem";
 import {augmentClassName} from "../../util/react/augmentClass";
 import {DomainSortOrderFunction} from "./types";
 import {DomainAnnotationType, DomainDataType, DomainName} from "../domains";
@@ -22,8 +22,8 @@ import UNREACHABLE from "../../util/typescript/UNREACHABLE";
 export type DatasetOverviewProps<D extends DomainName> = {
     dataset: MutableDatasetDispatch<DomainDataType<D>, DomainAnnotationType<D>> | undefined
     evalDataset: DatasetDispatch<DomainDataType<D>, DomainAnnotationType<D>> | undefined
-    renderData: DataRenderer<DatasetDispatchItemDataType<DomainDataType<D>>>
-    renderAnnotation: AnnotationRenderer<DatasetDispatchItemAnnotationType<DomainAnnotationType<D>>>
+    DataComponent: DataComponent<DatasetDispatchItemDataType<DomainDataType<D>>>
+    AnnotationComponent: AnnotationComponent<DatasetDispatchItemAnnotationType<DomainAnnotationType<D>>>
     onItemClicked: (item: DatasetDispatchItem<DomainDataType<D>, DomainAnnotationType<D>>) => void
     sortFunction: WithDefault<Possible<DomainSortOrderFunction<D>>>
     addFilesSubMenus: SubMenus<DomainDataType<D>, DomainAnnotationType<D>>
@@ -78,8 +78,8 @@ export default function DatasetOverview<D extends DomainName>(
             key={item.filename}
             item={item}
             evalAnnotation={undefinedAsAbsent(props.evalDataset?.get(item.filename)?.annotations)}
-            renderData={props.renderData}
-            renderAnnotation={props.renderAnnotation}
+            DataComponent={props.DataComponent}
+            AnnotationComponent={props.AnnotationComponent}
             onClick={props.onItemClicked}
         />
     )

@@ -1,6 +1,6 @@
 import {ClassColours} from "../../util/classification";
 import {Classification, NO_ANNOTATION, OptionalAnnotations} from "../../types/annotations";
-import {AnnotationRenderer} from "../DatasetItem";
+import {AnnotationComponent} from "../DatasetItem";
 import {numberWithSuffix} from "../../../util/numberWithSuffix";
 import React, {CSSProperties} from "react";
 import {Absent} from "../../../util/typescript/types/Possible";
@@ -12,15 +12,17 @@ import {DatasetDispatchItemAnnotationType} from "../../hooks/useDataset/types";
 export const SELECTED_BORDER_WIDTH_PX: number = 3;
 export const UNSELECTED_BORDER_WIDTH_PX: number = 2;
 
-export default function createClassificationRenderer(
+export default function createClassificationComponent(
     colours: ClassColours,
     onReclassify: (filename: string, oldClass: OptionalAnnotations<Classification> | undefined, newClass: OptionalAnnotations<Classification>) => void
-): AnnotationRenderer<DatasetDispatchItemAnnotationType<Classification>> {
+): AnnotationComponent<DatasetDispatchItemAnnotationType<Classification>> {
     return (
-        filename,
-        selected,
-        classification,
-        evalClass
+        {
+            filename,
+            selected,
+            annotation: classification,
+            evalAnnotation: evalClassification
+        }
     ) => {
 
         const borderWidth = numberWithSuffix(
@@ -38,15 +40,15 @@ export default function createClassificationRenderer(
 
         const borderStyle: CSSProperties = {
             borderStyle: "solid",
-            borderColor: evalClass === Absent || !isSuccess(classification)
+            borderColor: evalClassification === Absent || !isSuccess(classification)
                 ? labelColour
-                : isSuccess(evalClass)
-                    ? evalClass.data === classification.data
+                : isSuccess(evalClassification)
+                    ? evalClassification.data === classification.data
                         ? "limegreen"
                         : "red"
                     : "black"
             ,
-            borderWidth: borderWidth + (evalClass !== Absent ? 2 : 0)
+            borderWidth: borderWidth + (evalClassification !== Absent ? 2 : 0)
         };
 
         const label = hasData(classification)

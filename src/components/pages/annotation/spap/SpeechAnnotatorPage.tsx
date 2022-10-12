@@ -16,7 +16,7 @@ import AnnotatorPage from "../AnnotatorPage";
 import {constantInitialiser} from "../../../../util/typescript/initialisers";
 import passOnUndefined from "../../../../util/typescript/functions/passOnUndefined";
 import "./SpeechAnnotatorPage.css"
-import {AnnotationRenderer} from "../../../../server/components/DatasetItem";
+import {AnnotationComponent} from "../../../../server/components/DatasetItem";
 import {DatasetDispatchItemAnnotationType} from "../../../../server/hooks/useDataset/types";
 import {Absent, Possible} from "../../../../util/typescript/types/Possible";
 import SpeechDatasetDispatch from "../../../../server/hooks/useSpeechDataset/SpeechDatasetDispatch";
@@ -108,13 +108,14 @@ export default function SpeechAnnotatorPage(
         )
     )
 
-    const transcriptionRenderer: AnnotationRenderer<DatasetDispatchItemAnnotationType<Transcription>> = useDerivedState(
+    // TODO: Extract to static component, as no dependencies
+    const TranscriptionComponent: AnnotationComponent<DatasetDispatchItemAnnotationType<Transcription>> = useDerivedState(
         () => {
             return (
-                _filename: string,
-                _selected: boolean,
-                annotation: DatasetDispatchItemAnnotationType<Transcription>,
-                evalAnnotation: Possible<DatasetDispatchItemAnnotationType<Transcription>>
+                {
+                    annotation,
+                    evalAnnotation
+                }
             ) => {
                 if (hasData(annotation)) {
                     if (evalAnnotation !== Absent && hasData(evalAnnotation)) {
@@ -140,8 +141,8 @@ export default function SpeechAnnotatorPage(
         domain={"Speech"}
         nextLabel={props.nextLabel}
         sortOrders={DEFAULT}
-        renderData={AudioRenderer}
-        renderAnnotation={transcriptionRenderer}
+        DataComponent={AudioRenderer}
+        AnnotationComponent={TranscriptionComponent}
         onItemClicked={imagesDisplayOnFileClicked}
         addFilesSubMenus={{
             files: filesDetectedObjectsModalRenderer,

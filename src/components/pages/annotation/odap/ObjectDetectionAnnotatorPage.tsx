@@ -34,10 +34,10 @@ import {mapToArray} from "../../../../util/map";
 import arrayFlatten from "../../../../util/typescript/arrays/arrayFlatten";
 import {iAnnotationsToAnnotations} from "../../../../util/IAnnotations";
 import {isNotEmpty} from "../../../../util/typescript/arrays/isNotEmpty";
-import createClassificationRenderer from "../../../../server/components/classification/createClassificationRenderer";
-import {AnnotationRenderer} from "../../../../server/components/DatasetItem";
+import createClassificationComponent from "../../../../server/components/classification/createClassificationComponent";
+import {AnnotationComponent} from "../../../../server/components/DatasetItem";
 import {DatasetDispatchItemAnnotationType} from "../../../../server/hooks/useDataset/types";
-import {Absent, Possible} from "../../../../util/typescript/types/Possible";
+import {Absent} from "../../../../util/typescript/types/Possible";
 import hasData from "../../../../util/react/query/hasData";
 import mapQueryResult from "../../../../util/react/query/mapQueryResult";
 import {RefetchOptions, RefetchQueryFilters} from "react-query/types/core/types";
@@ -141,10 +141,10 @@ export default function ObjectDetectionAnnotatorPage(
         }
     )
 
-    const detectedObjectsRenderer: AnnotationRenderer<DatasetDispatchItemAnnotationType<DetectedObjects>> = useDerivedState(
+    const DetectedObjectsComponent: AnnotationComponent<DatasetDispatchItemAnnotationType<DetectedObjects>> = useDerivedState(
         () => {
             const colours = new Map([["has", "green"], ["not", "red"], ["loading", "blue"]])
-            const classificationRenderer = createClassificationRenderer(colours, pass)
+            const ClassificationComponent = createClassificationComponent(colours, pass)
             function mapResult(result: DatasetDispatchItemAnnotationType<DetectedObjects>): DatasetDispatchItemAnnotationType<Classification> {
                 return {
                     ...result,
@@ -158,19 +158,19 @@ export default function ObjectDetectionAnnotatorPage(
                     }
                 }
             }
+
             return (
-                filename: string,
-                selected: boolean,
-                annotation: DatasetDispatchItemAnnotationType<DetectedObjects>,
-                _evalAnnotation: Possible<DatasetDispatchItemAnnotationType<DetectedObjects>>
-            ) => {
-                return classificationRenderer(
+                {
                     filename,
                     selected,
-                    mapResult(annotation),
-                    Absent
-                )
-            }
+                    annotation
+                }
+            ) => <ClassificationComponent
+                filename={filename}
+                selected={selected}
+                annotation={mapResult(annotation)}
+                evalAnnotation={Absent}
+            />
         },
         []
     )
@@ -228,8 +228,8 @@ export default function ObjectDetectionAnnotatorPage(
         domain={"Object Detection"}
         nextLabel={props.nextLabel}
         sortOrders={DEFAULT}
-        renderData={ImageOrVideoRenderer}
-        renderAnnotation={detectedObjectsRenderer}
+        DataComponent={ImageOrVideoRenderer}
+        AnnotationComponent={DetectedObjectsComponent}
         onItemClicked={imagesDisplayOnFileClicked}
         addFilesSubMenus={{
             files: filesDetectedObjectsModalRenderer,
