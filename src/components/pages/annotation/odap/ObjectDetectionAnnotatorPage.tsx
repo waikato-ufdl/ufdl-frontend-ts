@@ -8,11 +8,10 @@ import useStateSafe from "../../../../util/react/hooks/useStateSafe";
 import {AnyPK, getDatasetPK} from "../../../../server/pk";
 import {Classification, DetectedObjects, NO_ANNOTATION} from "../../../../server/types/annotations";
 import useDerivedState from "../../../../util/react/hooks/useDerivedState";
-import {DatasetItem} from "../../../../server/types/DatasetItem";
 import {Image, ImageOrVideo} from "../../../../server/types/data";
 import {DEFAULT, WithDefault} from "../../../../util/typescript/default";
 import ObjectDetectionDatasetDispatch
-    from "../../../../server/hooks/useObjectDetectionDataset/ObjectDetectionDatasetDispatch";
+    , {ObjectDetectionDatasetDispatchItem} from "../../../../server/hooks/useObjectDetectionDataset/ObjectDetectionDatasetDispatch";
 import useObjectDetectionDataset from "../../../../server/hooks/useObjectDetectionDataset/useObjectDetectionDataset";
 import {addFilesRenderer, FileAnnotationModalRenderer} from "../../../../server/components/AddFilesButton";
 import DataVideoWithFrameExtractor from "../../../../util/react/component/DataVideoWithFrameExtractor";
@@ -35,7 +34,7 @@ import arrayFlatten from "../../../../util/typescript/arrays/arrayFlatten";
 import {iAnnotationsToAnnotations} from "../../../../util/IAnnotations";
 import {isNotEmpty} from "../../../../util/typescript/arrays/isNotEmpty";
 import createClassificationComponent from "../../../../server/components/classification/createClassificationComponent";
-import {AnnotationComponent} from "../../../../server/components/DatasetItem";
+import {AnnotationComponent, ExpandedComponent} from "../../../../server/components/dataset/types";
 import {DatasetDispatchItemAnnotationType} from "../../../../server/hooks/useDataset/types";
 import {Absent} from "../../../../util/typescript/types/Possible";
 import hasData from "../../../../util/react/query/hasData";
@@ -69,16 +68,6 @@ export default function ObjectDetectionAnnotatorPage(
         getDatasetPK(selectedPK),
         props.queryDependencies
     );
-
-    // Sub-page displays
-    const [annotating, setAnnotating] = useStateSafe<string | undefined>(() => undefined);
-
-    const imagesDisplayOnFileClicked = useDerivedState(
-        () => (item: DatasetItem<unknown, unknown>) => {
-            setAnnotating(item.filename)
-        },
-        [setAnnotating]
-    )
 
     const [itemSelectFragmentRenderer] = useStateSafe(createObjectDetectionSelectFragmentRenderer)
 
@@ -175,53 +164,48 @@ export default function ObjectDetectionAnnotatorPage(
         []
     )
 
-    const pictureAnnotatorOnSubmit = useDerivedState(
-        ([dataset, annotating]) => (annotationData: readonly Annotated<Shape>[] | ReadonlyMap<number, readonly Annotated<Shape>[]>) => {
-            if (dataset === undefined || annotating === undefined) {
-                UNREACHABLE("This callback should never be called without 'dataset' and 'annotating' defined");
-            }
+    const ExpandedComponent: ExpandedComponent<"Object Detection", ObjectDetectionDatasetDispatchItem> = useDerivedState(
+        ([dataset]) => {
+            return props => {
+                const onSubmit = (annotationData: readonly Annotated<Shape>[] | ReadonlyMap<number, readonly Annotated<Shape>[]>) => {
+                    if (dataset === undefined) {
+                        UNREACHABLE("This callback should never be called without 'dataset' and 'annotating' defined");
+                    }
 
-            const annotations = isArray(annotationData)
-                ? iAnnotationsToAnnotations(annotationData)
-                : arrayFlatten(
-                    mapToArray(
-                        annotationData,
-                        (time, annotations) => {
-                            return ifDefined(
-                                iAnnotationsToAnnotations(annotations, time),
-                                identity,
-                                constantInitialiser([])
+                    const annotations = isArray(annotationData)
+                        ? iAnnotationsToAnnotations(annotationData)
+                        : arrayFlatten(
+                            mapToArray(
+                                annotationData,
+                                (time, annotations) => {
+                                    return ifDefined(
+                                        iAnnotationsToAnnotations(annotations, time),
+                                        identity,
+                                        constantInitialiser([])
+                                    )
+                                }
                             )
-                        }
+                        )
+
+                    dataset.setAnnotationsForFile(
+                        props.item.filename,
+                        isNotEmpty(annotations) ? annotations : NO_ANNOTATION
                     )
-                )
+                }
 
-            dataset.setAnnotationsForFile(
-                annotating,
-                isNotEmpty(annotations) ? annotations : NO_ANNOTATION
-            )
+                return <SubmitCancelPictureOrVideoAnnotation
+                    onSubmit={onSubmit}
+                    width={window.innerWidth}
+                    height={window.innerHeight}
+                    item={props.item}
+                    onCancel={props.collapse}
+                    onChange={pass}
+                    options={dataset!.allLabels()}
+                />
+            }
         },
-        [dataset, annotating] as const
+        [dataset] as const
     )
-
-    const pictureAnnotatorOnCancel = useDerivedState(
-        ([setAnnotating]) => () => {
-            setAnnotating(undefined);
-        },
-        [setAnnotating]
-    )
-
-    if (annotating !== undefined) {
-        return <SubmitCancelPictureOrVideoAnnotation
-            onSubmit={pictureAnnotatorOnSubmit}
-            width={window.innerWidth}
-            height={window.innerHeight}
-            item={dataset?.get(annotating)!}
-            onCancel={pictureAnnotatorOnCancel}
-            onChange={pass}
-            options={dataset!.allLabels()}
-        />
-    }
 
     return <AnnotatorPage
         className={"ObjectDetectionAnnotatorPage"}
@@ -230,7 +214,7 @@ export default function ObjectDetectionAnnotatorPage(
         sortOrders={DEFAULT}
         DataComponent={ImageOrVideoRenderer}
         AnnotationComponent={DetectedObjectsComponent}
-        onItemClicked={imagesDisplayOnFileClicked}
+        ExpandedComponent={ExpandedComponent}
         addFilesSubMenus={{
             files: filesDetectedObjectsModalRenderer,
             folders: folderDetectedObjectsModalRenderer,

@@ -8,7 +8,6 @@ import useStateSafe from "../../../../util/react/hooks/useStateSafe";
 import {AnyPK, DatasetPK, getDatasetPK, getProjectPK, ProjectPK} from "../../../../server/pk";
 import {NO_ANNOTATION, Transcription} from "../../../../server/types/annotations";
 import useDerivedState from "../../../../util/react/hooks/useDerivedState";
-import {DatasetItem} from "../../../../server/types/DatasetItem";
 import {Audio} from "../../../../server/types/data";
 import {DEFAULT, WithDefault} from "../../../../util/typescript/default";
 import {addFilesRenderer} from "../../../../server/components/AddFilesButton";
@@ -16,7 +15,7 @@ import AnnotatorPage from "../AnnotatorPage";
 import {constantInitialiser} from "../../../../util/typescript/initialisers";
 import passOnUndefined from "../../../../util/typescript/functions/passOnUndefined";
 import "./SpeechAnnotatorPage.css"
-import {AnnotationComponent} from "../../../../server/components/DatasetItem";
+import {AnnotationComponent} from "../../../../server/components/dataset/types";
 import {DatasetDispatchItemAnnotationType} from "../../../../server/hooks/useDataset/types";
 import {Absent} from "../../../../util/typescript/types/Possible";
 import SpeechDatasetDispatch from "../../../../server/hooks/useSpeechDataset/SpeechDatasetDispatch";
@@ -25,8 +24,6 @@ import {AudioRenderer} from "../../../../server/components/audio/AudioRenderer";
 import hasData from "../../../../util/react/query/hasData";
 import MinimumEditDistance from "./MinimumEditDistance";
 import {Controllable, useControllableState} from "../../../../util/react/hooks/useControllableState";
-
-
 import {DatasetSelect} from "../../../../server/components/DatasetSelect";
 
 export type SPAPProps = {
@@ -66,16 +63,6 @@ export default function SpeechAnnotatorPage(
         evalPK,
         props.evalQueryDependencies
     );
-
-    // Sub-page displays
-    const [annotating, setAnnotating] = useStateSafe<string | undefined>(() => undefined);
-
-    const imagesDisplayOnFileClicked = useDerivedState(
-        () => (item: DatasetItem<unknown, unknown>) => {
-            setAnnotating(item.filename)
-        },
-        [setAnnotating]
-    )
 
     const [itemSelectFragmentRenderer] = useStateSafe(createSpeechSelectFragmentRenderer)
 
@@ -140,7 +127,6 @@ export default function SpeechAnnotatorPage(
         sortOrders={DEFAULT}
         DataComponent={AudioRenderer}
         AnnotationComponent={TranscriptionComponent}
-        onItemClicked={imagesDisplayOnFileClicked}
         addFilesSubMenus={{
             files: filesDetectedObjectsModalRenderer,
             folders: folderDetectedObjectsModalRenderer

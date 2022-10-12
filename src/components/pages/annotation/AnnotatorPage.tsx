@@ -11,24 +11,27 @@ import {AnyPK, DatasetPK, getProjectPK, getTeamPK, TeamPK} from "../../../server
 import {UNCONTROLLED_KEEP} from "../../../util/react/hooks/useControllableState";
 import useDerivedState from "../../../util/react/hooks/useDerivedState";
 import {DEFAULT, WithDefault} from "../../../util/typescript/default";
-import DatasetOverview from "../../../server/components/DatasetOverview";
+import DatasetOverview from "../../../server/components/dataset/DatasetOverview";
 import {
     DatasetDispatch,
-    DatasetDispatchItem,
-    MutableDatasetDispatch
+    MutableDatasetDispatch,
+    MutableDatasetDispatchItem
 } from "../../../server/hooks/useDataset/DatasetDispatch";
 import {DOMAIN_DATASET_METHODS, DomainAnnotationType, DomainDataType, DomainName} from "../../../server/domains";
 import isDefined from "../../../util/typescript/isDefined";
 import {Absent} from "../../../util/typescript/types/Possible";
 import {DomainSortOrderFunction, DomainSortOrders} from "../../../server/components/types";
-import {AnnotationComponent, DataComponent} from "../../../server/components/DatasetItem";
+import {AnnotationComponent, DataComponent, ExpandedComponent} from "../../../server/components/dataset/types";
 import {SubMenus} from "../../../server/components/AddFilesButton";
 import {augmentClassName} from "../../../util/react/augmentClass";
 import "./AnnotatorPage.css"
 import {DatasetDispatchItemAnnotationType, DatasetDispatchItemDataType} from "../../../server/hooks/useDataset/types";
 
-export type AnnotatorPageProps<D extends DomainName> = {
-    domain: D,
+export type AnnotatorPageProps<
+    Domain extends DomainName,
+    Item extends MutableDatasetDispatchItem<DomainDataType<Domain>, DomainAnnotationType<Domain>>
+> = {
+    domain: Domain,
     selectedPK: AnyPK
     lockedPK: AnyPK
     nextLabel: WithDefault<string>
@@ -37,26 +40,29 @@ export type AnnotatorPageProps<D extends DomainName> = {
         position: [number, number]
     ) => void) | undefined
     onBack: (() => void) | undefined
-    dataset: MutableDatasetDispatch<DomainDataType<D>, DomainAnnotationType<D>> | undefined
-    evalDataset: DatasetDispatch<DomainDataType<D>, DomainAnnotationType<D>> | undefined
-    sortOrders: WithDefault<DomainSortOrders<D>>
-    DataComponent: DataComponent<DatasetDispatchItemDataType<DomainDataType<D>>>
-    AnnotationComponent: AnnotationComponent<DatasetDispatchItemAnnotationType<DomainAnnotationType<D>>>
-    onItemClicked: (item: DatasetDispatchItem<DomainDataType<D>, DomainAnnotationType<D>>) => void
-    addFilesSubMenus: SubMenus<DomainDataType<D>, DomainAnnotationType<D>>
+    dataset: MutableDatasetDispatch<DomainDataType<Domain>, DomainAnnotationType<Domain>, Item> | undefined
+    evalDataset: DatasetDispatch<DomainDataType<Domain>, DomainAnnotationType<Domain>> | undefined
+    sortOrders: WithDefault<DomainSortOrders<Domain>>
+    DataComponent: DataComponent<DatasetDispatchItemDataType<DomainDataType<Domain>>>
+    AnnotationComponent: AnnotationComponent<DatasetDispatchItemAnnotationType<DomainAnnotationType<Domain>>>
+    ExpandedComponent?: ExpandedComponent<Domain, Item>
+    addFilesSubMenus: SubMenus<DomainDataType<Domain>, DomainAnnotationType<Domain>>
     extraControls: AnnotatorTopMenuExtraControlsRenderer | undefined
-    itemSelectFragmentRenderer: ItemSelectFragmentRenderer<DomainDataType<D>, DomainAnnotationType<D>>
+    itemSelectFragmentRenderer: ItemSelectFragmentRenderer<DomainDataType<Domain>, DomainAnnotationType<Domain>>
     className: string | undefined
     onSelectedPKChanged: ((selectedPK: AnyPK) => void) | undefined
 }
 
-export default function AnnotatorPage<D extends DomainName>(
-    props: AnnotatorPageProps<D>
+export default function AnnotatorPage<
+    Domain extends DomainName,
+    Item extends MutableDatasetDispatchItem<DomainDataType<Domain>, DomainAnnotationType<Domain>>
+>(
+    props: AnnotatorPageProps<Domain, Item>
 ) {
     // Get the server context
     const ufdlServerContext = useContext(UFDL_SERVER_REACT_CONTEXT);
 
-    const [sortOrder, setSortOrder] = useStateSafe<WithDefault<DomainSortOrderFunction<D>>>(
+    const [sortOrder, setSortOrder] = useStateSafe<WithDefault<DomainSortOrderFunction<Domain>>>(
         () => DEFAULT
     )
 
@@ -189,12 +195,12 @@ export default function AnnotatorPage<D extends DomainName>(
         onExtractSelected={onExtractSelected}
     />
 
-    const overview = <DatasetOverview<D>
+    const overview = <DatasetOverview<Domain, Item>
         dataset={props.dataset}
         comparisonDataset={props.evalDataset}
         DataComponent={props.DataComponent}
         AnnotationComponent={props.AnnotationComponent}
-        onItemClicked={props.onItemClicked}
+        ExpandedComponent={props.ExpandedComponent}
         sortFunction={sortOrder}
         addFilesSubMenus={props.addFilesSubMenus}
     />

@@ -1,61 +1,17 @@
 import "./DatasetItem.css";
-import {FunctionComponent, FunctionComponentReturnType} from "../../util/react/types";
-import {Absent, Possible} from "../../util/typescript/types/Possible";
+import {FunctionComponentReturnType} from "../../../util/react/types";
+import {Absent, Possible} from "../../../util/typescript/types/Possible";
 import React, {useEffect} from "react";
-import {augmentClassName} from "../../util/react/augmentClass";
-import useDerivedState from "../../util/react/hooks/useDerivedState";
-import {DomainAnnotationType, DomainDataType, DomainName} from "../domains";
+import {augmentClassName} from "../../../util/react/augmentClass";
+import useDerivedState from "../../../util/react/hooks/useDerivedState";
+import {DomainAnnotationType, DomainDataType, DomainName} from "../../domains";
 import {
     MutableDatasetDispatchItem
-} from "../hooks/useDataset/DatasetDispatch";
-import {TOGGLE} from "../hooks/useDataset/selection";
-import {DatasetDispatchItemAnnotationType, DatasetDispatchItemDataType} from "../hooks/useDataset/types";
-import CenterContent from "../../util/react/component/CenterContent";
-
-/**
- * The type of properties that a {@link DataComponent} should take.
- *
- * @property filename
- *          The filename of the dataset item.
- * @property selected
- *          Whether the item is currently selected.
- * @property data
- *          The file-data of the dataset item.
- */
-export type DataComponentProps<D> = {
-    filename: string
-    selected: boolean
-    data: D
-}
-
-/**
- * The type of component that renders the raw item data (e.g. images/videos).
- */
-export type DataComponent<D> = FunctionComponent<DataComponentProps<D>>
-
-/**
- * The type of properties that a {@link AnnotationComponent} should take.
- *
- * @property filename
- *          The filename of the dataset item.
- * @property selected
- *          Whether the item is currently selected.
- * @property annotation
- *          The annotation of the dataset item.
- * @property comparisonAnnotation
- *          A possible annotation to which to compare the dataset item's annotation.
- */
-export type AnnotationComponentProps<A> = {
-    filename: string,
-    selected: boolean,
-    annotation: A,
-    comparisonAnnotation: Possible<A>
-}
-
-/**
- * The type of component that renders the dataset item's annotations.
- */
-export type AnnotationComponent<A> = FunctionComponent<AnnotationComponentProps<A>>
+} from "../../hooks/useDataset/DatasetDispatch";
+import {TOGGLE} from "../../hooks/useDataset/selection";
+import {DatasetDispatchItemAnnotationType, DatasetDispatchItemDataType} from "../../hooks/useDataset/types";
+import CenterContent from "../../../util/react/component/CenterContent";
+import {AnnotationComponent, DataComponent } from "./types";
 
 /**
  * The type of properties that the {@link DatasetItem} component takes.
@@ -88,8 +44,11 @@ export type DatasetItemProps<D extends DomainName> = {
 
 /**
  * Component which renders a single item in a dataset.
+ *
+ * @param props
+ *          The props to the component (see {@link DatasetItemProps}).
  */
-export default function DatasetItem<D extends DomainName>(
+function DatasetItemComponent<D extends DomainName>(
     {
         item,
         comparisonAnnotation = Absent,
@@ -172,3 +131,8 @@ export default function DatasetItem<D extends DomainName>(
         />
     </div>
 }
+
+/**
+ * {@link DatasetItemComponent}
+ */
+export const DatasetItem = React.memo(DatasetItemComponent) as typeof DatasetItemComponent

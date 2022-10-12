@@ -1,6 +1,6 @@
 import {ClassColours} from "../../util/classification";
 import {Classification, NO_ANNOTATION, OptionalAnnotations} from "../../types/annotations";
-import {AnnotationComponent} from "../DatasetItem";
+import {AnnotationComponent} from "../dataset/types";
 import {numberWithSuffix} from "../../../util/numberWithSuffix";
 import React, {CSSProperties} from "react";
 import {Absent} from "../../../util/typescript/types/Possible";

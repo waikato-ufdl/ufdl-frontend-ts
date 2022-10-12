@@ -1,4 +1,4 @@
-import React, {Dispatch, MouseEventHandler, useContext} from "react";
+import React, {Dispatch, useContext} from "react";
 import {UFDL_SERVER_REACT_CONTEXT} from "../../../../server/UFDLServerContextProvider";
 import {
     AnnotatorTopMenuExtraControlsRenderer,
@@ -7,8 +7,6 @@ import {
 import {mapAny, mapMap} from "../../../../util/map";
 import useImageClassificationDataset
     from "../../../../server/hooks/useImageClassificationDataset/useImageClassificationDataset";
-import DataImage from "../../../../util/react/component/DataImage";
-import {BehaviorSubject} from "rxjs";
 import useStateSafe from "../../../../util/react/hooks/useStateSafe";
 import "./ImageClassificationAnnotatorPage.css";
 import {AnyPK, DatasetPK, getDatasetPK, getProjectPK, ProjectPK} from "../../../../server/pk";
@@ -36,7 +34,7 @@ import {addFilesRenderer} from "../../../../server/components/AddFilesButton";
 import AnnotatorPage from "../AnnotatorPage";
 import {constantInitialiser} from "../../../../util/typescript/initialisers";
 import isDefined from "../../../../util/typescript/isDefined";
-import {DatasetDispatch, DatasetDispatchItem} from "../../../../server/hooks/useDataset/DatasetDispatch";
+import {DatasetDispatch} from "../../../../server/hooks/useDataset/DatasetDispatch";
 import hasData from "../../../../util/react/query/hasData";
 import passOnUndefined from "../../../../util/typescript/functions/passOnUndefined";
 import {DatasetDispatchItemAnnotationType} from "../../../../server/hooks/useDataset/types";
@@ -93,7 +91,6 @@ export default function ImageClassificationAnnotatorPage(
 
     // Sub-page displays
     const [showLabelColourPickerPage, setShowLabelColourPickerPage] = useStateSafe<boolean>(() => false);
-    const [showLargeImageOverlay, setShowLargeImageOverlay] = useStateSafe<BehaviorSubject<string> | string | undefined>(() => undefined);
 
     const datasetOverviewOnReclassify = useDerivedState(
         ([setAnnotationsForFile]) => (
@@ -150,21 +147,6 @@ export default function ImageClassificationAnnotatorPage(
             setShowLabelColourPickerPage(false)
         },
         [classColoursDispatch, ufdlServerContext, setShowLabelColourPickerPage]
-    )
-
-    const largeImageOverlayOnClick: MouseEventHandler<HTMLImageElement> = useDerivedState(
-        () => (event) => {
-            setShowLargeImageOverlay(undefined);
-            event.stopPropagation()
-        },
-        [setShowLargeImageOverlay]
-    )
-
-    const imagesDisplayOnFileClicked = useDerivedState(
-        ([setShowLargeImageOverlay]) => (item: DatasetDispatchItem<Image, Classification>) => {
-            if (hasData(item.data)) setShowLargeImageOverlay(item.data.data.getValue().url)
-        },
-        [setShowLargeImageOverlay] as const
     )
 
     const itemSelectFragmentRenderer = useDerivedState(
@@ -239,11 +221,6 @@ export default function ImageClassificationAnnotatorPage(
             onClassDeleted={classColourPickerPageOnClassDeleted}
             onBack={classColourPickerPageOnBack}
         />
-    } else if (showLargeImageOverlay !== undefined) {
-        return <DataImage
-            src={showLargeImageOverlay}
-            onClick={largeImageOverlayOnClick}
-        />
     }
 
     return <AnnotatorPage
@@ -253,7 +230,6 @@ export default function ImageClassificationAnnotatorPage(
         sortOrders={SORT_ORDERS}
         DataComponent={ImageOrVideoRenderer}
         AnnotationComponent={ClassificationComponent}
-        onItemClicked={imagesDisplayOnFileClicked}
         addFilesSubMenus={addFilesSubMenus}
         extraControls={extraControls}
         itemSelectFragmentRenderer={itemSelectFragmentRenderer}
