@@ -20,7 +20,7 @@ export default function factorial(
     // If downTo is defaulted, it should be 0 for of === 0 (so we get the
     // expected result factorial(0) === 1) or one otherwise (so we don't do
     // an unnecessary multiplication by 1)
-    downTo = downTo ?? of === BIG_INT_ZERO ? BIG_INT_ZERO : BIG_INT_ONE
+    downTo = downTo ?? (of === BIG_INT_ZERO ? BIG_INT_ZERO : BIG_INT_ONE)
 
     // Check pre-conditions
     if (downTo < BIG_INT_ZERO)
