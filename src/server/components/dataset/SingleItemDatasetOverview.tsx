@@ -134,15 +134,7 @@ export default function SingleItemDatasetOverview<
     )
 
     return <div className={augmentClassName(className, "SingleItemDatasetOverview")}>
-        {/* Previous button */}
-        <button
-            className={"Previous"}
-            disabled={expanded === undefined || expanded === 0}
-            onClick={() => setExpanded([expanded! - 1, items])}
-        >
-            {"<"}
-        </button>
-
+        {/* The expanded view of the dataset item. */}
         {
             expanded !== undefined
             &&
@@ -153,6 +145,15 @@ export default function SingleItemDatasetOverview<
                 disabled={false}
             />
         }
+
+        {/* Previous button */}
+        <button
+            className={"Previous"}
+            disabled={expanded === undefined || expanded === 0}
+            onClick={() => setExpanded([expanded! - 1, items])}
+        >
+            {"<"}
+        </button>
 
         {/* Next button */}
         <button
