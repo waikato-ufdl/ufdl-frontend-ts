@@ -233,11 +233,14 @@ export default function MultiItemDatasetOverview<
                         style: {
                             margin: 0,
                             border: 0,
-                            padding: "1.667%",
+                            paddingTop: "1.667%",
+                            paddingBottom: "1.667%",
                             height: "16.3125%",
                             overflow: "hidden",
                             flexGrow: 0,
-                            width: "100%"
+                            width: "100%",
+                            borderRight: "1px solid black",
+                            borderBottom: "1px solid black"
                         }
                     }
                 }
@@ -252,13 +255,14 @@ export default function MultiItemDatasetOverview<
                 () => {
                     return {
                         style: {
-                            margin: "5%",
+                            margin: 0,
                             border: 0,
-                            padding: 0,
+                            padding: "5%",
                             height: "16.3125%",
                             overflow: "hidden",
                             flexGrow: 0,
-                            width: "90%"
+                            width: "90%",
+                            borderBottom: "1px solid black"
                         }
                     }
                 }
