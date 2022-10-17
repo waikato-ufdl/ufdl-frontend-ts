@@ -43,3 +43,7 @@ export function isDeepEqual<T>(a: T, b: T): boolean {
     }
     return true;
 }
+
+export function tripleEquals(a: unknown, b: unknown): boolean {
+    return a === b
+}
