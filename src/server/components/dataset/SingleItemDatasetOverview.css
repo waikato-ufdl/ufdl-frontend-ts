@@ -1,0 +1,13 @@
+.SingleItemDatasetOverview > button {
+    position: absolute;
+}
+
+.SingleItemDatasetOverview > .Previous {
+    left: 0;
+    top: 50%;
+}
+
+.SingleItemDatasetOverview > .Next {
+    right: 0;
+    top: 50%;
+}

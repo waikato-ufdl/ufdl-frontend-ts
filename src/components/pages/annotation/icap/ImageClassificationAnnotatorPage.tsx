@@ -19,7 +19,7 @@ import ClassColourPickerPage from "../../ClassColourPickerPage";
 import {IC_SELECTIONS} from "../../../../server/hooks/useImageClassificationDataset/selection";
 import useDerivedState from "../../../../util/react/hooks/useDerivedState";
 import {Image} from "../../../../server/types/data";
-import {WithDefault} from "../../../../util/typescript/default";
+import {DEFAULT, WithDefault} from "../../../../util/typescript/default";
 import {BY_FILENAME} from "../../../../server/sorting";
 import {BY_CLASSIFICATION} from "../../../../server/components/classification/sorting";
 import createFileClassificationModalRenderer
@@ -61,6 +61,7 @@ export type ICAPProps = {
     onBack?: () => void,
     queryDependencies?: readonly unknown[],
     evalQueryDependencies?: readonly unknown[]
+    mode?: typeof DEFAULT | "Single" | "Multi"
 }
 
 export default function ImageClassificationAnnotatorPage(
@@ -240,6 +241,7 @@ export default function ImageClassificationAnnotatorPage(
         lockedPK={props.lockedPK}
         onBack={props.onBack}
         onNext={onNext}
+        mode={props.mode}
     />
 }
 

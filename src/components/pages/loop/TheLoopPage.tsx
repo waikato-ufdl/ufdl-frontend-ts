@@ -16,12 +16,10 @@ import * as job_template from "ufdl-ts-client/functional/core/jobs/job_template"
 import {ParameterValue} from "ufdl-ts-client/json/generated/CreateJobSpec";
 import LoopAnnotatorPage from "./LoopAnnotatorPage";
 import {isAllowedStateAndData} from "../../../util/react/hooks/useStateMachine/isAllowedState";
-import {
-    UNCONTROLLED_RESET,
-    UncontrolledResetOverride
-} from "../../../util/react/hooks/useControllableState";
+import {UNCONTROLLED_RESET, UncontrolledResetOverride} from "../../../util/react/hooks/useControllableState";
 import useDerivedState from "../../../util/react/hooks/useDerivedState";
 import {APP_SETTINGS_REACT_CONTEXT} from "../../../useAppSettings";
+import {DEFAULT} from "../../../util/typescript/default";
 
 
 const FRAMEWORK_REGEXP = /^Framework<'(.*)', '(.*)'>$/
@@ -298,7 +296,7 @@ export default function TheLoopPage(
                 key={stateMachine.state}
                 domain={stateMachine.data.domain}
                 targetDataset={stateMachine.data.additionDataset}
-                evalDatasetPK={undefined}
+                evalDatasetPK={stateMachine.data.primaryDataset}
                 nextLabel={"Accept"}
                 contract={undefined}
                 classColours={classColours}
@@ -310,6 +308,11 @@ export default function TheLoopPage(
                 onError={stateMachine.transitions.error}
                 modelType={stateMachine.data.modelType}
                 queryDependencies={queryDependencies}
+                mode={
+                    appSettings.prelabelMode === "None" || appSettings.prelabelMode === "Default"
+                        ? DEFAULT
+                        : appSettings.prelabelMode
+                }
             />
 
         case "Finished":

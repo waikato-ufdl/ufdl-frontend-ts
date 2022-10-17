@@ -18,6 +18,7 @@ export type DataComponentProps<D> = {
     filename: string
     selected: boolean
     data: D
+    disabled: boolean
 }
 
 /**
@@ -42,6 +43,7 @@ export type AnnotationComponentProps<A> = {
     selected: boolean,
     annotation: A,
     comparisonAnnotation: Possible<A>
+    disabled: boolean
 }
 
 /**
@@ -56,6 +58,7 @@ export type ExpandedComponentProps<
     item: Item,
     comparisonAnnotation?: Possible<DatasetDispatchItemAnnotationType<DomainAnnotationType<Domain>>>,
     collapse: () => void
+    disabled: boolean
 }
 
 export type ExpandedComponent<

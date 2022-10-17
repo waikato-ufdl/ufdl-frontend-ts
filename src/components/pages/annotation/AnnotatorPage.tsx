@@ -51,6 +51,7 @@ export type AnnotatorPageProps<
     itemSelectFragmentRenderer: ItemSelectFragmentRenderer<DomainDataType<Domain>, DomainAnnotationType<Domain>>
     className: string | undefined
     onSelectedPKChanged: ((selectedPK: AnyPK) => void) | undefined
+    mode?: typeof DEFAULT | "Single" | "Multi"
 }
 
 export default function AnnotatorPage<
@@ -203,6 +204,7 @@ export default function AnnotatorPage<
         ExpandedComponent={props.ExpandedComponent}
         sortFunction={sortOrder}
         addFilesSubMenus={props.addFilesSubMenus}
+        mode={props.mode}
     />
 
     return <Page className={augmentClassName(props.className, "AnnotatorPage")}>

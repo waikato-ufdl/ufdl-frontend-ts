@@ -9,6 +9,7 @@ import {ClassColours} from "../../../server/util/classification";
 import UFDLServerContext from "../../../../../ufdl-ts-client/dist/UFDLServerContext";
 import {JobTemplateInstance} from "../../../../../ufdl-ts-client/dist/types/core/jobs/job_template";
 import SpeechAnnotatorPage from "../annotation/spap/SpeechAnnotatorPage";
+import {DEFAULT} from "../../../util/typescript/default";
 
 export type LoopAnnotatorPageProps = {
     domain: DomainName
@@ -26,6 +27,7 @@ export type LoopAnnotatorPageProps = {
     onError: (reason: any) => void,
     queryDependencies?: readonly unknown[],
     evalQueryDependencies?: readonly unknown[]
+    mode?: typeof DEFAULT | "Single" | "Multi"
 }
 
 export default function LoopAnnotatorPage(
@@ -65,6 +67,7 @@ export default function LoopAnnotatorPage(
                 onBack={props.onBack}
                 queryDependencies={props.queryDependencies}
                 evalQueryDependencies={props.evalQueryDependencies}
+                mode={props.mode}
             />
         case "Object Detection":
             // TODO: Add eval dataset capability

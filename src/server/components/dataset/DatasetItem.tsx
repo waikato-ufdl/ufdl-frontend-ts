@@ -5,13 +5,12 @@ import React, {useEffect} from "react";
 import {augmentClassName} from "../../../util/react/augmentClass";
 import useDerivedState from "../../../util/react/hooks/useDerivedState";
 import {DomainAnnotationType, DomainDataType, DomainName} from "../../domains";
-import {
-    MutableDatasetDispatchItem
-} from "../../hooks/useDataset/DatasetDispatch";
+import {DatasetDispatchItem, MutableDatasetDispatchItem} from "../../hooks/useDataset/DatasetDispatch";
 import {TOGGLE} from "../../hooks/useDataset/selection";
 import {DatasetDispatchItemAnnotationType, DatasetDispatchItemDataType} from "../../hooks/useDataset/types";
 import CenterContent from "../../../util/react/component/CenterContent";
 import {AnnotationComponent, DataComponent } from "./types";
+import pass from "../../../util/typescript/functions/pass";
 
 /**
  * The type of properties that the {@link DatasetItem} component takes.
@@ -32,14 +31,18 @@ import {AnnotationComponent, DataComponent } from "./types";
  * @property className
  *          An optional CSS classname to give the component.
  */
-export type DatasetItemProps<D extends DomainName> = {
-    item: MutableDatasetDispatchItem<DomainDataType<D>, DomainAnnotationType<D>>,
-    comparisonAnnotation?: Possible<DatasetDispatchItemAnnotationType<DomainAnnotationType<D>>>,
-    DataComponent: DataComponent<DatasetDispatchItemDataType<DomainDataType<D>>>
-    AnnotationComponent: AnnotationComponent<DatasetDispatchItemAnnotationType<DomainAnnotationType<D>>>
-    onClick: (item: MutableDatasetDispatchItem<DomainDataType<D>, DomainAnnotationType<D>>) => void
+export type DatasetItemProps<
+    Domain extends DomainName,
+    Item extends DatasetDispatchItem<DomainDataType<Domain>, DomainAnnotationType<Domain>> = DatasetDispatchItem<DomainDataType<Domain>, DomainAnnotationType<Domain>>
+> = {
+    item: Item,
+    comparisonAnnotation?: Possible<DatasetDispatchItemAnnotationType<DomainAnnotationType<Domain>>>,
+    DataComponent: DataComponent<DatasetDispatchItemDataType<DomainDataType<Domain>>>
+    AnnotationComponent: AnnotationComponent<DatasetDispatchItemAnnotationType<DomainAnnotationType<Domain>>>
+    onClick: (item: Item) => void
     children?: undefined
     className?: string
+    disabled?: boolean
 }
 
 /**
@@ -48,15 +51,19 @@ export type DatasetItemProps<D extends DomainName> = {
  * @param props
  *          The props to the component (see {@link DatasetItemProps}).
  */
-function DatasetItemComponent<D extends DomainName>(
+function DatasetItemComponent<
+    Domain extends DomainName,
+    Item extends DatasetDispatchItem<DomainDataType<Domain>, DomainAnnotationType<Domain>> = DatasetDispatchItem<DomainDataType<Domain>, DomainAnnotationType<Domain>>
+>(
     {
         item,
         comparisonAnnotation = Absent,
         DataComponent,
         AnnotationComponent,
         onClick,
-        className
-    }: DatasetItemProps<D>
+        className,
+        disabled = false
+    }: DatasetItemProps<Domain, Item>
 ): FunctionComponentReturnType {
 
     const onClickContent = useDerivedState(
@@ -65,7 +72,9 @@ function DatasetItemComponent<D extends DomainName>(
     )
 
     const onSelect = useDerivedState(
-        ([item]) => () => item.setSelected(TOGGLE),
+        ([item]) => () => {
+            if (item instanceof MutableDatasetDispatchItem) item.setSelected(TOGGLE)
+        },
         [item]
     )
 
@@ -107,12 +116,13 @@ function DatasetItemComponent<D extends DomainName>(
     >
         <CenterContent
             className={"DatasetItemRenderedData"}
-            onClick={onClickContent}
+            onClick={disabled ? pass : onClickContent}
         >
             <DataComponent
                 data={item.data}
                 filename={item.filename}
                 selected={item.selected}
+                disabled={disabled}
             />
         </CenterContent>
 
@@ -121,6 +131,7 @@ function DatasetItemComponent<D extends DomainName>(
             selected={item.selected}
             annotation={item.annotations}
             comparisonAnnotation={comparisonAnnotation}
+            disabled={disabled}
         />
 
         <input
@@ -128,6 +139,7 @@ function DatasetItemComponent<D extends DomainName>(
             type={"checkbox"}
             checked={item.selected}
             onClick={onSelect}
+            disabled={disabled || !(item instanceof MutableDatasetDispatchItem)}
         />
     </div>
 }

@@ -159,6 +159,7 @@ export default function ObjectDetectionAnnotatorPage(
                 selected={selected}
                 annotation={mapResult(annotation)}
                 comparisonAnnotation={Absent}
+                disabled={true}
             />
         },
         []

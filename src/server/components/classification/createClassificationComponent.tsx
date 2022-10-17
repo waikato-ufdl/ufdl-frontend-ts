@@ -21,7 +21,8 @@ export default function createClassificationComponent(
             filename,
             selected,
             annotation: classification,
-            comparisonAnnotation: evalClassification
+            comparisonAnnotation: evalClassification,
+            disabled
         }
     ) => {
 
@@ -60,7 +61,7 @@ export default function createClassificationComponent(
                 onReclassify={(oldClass, newClass) => onReclassify(filename, oldClass, newClass)}
                 classification={label}
                 colours={colours}
-                disabled={!isSuccess(classification)}
+                disabled={disabled || !isSuccess(classification)}
                 allowSelectNone
                 noAnnotationLabel={"[NONE]"}
             />

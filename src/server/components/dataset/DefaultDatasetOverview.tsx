@@ -166,6 +166,7 @@ export default function DefaultDatasetOverview<
             item={items.find(item => item.filename === expanded)!}
             comparisonAnnotation={undefinedAsAbsent(comparisonDataset?.get(expanded)?.annotations)}
             collapse={collapse}
+            disabled={false}
         />
     }
 
@@ -182,7 +183,7 @@ export default function DefaultDatasetOverview<
     )
 
     return <FlexContainer
-        className={augmentClassName(className, "DatasetOverview")}
+        className={augmentClassName(className, "DefaultDatasetOverview")}
         itemProps={GET_ITEM_PROPS}
         style={FLEX_CONTAINER_STYLE}
     >

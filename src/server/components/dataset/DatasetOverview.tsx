@@ -11,6 +11,9 @@ import {
 import {DatasetDispatchItemAnnotationType, DatasetDispatchItemDataType} from "../../hooks/useDataset/types";
 import { ExpandedComponent, DataComponent, AnnotationComponent } from "./types";
 import DefaultDatasetOverview from "./DefaultDatasetOverview";
+import {augmentClassName} from "../../../util/react/augmentClass";
+import SingleItemDatasetOverview from "./SingleItemDatasetOverview";
+import MultiItemDatasetOverview from "./MultiItemDatasetOverview";
 
 /**
  * Props to the {@link DatasetOverview} component.
@@ -81,16 +84,30 @@ export default function DatasetOverview<
                 ExpandedComponent={ExpandedComponent}
                 sortFunction={sortFunction}
                 addFilesSubMenus={addFilesSubMenus}
-                className={className}
+                className={augmentClassName(className, "DatasetOverview")}
             />
 
         case "Single":
-            // FIXME: Add proper implementation
-            return <div />
+            return <SingleItemDatasetOverview
+                dataset={dataset}
+                comparisonDataset={comparisonDataset}
+                DataComponent={DataComponent}
+                AnnotationComponent={AnnotationComponent}
+                ExpandedComponent={ExpandedComponent}
+                sortFunction={sortFunction}
+                className={augmentClassName(className, "DatasetOverview")}
+            />
 
         case "Multi":
-            // FIXME: Add proper implementation
-            return <div />
+            return <MultiItemDatasetOverview
+                dataset={dataset}
+                comparisonDataset={comparisonDataset}
+                DataComponent={DataComponent}
+                AnnotationComponent={AnnotationComponent}
+                ExpandedComponent={ExpandedComponent}
+                sortFunction={sortFunction}
+                className={augmentClassName(className, "DatasetOverview")}
+            />
 
     }
 }
