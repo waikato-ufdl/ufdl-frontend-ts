@@ -7,12 +7,14 @@ import hasError from "../../../util/react/query/hasError";
 import DataVideo from "../../../util/react/component/DataVideo";
 import {DatasetDispatchItemDataType} from "../../hooks/useDataset/types";
 import {useObservable} from "../../../util/react/hooks/useObservable";
+import {augmentClassName} from "../../../util/react/augmentClass";
 
 export function ImageOrVideoRenderer<D extends DatasetDispatchItemDataType<ImageOrVideo>>(
     props: {
         filename: string,
         selected: boolean,
         data: D
+        className?: string
     }
 ) {
     const inTransitImageOrVideo = hasData(props.data)
@@ -37,7 +39,7 @@ export function ImageOrVideoRenderer<D extends DatasetDispatchItemDataType<Image
 
     if (imageOrVideo.isVideo) {
         return <DataVideo
-            className={"ImageOrVideoRenderer"}
+            className={augmentClassName(props.className, "ImageOrVideoRenderer")}
             src={imageOrVideo?.url}
             title={error === undefined ? props.filename : `${props.filename}: ${error}`}
             forwardedRef={undefined}
@@ -50,7 +52,7 @@ export function ImageOrVideoRenderer<D extends DatasetDispatchItemDataType<Image
     }
 
     return <DataImage
-        className={"ImageOrVideoRenderer"}
+        className={augmentClassName(props.className, "ImageOrVideoRenderer")}
         src={imageOrVideo?.url}
         title={error === undefined ? props.filename : `${props.filename}: ${error}`}
     />

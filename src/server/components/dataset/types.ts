@@ -19,6 +19,7 @@ export type DataComponentProps<D> = {
     selected: boolean
     data: D
     disabled: boolean
+    className?: string
 }
 
 /**

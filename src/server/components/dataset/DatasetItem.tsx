@@ -123,6 +123,7 @@ function DatasetItemComponent<
                 filename={item.filename}
                 selected={item.selected}
                 disabled={disabled}
+                className={"DataComponent"}
             />
         </CenterContent>
 

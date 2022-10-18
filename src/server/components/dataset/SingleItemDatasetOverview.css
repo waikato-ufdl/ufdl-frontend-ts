@@ -1,13 +1,32 @@
+.SingleItemDatasetOverview {
+    font-weight: bold;
+    font-size: xx-large;
+}
+
+.SingleItemDatasetOverview .ClassSelect {
+    font-weight: inherit;
+    font-size: inherit;
+}
+
 .SingleItemDatasetOverview > button {
     position: absolute;
+    top: 40%;
+    width: 5%;
+    height: 20%;
+    font-weight: inherit;
+    font-size: inherit;
 }
 
 .SingleItemDatasetOverview > .Previous {
     left: 0;
-    top: 50%;
 }
 
 .SingleItemDatasetOverview > .Next {
     right: 0;
-    top: 50%;
+}
+
+.SingleItemDatasetOverview .DataComponent {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
