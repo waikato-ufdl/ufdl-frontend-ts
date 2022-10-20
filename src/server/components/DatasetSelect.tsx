@@ -8,6 +8,7 @@ import {exactFilter} from "../util/exactFilter";
 import {ListSelect} from "./ListSelect";
 import {FunctionComponentReturnType} from "../../util/react/types";
 import passOnUndefined from "../../util/typescript/functions/passOnUndefined";
+import useDerivedState from "../../util/react/hooks/useDerivedState";
 
 /**
  * The props that the {@link DatasetSelect} component takes.
@@ -43,11 +44,20 @@ export function DatasetSelect<D extends DomainName>(
         disabled = false
     }: DatasetSelectProps<D>
 ): FunctionComponentReturnType {
+
+    const filter = useDerivedState(
+        ([projectPK]) =>
+            projectPK === undefined
+                ? undefined
+                : exactFilter("project", projectPK.asNumber),
+        [projectPK] as const
+    )
+
     return <ListSelect<DatasetInstance>
         list={DOMAIN_DATASET_METHODS[domain].list}
         labelFunction={nameFromSignature}
         onChange={(_, pk) => passOnUndefined(onChanged)(projectPK!.dataset(pk))}
-        filter={projectPK === undefined ? undefined : exactFilter("project", projectPK.asNumber)}
+        filter={filter}
         forceEmpty={projectPK === undefined}
         value={mapControllable(value, pk => pk?.asNumber ?? -1)}
         disabled={disabled}
