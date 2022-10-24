@@ -236,7 +236,11 @@ export class Task<T, P = string, C = void> {
                 checkForFinalisation()
             }
         } catch (e) {
-            finaliseOnError(e)
+            if (status.status === "pending") {
+                finaliseOnError(e)
+            } else {
+                finaliseUnsuccessfully(e)
+            }
         }
 
         return status
