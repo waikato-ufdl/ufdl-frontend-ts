@@ -171,6 +171,9 @@ export class Task<T, P = string, C = void> {
         function cancel(reason: C): boolean {
             if (status.status !== "pending") return false
 
+            // Fail the progress
+            progressRendezvous[2](reason)
+
             // Update the object
             status = {
                 status: "cancelled",
