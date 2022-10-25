@@ -29,7 +29,7 @@ function progressMetadataInitialiser(
 }
 
 export type TaskProgressModalProps = LocalModalProps & {
-    status: TaskStatus<unknown, unknown, unknown> | undefined
+    status: TaskStatus<unknown, unknown, void> | undefined
     handleProgressMetadata: HandleProgressMetadata
     finalised?: boolean
 }
@@ -81,10 +81,19 @@ export default function TaskProgressModal(
 
     const reasonString = reason === undefined ? undefined : `Reason: ${reason}`
 
+    const cancel = status !== undefined && status.status === "pending" && status.cancel !== undefined
+        ? status.cancel
+        : undefined
+
+    const cancelButton = cancel !== undefined
+        ? <button onClick={() => cancel()}>Cancel</button>
+        : undefined
+
     return <LocalModal {...augmentClass(localModalProps, "TaskProgressModal")}>
         {statusMessage}
         {progressString}
         {reasonString}
+        {cancelButton}
         {progressMetadata}
     </LocalModal>
 }
