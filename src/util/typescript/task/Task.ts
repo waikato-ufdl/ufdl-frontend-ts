@@ -141,7 +141,7 @@ export type Cancelled<Reason> = {
  *          of the task has been determined. Once this promise returns, the task has
  *          finalised all on-going activity.
  */
-export type TaskBody<Result, ProgressMetadata, CancelReason> = (
+export type TaskBody<Result, ProgressMetadata = string, CancelReason = void> = (
     complete: (value: Result) => boolean,
     fail: (reason: any) => boolean,
     updateProgress: (percent: number, message?: ProgressMetadata) => boolean,
