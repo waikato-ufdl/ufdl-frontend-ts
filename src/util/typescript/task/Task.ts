@@ -17,8 +17,8 @@ export type Progress<Metadata> = {
 /**
  * The current status of a task.
  */
-export type TaskStatus<Result, Metadata, CancelReason> =
-    | Pending<Result, Metadata, CancelReason>
+export type TaskStatus<Result, ProgressMetadata, CancelReason> =
+    | Pending<Result, ProgressMetadata, CancelReason>
     | Completed<Result>
     | Failed
     | Cancelled<CancelReason>
