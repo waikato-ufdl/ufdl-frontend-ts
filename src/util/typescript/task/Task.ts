@@ -45,7 +45,7 @@ export type Pending<Result, ProgressMetadata, CancelReason> = {
     readonly completion: Promise<Result>
     readonly lastProgress: Progress<ProgressMetadata>
     readonly nextProgress: Promise<Progress<ProgressMetadata>>
-    readonly cancel: (reason: CancelReason) => boolean
+    readonly cancel?: (reason: CancelReason) => boolean
     readonly finalised: Promise<void>
 }
 
@@ -124,18 +124,17 @@ export type Cancelled<Reason> = {
  *          Callback to mark the task as failed. Should not be called after either
  *          complete or fail has already been called. Returns false if the failure
  *          was ignored because the task had already been cancelled, otherwise true.
+ * @param updateProgress
+ *          Callback for the task body to update observers about the progress of the
+ *          task. Takes a progress amount argument in [0.0, 1.0], and optionally some
+ *          meta-data about the current progress of the task.
  * @param checkForCancellation
  *          Callback to check if the task has been cancelled. Should not be called
  *          after either complete or fail has already been called. Takes an argument
  *          'suppress', which if true, returns the cancellation reason in-band (or
  *          undefined if not cancelled). If 'suppress' is false or omitted, the
  *          cancellation reason is thrown if there is one, otherwise this callback
- *          returns void. Only suitable for async tasks, immediate tasks can't be
- *          interrupted
- * @param updateProgress
- *          Callback for the task body to update observers about the progress of the
- *          task. Takes a progress amount argument in [0.0, 1.0], and optionally some
- *          meta-data about the current progress of the task.
+ *          returns void. If undefined, it means the task will not be cancelled.
  * @return Promise<void>
  *          A void promise which indicates the task has finished. This is different
  *          from completion/failure in that clean-up may continue after the result
@@ -145,11 +144,11 @@ export type Cancelled<Reason> = {
 export type TaskBody<Result, ProgressMetadata, CancelReason> = (
     complete: (value: Result) => boolean,
     fail: (reason: any) => boolean,
-    checkForCancellation: {
+    updateProgress: (percent: number, message?: ProgressMetadata) => boolean,
+    checkForCancellation?: {
         (suppress?: false): Promise<void>,
         (suppress: boolean): Promise<CancelReason | undefined>
-    },
-    updateProgress: (percent: number, message?: ProgressMetadata) => boolean
+    }
 ) => Promise<void>
 
 /**
@@ -199,9 +198,13 @@ export class Task<Result, ProgressMetadata = string, CancelReason = void> {
      *
      * @param body
      *          The executor body of the task. See {@link TaskBody}.
+     * @param canBeCancelled
+     *          Can optionally be set to false to indicate that the task can't
+     *          cancelled.
      */
     constructor(
-        body: TaskBody<Result, ProgressMetadata, CancelReason>
+        body: TaskBody<Result, ProgressMetadata, CancelReason>,
+        private readonly canBeCancelled: boolean = true
     ) {
         this._status = this.start(body);
     }
@@ -382,7 +385,7 @@ export class Task<Result, ProgressMetadata = string, CancelReason = void> {
             completion: completionPromise,
             lastProgress: { percent: 0.0 },
             nextProgress: progressRendezvous[0],
-            cancel: cancel,
+            cancel: this.canBeCancelled ? cancel : undefined,
             finalised: finalisationPromise
         }
 
@@ -413,8 +416,8 @@ export class Task<Result, ProgressMetadata = string, CancelReason = void> {
             const result = body(
                 mutateOnComplete,
                 mutateOnFail,
-                checkForCancellation,
-                updateProgress
+                updateProgress,
+                this.canBeCancelled ? checkForCancellation : undefined
             )
 
             // Check for finalisation once it returns
