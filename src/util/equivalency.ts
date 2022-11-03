@@ -37,7 +37,7 @@ export function isDeepEqual<T>(a: T, b: T): boolean {
     if (!(a instanceof Object) || !(b instanceof Object)) return a === b;
 
     for (const key in a) {
-        if (!isDeepEqual(a[key], b[key])) {
+        if (!isDeepEqual((a as any)[key], (b as any)[key])) {
             return false;
         }
     }
