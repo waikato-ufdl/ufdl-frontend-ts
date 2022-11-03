@@ -23,12 +23,17 @@ function createHideableComponent<P>(
     component: JSXElementConstructor<P>
 ): JSXElementConstructor<WithHideProp<P>> {
     if (jsxElementConstructorIsClass(component)) {
+        throw new Error("Currently can't create hideable class components")
+
+        // FIXME: The following code was working...
+        /*
         return class extends component {
             render() {
                 const rendered = super.render();
                 return (this.props as WithHideProp<P>).hide === true ? null : rendered;
             }
         }
+        */
     } else {
         return (props: WithHideProp<P>) => {
             const rendered = component(props);
