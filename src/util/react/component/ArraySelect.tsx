@@ -2,7 +2,6 @@ import React from "react";
 import {Controllable, useControllableState} from "../hooks/useControllableState";
 import asChangeEventHandler from "../asChangeEventHandler";
 import {constantInitialiser} from "../../typescript/initialisers";
-import arrayMap from "../../typescript/arrays/arrayMap";
 import {anyToString} from "../../typescript/strings/anyToString";
 import {FunctionComponentReturnType} from "../types";
 
@@ -63,8 +62,7 @@ export function ArraySelect<T>(
     const disableFirstEmptyOption = props.disableFirstEmptyOption ?? false
 
     // Create a select-option for each value in the array, whose value is its corresponding element's index
-    const valueOptions: JSX.Element[] = arrayMap(
-        values,
+    const valueOptions: JSX.Element[] = values.map(
         (value, index) =>
             <option value={index.toString()}>
                 {labelFunction(value, index)}
