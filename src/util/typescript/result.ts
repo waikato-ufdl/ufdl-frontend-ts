@@ -60,14 +60,31 @@ export function partialSuccess<P, E = any>(
     return result(undefined, error, partialResult);
 }
 
+/**
+ * Converts a function which may throw an error of some type
+ * into a function which returns a {@link Result} with that
+ * error-type.
+ *
+ * @param body
+ *          The throwing function.
+ * @param isError
+ *          Function which checks if the error if of the given type.
+ * @return
+ *          The equivalent result-typed function.
+ */
 export function catchErrorAsResult<P extends readonly unknown[], T, E = unknown>(
-    body: (...args: P) => T
+    body: (...args: P) => T,
+    isError: (e: unknown) => e is E
 ): (...args: P) => Result<T, E> {
     return (...args) => {
         try {
             return result(true, body(...args));
         } catch (e) {
-            return result(false, e);
+            if (isError !== undefined && isError(e)) {
+                return result(false, e);
+            }
+
+            throw e
         }
     }
 }
