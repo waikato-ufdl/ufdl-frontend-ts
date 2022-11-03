@@ -61,7 +61,7 @@ export default function useStateMachine<
 
                         return (...args: any) => dispatch(target[p](...args))
                     }
-                }
+                } as any
             ) as StatesTransitionsDispatch<States, StatesTransitions>[keyof ValidStates<States>]
         },
         [state] as const
