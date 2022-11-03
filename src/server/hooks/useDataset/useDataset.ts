@@ -319,10 +319,8 @@ export default function useDataset<
                             },
                             true
                         )
-                        console.log(`AddFiles mutation created task for `, [...files.keys()])
 
                         exportTask(task)
-                        console.log(`AddFiles mutation exported task for `, [...files.keys()])
 
                         return getTaskCompletionPromise(task)
                     },
@@ -406,10 +404,8 @@ export default function useDataset<
                             filenames,
                             key => `Deleted ${key} from server`
                         ) as Task<{ [filename: string]: NamedFileInstance }, string, never, never>
-                        console.log(`Delete mutation created task for`, filenames)
 
                         exportTask(task)
-                        console.log(`Delete mutation exported task for`, filenames)
 
                         return getTaskCompletionPromise(task)
                     },
@@ -474,7 +470,6 @@ export default function useDataset<
                                 annotation
                             )
                         )
-                        console.log(`Created subtask for setting annotations for ${filename}`)
                     }
 
                     const task = subTasksAsTask(
@@ -482,10 +477,8 @@ export default function useDataset<
                         [...annotations.keys()],
                         key => `Set annotations for ${key} on server`
                     ) as Task<{ [filename: string]: void }, string, never, never>
-                    console.log("Created setAnnotations overall task")
 
                     exportTask(task)
-                    console.log("Exported setAnnotations overall task")
 
                     return getTaskCompletionPromise(task)
                 },

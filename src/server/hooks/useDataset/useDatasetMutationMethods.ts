@@ -209,14 +209,11 @@ function useMutateFunctionWithTask<TTask extends Task<unknown, unknown, unknown,
     return useDerivedState(
         ([mutateFn]) => {
             return (variables) => {
-                console.log("mutateFunction task requested", variables)
                 return startTask(
                     async (complete, _, updateProgress) => {
                         const [subTaskPromise, resolveSubTask] = rendezvous<TTask>()
                         mutateFn([variables, resolveSubTask])
-                        console.log("mutateFunction called")
                         const subTask = await subTaskPromise
-                        console.log("mutateFunction received task")
                         const subTaskStatus = await asSubTask(
                             subTask,
                             updateProgress

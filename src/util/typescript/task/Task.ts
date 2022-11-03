@@ -347,7 +347,6 @@ export function startTask<
 
         // Create the progress report
         const progress = { percent, metadata }
-        console.log("Progress", progress)
 
         // Resolve the current progress promise
         progressRendezvous[1](progress)
