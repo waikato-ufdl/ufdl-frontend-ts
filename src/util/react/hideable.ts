@@ -61,7 +61,7 @@ export default function hideable<P>(
  * @param hide
  *          Whether to hide the resulting element.
  */
-export function cloneElementAsHideable<P>(
+export function cloneElementAsHideable<P extends object>(
     element: ReactElement<P, JSXElementConstructor<P>>,
     hide: boolean
 ): ReactElement<P, JSXElementConstructor<P>> {
