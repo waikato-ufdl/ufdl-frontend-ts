@@ -30,8 +30,8 @@ export type PartialResult<T, P = T, E = unknown> =
     | Result<T, E>
     | PartialSuccess<P, E>
 
-export function result<T, P = T, E = unknown>(success: true, value: T): Success<T>;
-export function result<T, P = T, E = unknown>(success: false, error: E): Failure<E>;
+export function result<T>(success: true, value: T): Success<T>;
+export function result<E = unknown>(success: false, error: E): Failure<E>;
 export function result<T, P = T, E = unknown>(success: undefined, error: E, partialResult: P): PartialSuccess<P, E>;
 export function result(success: boolean | undefined, ...args: any): PartialResult<any> {
     switch (success) {
