@@ -75,7 +75,7 @@ export function mapControllable<T, R>(
 ): Controllable<R> {
     // If the control value is just a flag, no mapping necessary (same in both domains)
     if (controllable === UNCONTROLLED_RESET || controllable === UNCONTROLLED_KEEP) {
-        return controllable
+        return controllable as typeof UNCONTROLLED_RESET | typeof UNCONTROLLED_KEEP // Why TF do I need to specify this???
     }
 
     // If it's a reset override, map the override value
