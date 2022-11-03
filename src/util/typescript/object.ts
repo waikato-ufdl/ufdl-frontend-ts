@@ -31,6 +31,29 @@ export function mapOwnProperties<T extends object, R>(
     return result
 }
 
+export function directMapObject<
+    S extends object,
+    P extends readonly (keyof S)[],
+    T extends { [Key in P[number]]: unknown }
+>(
+    obj: S,
+    properties: P,
+    mapFn: <Property extends P[number]>(property: Property, value: S[Property]) => T[Property]
+): Partial<Pick<T, P[number]>> {
+    let result: Partial<Pick<T, P[number]>> = {}
+
+    properties.forEach(
+        (property) => {
+            result = {
+                ...result,
+                [property]: mapFn(property, obj[property])
+            }
+        }
+    )
+
+    return result
+}
+
 export function mapObject<S extends object, T extends object, M extends { [TK in keyof T]: keyof S}>(
     obj: S,
     mapFn: {
