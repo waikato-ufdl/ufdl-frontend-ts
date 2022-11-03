@@ -192,3 +192,15 @@ export function hasOwnProperty<T extends {}, K extends PropertyKey>(
 ): obj is (T & (K extends PropertyKey ? { [key in K]?: unknown } : never)) {
     return obj.hasOwnProperty(prop)
 }
+
+export function countOwnProperties(
+    obj: object
+): number {
+    let sum = 0
+    forEachOwnProperty(
+        obj,
+        () => sum += 1
+    )
+
+    return sum
+}
