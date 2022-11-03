@@ -2,10 +2,16 @@ import {Data} from "../../types/data";
 import {NamedFileInstance} from "ufdl-ts-client/types/core/named_file";
 import {OptionalAnnotations} from "../../types/annotations";
 import {TOGGLE} from "./selection";
-import {DatasetDispatchItemSelector, UseMutateFunctionWithCallbacks} from "./types";
+import {DatasetDispatchItemSelector, UseMutateFunctionWithTask} from "./types";
 import useDerivedState from "../../../util/react/hooks/useDerivedState";
 import {MutableDatasetDispatchItem} from "./DatasetDispatch";
 import {rendezvous} from "../../../util/typescript/async/rendezvous";
+import {
+    asSubTask,
+    getTaskCompletionPromise,
+    startTask,
+    Task
+} from "../../../util/typescript/task/Task";
 
 export type DatasetMutationMethods<
     D extends Data,
@@ -15,13 +21,13 @@ export type DatasetMutationMethods<
     deselect: (itemSelection: DatasetDispatchItemSelector<D, A>) => void,
     toggleSelection: (itemSelection: DatasetDispatchItemSelector<D, A>) => void,
     selectOnly: (itemSelection: DatasetDispatchItemSelector<D, A>) => void,
-    deleteSelectedFiles: () => void,
+    deleteSelectedFiles: () => Task<{ [filename: string]: NamedFileInstance | undefined}, string, never, never>,
     setAnnotationsForSelected: (annotations: OptionalAnnotations<A>) => void,
-    setAnnotationsForFile: (filename: string, annotations: OptionalAnnotations<A>) => void,
-    setAnnotations: (modifications: ReadonlyMap<string, OptionalAnnotations<A>>) => void,
-    clear: () => { [filename: string]: Promise<NamedFileInstance> },
-    deleteFile: (filename: string) => Promise<NamedFileInstance> | undefined,
-    addFiles: (files: ReadonlyMap<string, D>) => Promise<NamedFileInstance[]>
+    setAnnotationsForFile: (filename: string, annotations: OptionalAnnotations<A>) => Promise<void>,
+    setAnnotations: (modifications: ReadonlyMap<string, OptionalAnnotations<A>>) => Task<{ [filename: string]: void }, string, never, never>,
+    clear: () => Task<{ [filename: string]: NamedFileInstance | undefined}, string, never, never>,
+    deleteFile: (filename: string) => Task<{ [filename: string]: NamedFileInstance }, string, void, never> | undefined,
+    addFiles: (files: ReadonlyMap<string, D>) => Task<NamedFileInstance[]>
 }
 
 export default function useDatasetMutationMethods<
@@ -31,9 +37,21 @@ export default function useDatasetMutationMethods<
 >(
     itemMap: ReadonlyMap<string, I>,
     fileOrdering: string[],
-    addFilesMutate: UseMutateFunctionWithCallbacks<NamedFileInstance[], unknown, ReadonlyMap<string, D>>,
-    deleteFileMutate: UseMutateFunctionWithCallbacks<NamedFileInstance, unknown, string>,
-    setAnnotationsForFileMutate: UseMutateFunctionWithCallbacks<void, unknown, [string, OptionalAnnotations<A>]>,
+    addFilesMutate: UseMutateFunctionWithTask<
+        Task<NamedFileInstance[]>,
+        unknown,
+        ReadonlyMap<string, D>
+    >,
+    deleteFilesMutate: UseMutateFunctionWithTask<
+        Task<{ [filename: string]: NamedFileInstance }, string, never, never>,
+        unknown,
+        readonly string[]
+    >,
+    setAnnotationsMutate: UseMutateFunctionWithTask<
+        Task<{ [filename: string]: void }, string, never, never>,
+        unknown,
+        ReadonlyMap<string, OptionalAnnotations<A>>
+    >,
     setSelected: React.Dispatch<[string, (boolean | typeof TOGGLE)]>
 ): DatasetMutationMethods<D, A> {
 
@@ -91,110 +109,83 @@ export default function useDatasetMutationMethods<
         [itemMap, fileOrdering, setSelected] as const
     )
 
-    const deleteSelectedFiles: () => { [filename: string]: Promise<NamedFileInstance> }
+    const getDeleteFilesMutateTask = useMutateFunctionWithTask(
+        deleteFilesMutate,
+        false
+    )
+
+    const deleteSelectedFiles: () => Task<{ [filename: string]: NamedFileInstance | undefined}, string, never, never>
         = useDerivedState(
-            ([itemMap, fileOrdering, deleteFileMutate]) => {
+            ([itemMap, fileOrdering, getDeleteFilesMutateTask]) => {
                 return () => {
-                    const results: { [filename: string]: Promise<NamedFileInstance> } = {}
-                    for (const filename of fileOrdering) {
-                        if (itemMap.get(filename)!.selected) {
-                            const [promise, resolve, reject] = rendezvous<NamedFileInstance>()
-                            deleteFileMutate([filename, resolve, reject])
-                            results[filename] = promise
-                        }
-                    }
-                    return results
+                    const toDelete = fileOrdering.filter(filename => itemMap.get(filename)!.selected)
+
+                    return getDeleteFilesMutateTask(toDelete)
                 }
             },
-            [itemMap, fileOrdering, deleteFileMutate] as const
+            [itemMap, fileOrdering, getDeleteFilesMutateTask] as const
         )
 
-    const setAnnotationsForSelected: (annotations: OptionalAnnotations<A>) => { [filename: string]: Promise<void> }
+    const getSetAnnotationsMutateTask = useMutateFunctionWithTask(
+        setAnnotationsMutate,
+        false
+    )
+
+    const setAnnotationsForSelected: (annotations: OptionalAnnotations<A>) => Task<{ [filename: string]: void }, string, never, never>
         = useDerivedState(
-            ([itemMap, fileOrdering, setAnnotationsForFileMutate]) => {
+            ([itemMap, fileOrdering, getSetAnnotationsMutateTask]) => {
                 return (annotations) => {
-                    const results: { [filename: string]: Promise<void> } = {}
-                    for (const filename of fileOrdering) {
-                        if (itemMap.get(filename)!.selected) {
-                            const [promise, resolve, reject] = rendezvous<void>()
-                            setAnnotationsForFileMutate([[filename, annotations], resolve, reject])
-                            results[filename] = promise
-                        }
-                    }
-                    return results
+                    return getSetAnnotationsMutateTask(
+                        new Map(
+                            fileOrdering
+                                .filter(filename => itemMap.get(filename)!.selected)
+                                .map(filename => [filename, annotations] as const)
+                        )
+                    )
                 }
             },
-            [itemMap, fileOrdering, setAnnotationsForFileMutate] as const
+            [itemMap, fileOrdering, getSetAnnotationsMutateTask] as const
         )
 
     const setAnnotationsForFile: (filename: string, annotations: OptionalAnnotations<A>) => Promise<void>
         = useDerivedState(
-            ([setAnnotationsForFileMutate]) => {
-                return (filename, annotations) => {
-                    const [promise, resolve, reject] = rendezvous<void>()
-                    setAnnotationsForFileMutate([[filename, annotations], resolve, reject])
-                    return promise
+            ([getSetAnnotationsMutateTask]) => {
+                return async (filename, annotations) => {
+                    await getTaskCompletionPromise(
+                        getSetAnnotationsMutateTask(
+                            new Map(
+                                [[filename, annotations]]
+                            )
+                        )
+                    )
                 }
             },
-            [setAnnotationsForFileMutate] as const
+            [getSetAnnotationsMutateTask] as const
         )
 
-    const setAnnotations: (modifications: ReadonlyMap<string, OptionalAnnotations<A>>) => { [filename: string]: Promise<void> }
+    const clear: () => Task<{ [filename: string]: NamedFileInstance }, string, never, never>
         = useDerivedState(
-            ([setAnnotationsForFileMutate]) => {
-                return (modifications) => {
-                    const results: { [filename: string]: Promise<void> } = {}
-                    for (const modification of modifications) {
-                        const [promise, resolve, reject] = rendezvous<void>()
-                        setAnnotationsForFileMutate([modification, resolve, reject])
-                        results[modification[0]] = promise
-                    }
-                    return results
-                }
-            },
-            [setAnnotationsForFileMutate] as const
-        )
-
-    const clear: () => { [filename: string]: Promise<NamedFileInstance> }
-        = useDerivedState(
-            ([fileOrdering, deleteFileMutate]) => {
+            ([fileOrdering, getDeleteFilesMutateTask]) => {
                 return () => {
-                    const results: { [filename: string]: Promise<NamedFileInstance> } = {}
-                    for (const filename of fileOrdering) {
-                        const [promise, resolve, reject] = rendezvous<NamedFileInstance>()
-                        deleteFileMutate([filename, resolve, reject])
-                        results[filename] = promise
-                    }
-                    return results
+                    return getDeleteFilesMutateTask(fileOrdering)
                 }
             },
-            [fileOrdering, deleteFileMutate] as const
+            [fileOrdering, getDeleteFilesMutateTask] as const
         )
 
-    const deleteFile: (filename: string) => Promise<NamedFileInstance> | undefined
+    const deleteFile: (filename: string) => Task<{ [filename: string]: NamedFileInstance }, string, void, never> | undefined
         = useDerivedState(
-            ([itemMap, deleteFileMutate]) => {
-                return (filename) => {
+            ([itemMap, getDeleteFilesMutateTask]) => {
+                return (filename: string) => {
                     if (!itemMap.has(filename)) return undefined
-                    const [promise, resolve, reject] = rendezvous<NamedFileInstance>()
-                    deleteFileMutate([filename, resolve, reject])
-                    return promise;
+                    return getDeleteFilesMutateTask([filename])
                 }
             },
-            [itemMap, deleteFileMutate] as const
+            [itemMap, getDeleteFilesMutateTask] as const
         )
 
-    const addFiles: (files: ReadonlyMap<string, D>) => Promise<NamedFileInstance[]>
-        = useDerivedState(
-            ([addFilesMutate]) => {
-                return (files) => {
-                    const [promise, resolve, reject] = rendezvous<NamedFileInstance[]>()
-                    addFilesMutate([files, resolve, reject])
-                    return promise
-                }
-            },
-            [addFilesMutate] as const
-        )
+    const addFiles: (files: ReadonlyMap<string, D>) => Task<NamedFileInstance[]>
+        = useMutateFunctionWithTask(addFilesMutate)
 
     return {
         select,
@@ -204,9 +195,46 @@ export default function useDatasetMutationMethods<
         deleteSelectedFiles,
         setAnnotationsForSelected,
         setAnnotationsForFile,
-        setAnnotations,
+        setAnnotations: getSetAnnotationsMutateTask,
         clear,
         deleteFile,
         addFiles
     }
+}
+
+function useMutateFunctionWithTask<TTask extends Task<unknown, unknown, unknown, never>, TError, TVariables, TContext>(
+    mutateFn: UseMutateFunctionWithTask<TTask, TError, TVariables, TContext>,
+    canBeCancelled: boolean = false
+): (variables: TVariables) => TTask {
+    return useDerivedState(
+        ([mutateFn]) => {
+            return (variables) => {
+                console.log("mutateFunction task requested", variables)
+                return startTask(
+                    async (complete, _, updateProgress) => {
+                        const [subTaskPromise, resolveSubTask] = rendezvous<TTask>()
+                        mutateFn([variables, resolveSubTask])
+                        console.log("mutateFunction called")
+                        const subTask = await subTaskPromise
+                        console.log("mutateFunction received task")
+                        const subTaskStatus = await asSubTask(
+                            subTask,
+                            updateProgress
+                        )
+                        switch (subTaskStatus.status) {
+                            case "completed":
+                                complete(subTaskStatus.result)
+                                break
+                            case "failed":
+                                throw subTaskStatus.reason
+                            case "cancelled":
+                                throw subTaskStatus.reason
+                        }
+                    },
+                    canBeCancelled
+                ) as TTask
+            }
+        },
+        [mutateFn] as const
+    )
 }

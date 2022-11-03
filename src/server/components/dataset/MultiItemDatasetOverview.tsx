@@ -29,7 +29,6 @@ import "./MultiItemDatasetOverview.css"
 import {all} from "../../../util/typescript/all";
 import {mapMap} from "../../../util/map";
 import {identity} from "../../../util/identity";
-import arrayMap from "../../../util/typescript/arrays/arrayMap";
 import range from "../../../util/typescript/range";
 import {discard} from "../../../util/typescript/discard";
 
@@ -354,10 +353,9 @@ function createUseSamplesInitialiser<
             }
 
             const currentSelections = currentState.get(filename)
-            const stillValidSelections = arrayMap(
-                currentSelections ?? [] as (string | undefined)[],
-                identity
-            )
+            const stillValidSelections: (string | undefined)[] = currentSelections === undefined
+                ? []
+                : [...currentSelections]
 
             // Remove any selections that are no longer valid
             for (const index of range(stillValidSelections.length)) {

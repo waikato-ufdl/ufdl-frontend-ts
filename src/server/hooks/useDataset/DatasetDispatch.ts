@@ -21,10 +21,11 @@ import {
     DatasetDispatchItemAnnotationType,
     DatasetDispatchItemDataType,
     DatasetDispatchItemType,
-    UseMutateFunctionWithCallbacks
+    UseMutateFunctionWithTask
 } from "./types";
 import {rendezvous} from "../../../util/typescript/async/rendezvous";
 import {DatasetMutationMethods} from "./useDatasetMutationMethods";
+import {getTaskCompletionPromise, Task} from "../../../util/typescript/task/Task";
 
 
 export class DatasetDispatchItem<D extends Data, A>
@@ -49,7 +50,11 @@ export class MutableDatasetDispatchItem<D extends Data, A>
         annotations: DatasetDispatchItemAnnotationType<A>,
         selected: boolean,
         private readonly _setSelected: React.Dispatch<[string, boolean | typeof TOGGLE]>,
-        private readonly _setAnnotationsMutation: UseMutateFunctionWithCallbacks<void, unknown, [string, OptionalAnnotations<A>]>
+        private readonly _setAnnotationsMutation: UseMutateFunctionWithTask<
+            Task<{ [filename: string]: void }, string, never, never>,
+            unknown,
+            ReadonlyMap<string, OptionalAnnotations<A>>
+        >
     ) {
         super(
             filename,
@@ -64,10 +69,11 @@ export class MutableDatasetDispatchItem<D extends Data, A>
         this._setSelected([this.filename, value])
     }
 
-    setAnnotations(annotations: OptionalAnnotations<A>): Promise<void> {
-        const [promise, onResolved, onRejected] = rendezvous<void>()
-        this._setAnnotationsMutation([[this.filename, annotations], onResolved, onRejected])
-        return promise
+    async setAnnotations(annotations: OptionalAnnotations<A>): Promise<void> {
+        const [promise, onResolved] = rendezvous<Task<{ [filename: string]: void }, string, never, never>>()
+        this._setAnnotationsMutation([new Map([[this.filename, annotations]]), onResolved])
+        const task = await promise
+        await getTaskCompletionPromise(task)
     }
 
 }

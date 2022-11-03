@@ -14,6 +14,10 @@ import useDerivedReducer, {UNINITIALISED} from "../../util/react/hooks/useDerive
 import {createSimpleStateReducer} from "../../util/react/hooks/SimpleStateReducer";
 import usePromise, {Resolution} from "../../util/react/hooks/usePromise";
 import {useEffect} from "react";
+import {Task} from "../../util/typescript/task/Task";
+import useTask from "../../util/react/hooks/useTask";
+import TaskProgressModal from "../../util/react/component/TaskProgressModal";
+import pass from "../../util/typescript/functions/pass";
 
 /**
  * The type of structure which carries the files to be added to a dataset.
@@ -74,7 +78,8 @@ export type SubMenus<D extends Data, A> = {
 export type AddFilesButtonProps<D extends Data, A> = {
     disabled?: boolean
     onSubmit: OnSubmitFunction<D, A>
-    subMenus: SubMenus<D, A>
+    subMenus: SubMenus<D, A>,
+    addingFilesTask?: Task<void>
 }
 
 /**
@@ -90,11 +95,14 @@ export default function AddFilesButton<D extends Data, A>(
     const {
         disabled,
         onSubmit,
-        subMenus
+        subMenus,
+        addingFilesTask
     } = props;
 
     // Create a modal for displaying menus
     const menuModal = useLocalModal();
+
+    const addingFilesTaskResult = useTask(addingFilesTask)
 
     // Keep state of which sub-menu was selected by the user,
     // resetting if the available sub-menus changes. A state of
@@ -165,6 +173,21 @@ export default function AddFilesButton<D extends Data, A>(
         ? menuComponent.value
         : undefined
 
+    const modal = addingFilesTask !== undefined
+        ? <TaskProgressModal
+            status={addingFilesTask.status}
+            handleProgressMetadata={"latest"}
+            position={menuModal.position}
+            onCancel={pass}
+        />
+        : <LocalModal
+            className={"AddFilesModal"}
+            position={menuModal.position}
+            onCancel={onCancel}
+        >
+            {MenuComponentResolved && <MenuComponentResolved />}
+        </LocalModal>
+
     return <>
         <button
             className={"AddFilesButton"}
@@ -174,13 +197,7 @@ export default function AddFilesButton<D extends Data, A>(
             +
         </button>
 
-        <LocalModal
-            className={"AddFilesModal"}
-            position={menuModal.position}
-            onCancel={onCancel}
-        >
-            {MenuComponentResolved && <MenuComponentResolved />}
-        </LocalModal>
+        {modal}
     </>
 }
 

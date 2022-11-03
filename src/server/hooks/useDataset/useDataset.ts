@@ -1,7 +1,7 @@
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import * as DatasetCore from "ufdl-ts-client/functional/core/dataset"
 import {DatasetPK} from "../../pk";
-import {mapOwnProperties} from "../../../util/typescript/object";
+import {countOwnProperties, mapOwnProperties} from "../../../util/typescript/object";
 import forDownload from "../../forDownload";
 import {mapMap, mapToObject} from "../../../util/map";
 import useDerivedState from "../../../util/react/hooks/useDerivedState";
@@ -25,7 +25,7 @@ import {
     DataSetterFunction,
     MutableDatasetDispatchItemConstructor,
     UseMutationOptionsWithCallbacks,
-    UseMutateFunctionWithCallbacks
+    UseMutateFunctionWithCallbacks, UseMutationOptionsWithTask, UseMutateFunctionWithTask
 } from "./types";
 import assert from "assert";
 import {Data} from "../../types/data";
@@ -50,6 +50,16 @@ import {useEffect} from "react";
 import UNREACHABLE from "../../../util/typescript/UNREACHABLE";
 import passOnUndefined from "../../../util/typescript/functions/passOnUndefined";
 import withIgnoredCallbackErrors from "../../../util/typescript/functions/withIgnoredCallbackErrors";
+import {identity} from "../../../util/identity";
+import {
+    asSubTask, getTaskCompletionPromise,
+    mapTaskProgress,
+    ParallelSubTasks, raceSubTasks,
+    startTask, subTasksAsTask,
+    Task,
+    taskFromPromise
+} from "../../../util/typescript/task/Task";
+import pass from "../../../util/typescript/functions/pass";
 
 /**
  * Baseline functionality for using a dataset on the server. Extended via the
@@ -224,57 +234,97 @@ export default function useDataset<
     )
 
     // Create a mutation for adding new files to the dataset
-    const addFilesMutationOptions: UseMutationOptionsWithCallbacks<NamedFileInstance[], unknown, ReadonlyMap<string, D>>
-        = useDerivedState(
+    const addFilesMutationOptions: UseMutationOptionsWithTask<
+        Task<NamedFileInstance[]>,
+        unknown,
+        ReadonlyMap<string, D>
+    > = useDerivedState(
             ([serverContext, datasetPK, setData, dataset, queryClient]) => {
                 return {
-                    async mutationFn([files, onResolved, onRejected]) {
-                        try {
-                            // Can't add to an undefined dataset
-                            if (datasetPK === undefined || dataset === undefined) {
-                                UNREACHABLE("datasetPK and dataset will always be defined before this function is called")
-                            }
+                    mutationFn([files, exportTask]) {
+                        const task = startTask<NamedFileInstance[]>(
+                            async (complete, _, updateProgress) => {
+                                // Can't add to an undefined dataset
+                                if (datasetPK === undefined || dataset === undefined) {
+                                    UNREACHABLE("datasetPK and dataset will always be defined before this function is called")
+                                }
 
-                            // Extract the raw data
-                            const rawData = mapMap(
-                                files,
-                                (filename, data) => [[filename, data.raw]] as const
-                            )
+                                // Extract the raw data
+                                const rawData = mapMap(
+                                    files,
+                                    (filename, data) => [[filename, data.raw]] as const
+                                )
 
-                            // Compress the file data for bulk upload
-                            const compressed = await compressFiles(rawData);
+                                updateProgress(0.05, "Extracted raw data from files")
 
-                            // Upload the files, or pass if compression failed
-                            // (need to await in case setData relies on the files being resident
-                            // on the server)
-                            const addedFiles = await DatasetCore.add_files(
-                                serverContext,
-                                datasetPK.asNumber,
-                                compressed
-                            )
+                                // Compress the file data for bulk upload
+                                const compressionTaskStatus = await asSubTask(
+                                    compressFiles(rawData),
+                                    mapTaskProgress(
+                                        updateProgress,
+                                        identity,
+                                        percent => 0.05 + percent * 0.2
+                                    )
+                                )
+                                switch (compressionTaskStatus.status) {
+                                    case "completed":
+                                        break;
+                                    case "failed":
+                                        throw compressionTaskStatus.reason;
+                                    case "cancelled":
+                                        UNREACHABLE("We never call cancel on the compression task")
+                                }
+                                const compressed = compressionTaskStatus.result
 
-                            await Promise.all(
-                                iteratorMap(
-                                    iterate(files),
-                                    ([filename, data]) => {
+                                updateProgress(0.25, "Compression complete")
+
+                                // Upload the files, or pass if compression failed
+                                // (need to await in case setData relies on the files being resident
+                                // on the server)
+                                const addedFiles = await DatasetCore.add_files(
+                                    serverContext,
+                                    datasetPK.asNumber,
+                                    compressed
+                                )
+
+                                updateProgress(0.5, "Uploaded files to server")
+
+                                const setDataTasks: ParallelSubTasks<string, void> = {}
+
+                                for (const [filename, data] of files.entries()) {
+                                    setDataTasks[filename] = taskFromPromise(
                                         setData(
                                             serverContext,
                                             dataset,
                                             filename,
                                             data
                                         )
-                                    }
-                                )
-                            )
+                                    )
+                                }
 
-                            withIgnoredCallbackErrors(passOnUndefined(onResolved))(addedFiles)
+                                let filenames = [...files.keys()]
+                                while (filenames.length > 0) {
+                                    const [finished] = await raceSubTasks(
+                                        setDataTasks,
+                                        filenames,
+                                        filenames,
+                                        pass
+                                    )
+                                    delete setDataTasks[finished]
+                                    filenames = filenames.filter(filename => filename !== finished)
+                                    updateProgress(1.0 - 0.5 * (filenames.length / files.size), `Set data for ${finished}`)
+                                }
 
-                            return addedFiles
-                        } catch (e) {
-                            withIgnoredCallbackErrors(passOnUndefined(onRejected))(e)
+                                complete(addedFiles)
+                            },
+                            true
+                        )
+                        console.log(`AddFiles mutation created task for `, [...files.keys()])
 
-                            throw e
-                        }
+                        exportTask(task)
+                        console.log(`AddFiles mutation exported task for `, [...files.keys()])
+
+                        return getTaskCompletionPromise(task)
                     },
                     async onMutate([files]) {
                         // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
@@ -326,34 +376,44 @@ export default function useDataset<
     const addFilesMutation = useMutation(addFilesMutationOptions)
 
     // Create a mutation for deleting files from the dataset
-    const deleteFileMutationOptions: UseMutationOptionsWithCallbacks<NamedFileInstance, unknown, string>
-        = useDerivedState(
+    const deleteFilesMutationOptions: UseMutationOptionsWithTask<
+        Task<{ [filename: string]: NamedFileInstance }, string, never, never>,
+        unknown,
+        readonly string[]
+    > = useDerivedState(
             ([serverContext, datasetPK]) => {
                 return {
-                    async mutationFn([filename, onResolved, onRejected]) {
-                        try {
-                            // Can't delete from an undefined dataset
-                            if (datasetPK === undefined) {
-                                UNREACHABLE("dataset will always be defined before this is called")
-                            }
-
-                            // Delete the file
-                            const result = await DatasetCore.delete_file(
-                                serverContext,
-                                datasetPK.asNumber,
-                                filename
-                            )
-
-                            withIgnoredCallbackErrors(passOnUndefined(onResolved))(result)
-
-                            return result
-                        } catch (e) {
-                            withIgnoredCallbackErrors(passOnUndefined(onRejected))(e)
-
-                            throw e
+                    async mutationFn([filenames, exportTask]) {
+                        // Can't delete from an undefined dataset
+                        if (datasetPK === undefined) {
+                            UNREACHABLE("dataset will always be defined before this is called")
                         }
+
+                        const subTasks: ParallelSubTasks<string, NamedFileInstance, string> = {}
+
+                        for (const filename of filenames) {
+                            subTasks[filename] = taskFromPromise(
+                                DatasetCore.delete_file(
+                                    serverContext,
+                                    datasetPK.asNumber,
+                                    filename
+                                )
+                            )
+                        }
+
+                        const task = subTasksAsTask(
+                            subTasks,
+                            filenames,
+                            key => `Deleted ${key} from server`
+                        ) as Task<{ [filename: string]: NamedFileInstance }, string, never, never>
+                        console.log(`Delete mutation created task for`, filenames)
+
+                        exportTask(task)
+                        console.log(`Delete mutation exported task for`, filenames)
+
+                        return getTaskCompletionPromise(task)
                     },
-                    async onMutate([filename]) {
+                    async onMutate([filenames]) {
                         // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
                         await cancelOutgoingQueries(queryClient, datasetPK)
 
@@ -368,11 +428,13 @@ export default function useDataset<
                                 ...previousDatasetJSON.files
                             }
                         }
-                        delete updatedDatasetJSON.files[filename]
 
                         // Optimistically update to the new value
-                        queryClient.removeQueries(fileQueryKey(datasetPK, filename), {exact: true})
-                        queryClient.removeQueries(annotationsQueryKey(datasetPK, filename), {exact: true})
+                        for (const filename of filenames) {
+                            delete updatedDatasetJSON.files[filename]
+                            queryClient.removeQueries(fileQueryKey(datasetPK, filename), {exact: true})
+                            queryClient.removeQueries(annotationsQueryKey(datasetPK, filename), {exact: true})
+                        }
                         queryClient.setQueryData(datasetQueryKey(datasetPK), updatedDatasetJSON)
 
                         // Return a context object with the snapshotted value
@@ -385,48 +447,66 @@ export default function useDataset<
             },
             [serverContext, datasetPK] as const
         )
-    const deleteFileMutation = useMutation(deleteFileMutationOptions)
+    const deleteFileMutation = useMutation(deleteFilesMutationOptions)
 
     // Create a mutation for setting the annotations for a file in the dataset
-    const setAnnotationsMutationOptions: UseMutationOptionsWithCallbacks<void, unknown, [string, OptionalAnnotations<A>]> = useDerivedState(
+    const setAnnotationsMutationOptions: UseMutationOptionsWithTask<
+        Task<{ [filename: string]: void }, string, never, never>,
+        unknown,
+        ReadonlyMap<string, OptionalAnnotations<A>>
+    > = useDerivedState(
         ([serverContext, dataset, setAnnotations]) => {
             return {
-                async mutationFn([[filename, annotations], onResolved, onRejected]) {
-                    try {
-                        // Can't set annotations against an undefined dataset
-                        if (dataset === undefined) {
-                            UNREACHABLE("dataset will always be defined before this is called")
-                        }
-
-                        // Set the annotations
-                        await setAnnotations(
-                            serverContext,
-                            dataset,
-                            filename,
-                            annotations
-                        )
-
-                        withIgnoredCallbackErrors(passOnUndefined(onResolved))()
-                    } catch (e) {
-                        withIgnoredCallbackErrors(passOnUndefined(onRejected))(e)
-
-                        throw e
+                async mutationFn([annotations, exportTask]) {
+                    // Can't set annotations against an undefined dataset
+                    if (dataset === undefined) {
+                        UNREACHABLE("dataset will always be defined before this is called")
                     }
+
+                    const subTasks: ParallelSubTasks<string, void, string> = {}
+
+                    for (const [filename, annotation] of annotations.entries()) {
+                        subTasks[filename] = taskFromPromise(
+                            setAnnotations(
+                                serverContext,
+                                dataset,
+                                filename,
+                                annotation
+                            )
+                        )
+                        console.log(`Created subtask for setting annotations for ${filename}`)
+                    }
+
+                    const task = subTasksAsTask(
+                        subTasks,
+                        [...annotations.keys()],
+                        key => `Set annotations for ${key} on server`
+                    ) as Task<{ [filename: string]: void }, string, never, never>
+                    console.log("Created setAnnotations overall task")
+
+                    exportTask(task)
+                    console.log("Exported setAnnotations overall task")
+
+                    return getTaskCompletionPromise(task)
                 },
-                async onMutate([[filename, annotations]]) {
+                async onMutate([annotations]) {
                     // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
                     await cancelOutgoingQueries(queryClient, datasetPK)
 
                     // Optimistically update to the new value
-                    queryClient.setQueryData(
-                        annotationsQueryKey(datasetPK, filename),
-                        [filename, annotations]
-                    )
+                    for (const [filename, annotation] of annotations.entries()) {
+                        queryClient.setQueryData(
+                            annotationsQueryKey(datasetPK, filename),
+                            [filename, annotation]
+                        )
+                    }
                 },
-                onError(_, [[filename]]) {
+                onError(_, [annotations]) {
                     queryClient.invalidateQueries(datasetQueryKey(datasetPK), {exact: true})
-                    queryClient.invalidateQueries(fileQueryKey(datasetPK, filename), {exact: true})
-                    queryClient.invalidateQueries(annotationsQueryKey(datasetPK, filename), {exact: true})
+                    for (const filename of annotations.keys()) {
+                        queryClient.invalidateQueries(fileQueryKey(datasetPK, filename), {exact: true})
+                        queryClient.invalidateQueries(annotationsQueryKey(datasetPK, filename), {exact: true})
+                    }
                 }
             }
         },
@@ -449,7 +529,11 @@ export default function useDataset<
             fileAnnotationResult:  QueryObserverResult<readonly [string, OptionalAnnotations<A>]>,
             selected: boolean,
             setSelected: React.Dispatch<[string, (boolean | typeof TOGGLE)]>,
-            setAnnotationsMutation: UseMutateFunctionWithCallbacks<void, unknown, [string, OptionalAnnotations<A>]>
+            setAnnotationsMutation: UseMutateFunctionWithTask<
+                Task<{ [filename: string]: void }, string, never, never>,
+                unknown,
+                ReadonlyMap<string, OptionalAnnotations<A>>
+            >
         ) => {
             return new itemConstructor(
                 filename,

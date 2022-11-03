@@ -27,7 +27,7 @@ export default function useTask<Result, Metadata, CancelReason>(
     const finalisationPromiseResolution = usePromise(
         task === undefined
             ? Forever
-            : task.status.finalised
+            : task.status.finalisation
     )
 
     return task !== undefined

@@ -16,6 +16,7 @@ import {
 } from "./DatasetDispatch";
 import {ReadonlyQueryResult} from "../../../util/react/query/types";
 import {DatasetMutationMethods} from "./useDatasetMutationMethods";
+import {Task, TaskResult} from "../../../util/typescript/task/Task";
 
 
 /**
@@ -106,7 +107,11 @@ export type MutableDatasetDispatchItemConstructor<D extends Data, A, I extends M
         annotations: DatasetDispatchItemAnnotationType<A>,
         selected: boolean,
         setSelected: React.Dispatch<[string, boolean | typeof TOGGLE]>,
-        setAnnotationsMutation: UseMutateFunctionWithCallbacks<void, unknown, [string, OptionalAnnotations<A>]>
+        setAnnotationsMutation: UseMutateFunctionWithTask<
+            Task<{ [filename: string]: void }, string, never, never>,
+            unknown,
+            ReadonlyMap<string, OptionalAnnotations<A>>
+        >
     ) => I
 
 export type DatasetDispatchItemSelector<D extends Data, A>
@@ -143,3 +148,9 @@ export type UseMutationOptionsWithCallbacks<TData = unknown, TError = unknown, T
 
 export type UseMutateFunctionWithCallbacks<TData = unknown, TError = unknown, TVariables = void, TContext = unknown> =
     UseMutateFunction<TData, TError, [TVariables, ((result: TData) => void)?, ((reason: any) => void)?], TContext>
+
+export type UseMutationOptionsWithTask<TTask extends Task<unknown, unknown, unknown, never>, TError = unknown, TVariables = void, TContext = unknown> =
+    UseMutationOptions<TaskResult<TTask>, TError, [TVariables, (task: TTask) => void], TContext>
+
+export type UseMutateFunctionWithTask<TTask extends Task<unknown, unknown, unknown, never>, TError = unknown, TVariables = void, TContext = unknown> =
+    UseMutateFunction<TaskResult<TTask>, TError, [TVariables, (task: TTask) => void], TContext>

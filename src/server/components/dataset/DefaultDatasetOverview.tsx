@@ -21,6 +21,17 @@ import {AnnotationComponent, DataComponent, ExpandedComponent} from "./types";
 import useDerivedReducer from "../../../util/react/hooks/useDerivedReducer";
 import {createSimpleStateReducer} from "../../../util/react/hooks/SimpleStateReducer";
 import {DatasetItem} from "../../types/DatasetItem";
+import useStateSafe from "../../../util/react/hooks/useStateSafe";
+import {
+    asSubTask, getTaskCompletionPromise,
+    mapTaskProgress,
+    ParallelSubTasks, raceSubTasks,
+    startTask,
+    Task,
+    taskFromPromise
+} from "../../../util/typescript/task/Task";
+import {identity} from "../../../util/identity";
+import pass from "../../../util/typescript/functions/pass";
 
 /**
  * Props to the {@link DefaultDatasetOverview} component.
@@ -135,30 +146,63 @@ export default function DefaultDatasetOverview<
         [setExpanded] as const
     )
 
+    const [addFilesTask, setAddFilesTask] = useStateSafe<Task<void> | undefined>(
+        constantInitialiser(undefined)
+    )
+
     // Create the submission function for adding new files to the dataset
     const onSubmit: OnSubmitFunction<DomainDataType<Domain>, DomainAnnotationType<Domain>> = useDerivedState(
-        ([dataset]) =>
+        ([dataset, setAddFilesTask]) =>
             (newFiles) => {
                 if (dataset === undefined) {
                     UNREACHABLE("dataset is always defined before this is called")
                 }
 
-                dataset.addFiles(
-                    mapMap(
-                        newFiles,
-                        (key, value) => [[key, value[0]]] as const
-                    )
-                ).then(
-                    () => {
-                        newFiles.forEach(
-                            ([, annotations], filename) => {
-                                dataset.setAnnotationsForFile(filename, annotations)
-                            }
+                const task = startTask<void>(
+                    async (complete, _, updateProgress) => {
+                        const addFilesTask = dataset.addFiles(
+                            mapMap(
+                                newFiles,
+                                (filename, [data]) => [[filename, data]] as const
+                            )
                         )
-                    }
+
+                        await asSubTask(
+                            addFilesTask,
+                            mapTaskProgress(
+                                updateProgress,
+                                identity,
+                                percent => percent / 2
+                            )
+                        )
+
+                        updateProgress(0.5, "Uploaded all files to server")
+
+                        await asSubTask(
+                            dataset.setAnnotations(
+                                mapMap(
+                                    newFiles,
+                                    (filename, [, annotations]) => [[filename, annotations]] as const
+                                )
+                            ),
+                            mapTaskProgress(
+                                updateProgress,
+                                identity,
+                                percent => 0.5 + percent / 2
+                            )
+                        )
+
+                        updateProgress(1.0, "Uploaded all annotations to server")
+                        complete()
+                    },
+                    false
                 )
+
+                setAddFilesTask(task)
+
+                getTaskCompletionPromise(task).then(() => setAddFilesTask(undefined))
             },
-        [dataset] as const
+        [dataset, setAddFilesTask] as const
     )
 
     if (expanded !== undefined) {
@@ -191,6 +235,7 @@ export default function DefaultDatasetOverview<
             disabled={dataset === undefined}
             onSubmit={onSubmit}
             subMenus={addFilesSubMenus}
+            addingFilesTask={addFilesTask}
         />
         {renderedItems}
     </FlexContainer>

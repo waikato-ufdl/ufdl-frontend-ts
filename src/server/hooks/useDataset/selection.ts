@@ -8,7 +8,6 @@ import {DatasetDispatchItemSelector, ItemSelector} from "./types";
 import {DatasetDispatchItem} from "./DatasetDispatch";
 import {Data} from "../../types/data";
 import {UNINITIALISED} from "../../../util/react/hooks/useDerivedReducer";
-import arrayMap from "../../../util/typescript/arrays/arrayMap";
 
 
 export const SELECTIONS = {
@@ -97,13 +96,12 @@ export function selectedInitialiser(
     // Create a state where each file is not selected
     const state: Map<string, boolean>
         = new Map(
-            arrayMap(
-                args,
-                    (filename) => [
-                        filename as string,
-                        currentState !== UNINITIALISED && currentState.get(filename) === true
-                    ] as const
-                )
+            args.map(
+                (filename) => [
+                    filename as string,
+                    currentState !== UNINITIALISED && currentState.get(filename) === true
+                ] as const
+            )
         );
 
     return state
