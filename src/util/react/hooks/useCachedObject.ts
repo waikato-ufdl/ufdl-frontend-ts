@@ -1,10 +1,9 @@
 import useDerivedStates from "./useDerivedStates";
 import {mapOwnProperties} from "../../typescript/object";
-import arrayMap from "../../typescript/arrays/arrayMap";
 import arrayFlatten from "../../typescript/arrays/arrayFlatten";
 import {localeCompareUndefined} from "../../typescript/strings/localeCompareUndefined";
 import {anyToString} from "../../typescript/strings/anyToString";
-import {tuple} from "../../typescript/arrays/tuple";
+import {tuple, tupleMap} from "../../typescript/arrays/tuple";
 
 
 
@@ -53,7 +52,7 @@ export function useCachedObjects<A extends readonly object[]>(
 
     // Create a canonical array (sorted by property name) of interleaved properties/values for each object,
     // ensuring the array of these arrays is in the same order as the given objects.
-    const objectPropertyValuePairs = arrayMap(
+    const objectPropertyValuePairs = tupleMap<A, { [I in keyof A]: (keyof A[I] | A[I][keyof A[I]])[] }>(
         objects,
         interleavePropertiesAndValue
     )
@@ -66,10 +65,10 @@ export function useCachedObjects<A extends readonly object[]>(
     )
 
     // Return the cached objects in the same order as the originals were given
-    return arrayMap(
+    return tupleMap(
         objectPropertyValuePairs,
         el => map.get(el as any)!
-    ) as A
+    )
 }
 
 function objectFromFlatPropertyArray<T extends object>(

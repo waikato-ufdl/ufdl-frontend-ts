@@ -7,12 +7,8 @@ import {SelfIterableIterator} from "../iterate/SelfIterableIterator";
 import iterate from "../iterate/iterate";
 import iteratorMap from "../iterate/map";
 import {any} from "../any";
-import arrayMap from "../arrays/arrayMap";
-import zip from "../iterate/zip";
 import isDefined from "../isDefined";
-import arrayFilter from "../arrays/arrayFilter";
 import iteratorFilter from "../iterate/filter";
-import {all} from "../all";
 
 /** A unique symbol representing the absence of value for a given key. */
 const NO_VALUE: unique symbol = Symbol("There is no value for the given key")
@@ -108,7 +104,7 @@ export class MultiKeyMap<K extends readonly unknown[], V>
     }
 
     keep(...keys: Readonly<K>[]): boolean {
-        const keySet = new MultiKeyMap(arrayMap(keys, key => [key, undefined] as const))
+        const keySet = new MultiKeyMap(keys.map(key => [key, undefined] as const))
         const otherKeys = [...iteratorFilter(this.keys(), key => !keySet.has(key))]
 
         if (otherKeys.length === 0) return false

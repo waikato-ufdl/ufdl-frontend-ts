@@ -1,18 +1,27 @@
 import {NTuple} from "../types/array/NTuple";
 import range from "../range";
 
+/**
+ * Similar to {@link Array.map}, but preserves tuple length information,
+ * and can individually map heterogeneous element types. The type-signature
+ * is a bit gnarly compared with {@link Array.map}, so only use if the
+ * length/heterogeneous functionality is required.
+ *
+ * @param tuple
+ *          The source tuple to map over.
+ * @param mapFn
+ *          The function which maps each element to it's correspondent in the result.
+ * @return
+ *          The mapped result.
+ */
 export function tupleMap<
-    T extends readonly unknown[],
-    R extends { [K in keyof T]: any }
->(
-    tuple: T,
-    mapFunctions: { readonly [K in keyof T]: (value: T[K], index: K) => R[K] }
-): R {
-    return tuple.map(
-        (value, index) => {
-            return mapFunctions[index](value, index)
-        }
-    ) as any
+    TTuple extends readonly unknown[],
+    TResult extends { -readonly [TKey in keyof TTuple]: unknown }
+    >(
+    tuple: TTuple,
+    mapFn: <TIndex extends keyof TTuple & number>(element: TTuple[TIndex], index: TIndex, tuple: TTuple) => TResult[TIndex]
+): TResult {
+    return tuple.map(mapFn as any) as any
 }
 
 export function nTupleOf<T, N extends number>(

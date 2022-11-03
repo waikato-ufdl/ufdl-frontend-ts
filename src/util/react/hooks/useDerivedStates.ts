@@ -1,7 +1,6 @@
 import useDerivedReducer, {UNINITIALISED} from "./useDerivedReducer";
 import {identity} from "../../identity";
 import {MultiKeyMap, ReadonlyMultiKeyMap} from "../../typescript/datastructures/MultiKeyMap";
-import arrayMap from "../../typescript/arrays/arrayMap";
 import {all} from "../../typescript/all";
 
 /** The type of function used to derive state for each dependency. */
@@ -20,8 +19,7 @@ function dependencySetInitialiser<D extends readonly unknown[], S>(
     if (deriveState !== prevDeriveState || prevMap === undefined) {
         return [
             new MultiKeyMap<D, S>(
-                arrayMap(
-                    dependencies,
+                dependencies.map(
                     dependency => [dependency, deriveState(...dependency)] as const
                 )
             ),

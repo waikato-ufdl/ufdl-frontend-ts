@@ -1,6 +1,5 @@
 import {DetectedObjects} from "../server/types/annotations";
-import {Annotation, ImageAnnotation, VideoAnnotation} from "ufdl-ts-client/json/hand_crafted/AnnotationsFile";
-import arrayMap from "./typescript/arrays/arrayMap";
+import {Annotation, ImageAnnotation, VideoAnnotation, Point as ClientPoint} from "ufdl-ts-client/json/hand_crafted/AnnotationsFile";
 import {mapGetDefault} from "./map";
 import {hasOwnProperty} from "./typescript/object";
 import {inferElementsFromFirst} from "./typescript/arrays/inferElementsFromFirst";
@@ -9,6 +8,8 @@ import {Annotated} from "./react/component/pictureannotate/annotated";
 import Shape from "./react/component/pictureannotate/shapes/Shape";
 import Box from "./react/component/pictureannotate/shapes/Box";
 import Polygon from "./react/component/pictureannotate/shapes/Polygon";
+import {Point} from "./react/component/pictureannotate/util/Point";
+import {tupleMap} from "./typescript/arrays/tuple";
 
 export function iAnnotationsToAnnotations(iAnnotations: readonly Annotated<Shape>[]): ImageAnnotation[];
 export function iAnnotationsToAnnotations(iAnnotations: readonly Annotated<Shape>[], time: number): VideoAnnotation[];
@@ -16,8 +17,7 @@ export function iAnnotationsToAnnotations(
     iAnnotations: readonly Annotated<Shape>[],
     time?: number | undefined
 ): ImageAnnotation[] | VideoAnnotation[] {
-    return arrayMap(
-        iAnnotations,
+    return iAnnotations.map(
         iAnnotation => iAnnotationToDetectedObject(iAnnotation, time)
     ) as any
 }
@@ -45,7 +45,7 @@ export function iAnnotationToDetectedObject(
 
     const polygon = iAnnotation.shape instanceof Polygon
         ? {
-            points: arrayMap(
+            points: tupleMap<[Point, Point, Point, ...Point[]], [ClientPoint, ClientPoint, ClientPoint, ...ClientPoint[]]>(
                 iAnnotation.shape.points,
                 ({ x, y }) => [Math.round(x), Math.round(y)] as [number, number]
             )
@@ -124,7 +124,7 @@ export function annotationToIAnnotation(
         shape: annotation.polygon === undefined
             ? new Box(annotation.y, annotation.x, annotation.width, annotation.height)
             : new Polygon(
-                ...arrayMap(
+                ...tupleMap<[ClientPoint, ClientPoint, ClientPoint, ...ClientPoint[]], [Point, Point, Point, ...Point[]]>(
                     annotation.polygon.points,
                     ([x, y]) => {
                         return {
