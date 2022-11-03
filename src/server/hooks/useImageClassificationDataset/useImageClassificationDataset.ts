@@ -28,13 +28,14 @@ function getData(
     )
 }
 
-async function setData(
+function setData(
     _context: UFDLServerContext,
     _dataset: DatasetInstance,
     _filename: string,
     _data: Image
-) {
+): Promise<void> {
     // No need to do any additional work for images
+    return Promise.resolve()
 }
 
 async function getAnnotations(
