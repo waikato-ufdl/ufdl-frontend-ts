@@ -301,7 +301,7 @@ export function SubmitCancelVideoAnnotation(
     ).filter(annotation => annotation !== "")
 
     // Display the annotator for the frame, along with the frame-time slider and frame-time multi-select
-    return <>
+    return <div className={"SubmitCancelVideoAnnotation"}>
         <SubmitCancelPictureAnnotation
             annotatedShapes={annotationsMap.get(frametime) ?? []}
             selected={selected}
@@ -314,6 +314,6 @@ export function SubmitCancelVideoAnnotation(
         />
         {element}
         {frameDropDown}
-    </>
+    </div>
 
 }

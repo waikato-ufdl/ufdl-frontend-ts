@@ -1,3 +1,9 @@
+.SubmitCancelVideoAnnotation {
+    width: 100%;
+    flex-grow: 1;
+    overflow: hidden;
+}
+
 .SubmitCancelVideoAnnotationRange {
     position: absolute;
     bottom: 0;
