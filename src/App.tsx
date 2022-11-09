@@ -3,7 +3,7 @@ import './App.css';
 import Window from "./components/Window";
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import {MainMenuPage} from "./components/pages/MainMenuPage";
-import {QueryClient, QueryClientProvider} from "react-query"
+import {QueryClient, QueryClientProvider} from "@tanstack/react-query"
 import {AppSettingsProvider, useAppSettings} from "./useAppSettings";
 import useStateSafe from "./util/react/hooks/useStateSafe";
 import {UFDLServerContextProvider} from "./server/UFDLServerContextProvider";

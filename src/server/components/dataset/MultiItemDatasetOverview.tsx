@@ -290,7 +290,7 @@ function useExamples<
         () => {
             if (comparisonDataset === undefined) return
             for (const { annotations } of comparisonDataset.values()) {
-                if (annotations.isIdle) discard(annotations.refetch({cancelRefetch: false}))
+                if (!annotations.isFetched) discard(annotations.refetch({cancelRefetch: false}))
             }
         },
         [comparisonDataset]

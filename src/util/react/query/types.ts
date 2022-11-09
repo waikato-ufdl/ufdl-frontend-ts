@@ -1,4 +1,4 @@
-import {QueryObserverBaseResult} from "react-query/types/core/types";
+import {QueryObserverBaseResult} from "@tanstack/react-query";
 
 /** Query result without the ability to remove the query-data. */
 export type ReadonlyQueryResult<TData = unknown, TError = unknown> = Readonly<

@@ -1,20 +1,20 @@
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import * as DatasetCore from "ufdl-ts-client/functional/core/dataset"
 import {DatasetPK} from "../../pk";
-import {countOwnProperties, mapOwnProperties} from "../../../util/typescript/object";
+import {mapOwnProperties} from "../../../util/typescript/object";
 import forDownload from "../../forDownload";
 import {mapMap, mapToObject} from "../../../util/map";
 import useDerivedState from "../../../util/react/hooks/useDerivedState";
 import {
     QueryClient,
+    QueryFunctionContext,
     QueryObserverResult,
     useMutation,
     useQueries,
     useQuery,
     useQueryClient,
     UseQueryOptions
-} from "react-query";
-import {QueryFunctionContext} from "react-query/types/core/types";
+} from "@tanstack/react-query";
 import compressFiles from "../../util/compressFiles";
 import useDerivedReducer from "../../../util/react/hooks/useDerivedReducer";
 import {
@@ -24,8 +24,8 @@ import {
     MutableDatasetDispatchConstructor,
     DataSetterFunction,
     MutableDatasetDispatchItemConstructor,
-    UseMutationOptionsWithCallbacks,
-    UseMutateFunctionWithCallbacks, UseMutationOptionsWithTask, UseMutateFunctionWithTask
+    UseMutationOptionsWithTask,
+    UseMutateFunctionWithTask
 } from "./types";
 import assert from "assert";
 import {Data} from "../../types/data";
@@ -48,8 +48,6 @@ import {tuple} from "../../../util/typescript/arrays/tuple";
 import useDatasetMutationMethods from "./useDatasetMutationMethods";
 import {useEffect} from "react";
 import UNREACHABLE from "../../../util/typescript/UNREACHABLE";
-import passOnUndefined from "../../../util/typescript/functions/passOnUndefined";
-import withIgnoredCallbackErrors from "../../../util/typescript/functions/withIgnoredCallbackErrors";
 import {identity} from "../../../util/identity";
 import {
     asSubTask, getTaskCompletionPromise,
@@ -188,7 +186,7 @@ export default function useDataset<
         },
         [fileOrdering, serverContext, datasetResult.data, getData, datasetPK, queryClient] as const
     )
-    const fileDataResults = useQueries(fileDataQueries)
+    const fileDataResults = useQueries({queries: fileDataQueries})
 
     // Create queries for the annotations for each of the files in the dataset
     const fileAnnotationQueries = useDerivedState(
@@ -218,7 +216,7 @@ export default function useDataset<
         },
         [fileOrdering, serverContext, datasetResult.data, getAnnotations, queryClient] as const
     )
-    const fileAnnotationResults = useQueries(fileAnnotationQueries)
+    const fileAnnotationResults = useQueries({queries: fileAnnotationQueries})
 
     useEffect(
         () => {

@@ -1,4 +1,4 @@
-import {UseQueryResult} from "react-query";
+import {UseQueryResult} from "@tanstack/react-query";
 import {ReadonlyQueryResult} from "./types";
 import {omit} from "../../typescript/object";
 

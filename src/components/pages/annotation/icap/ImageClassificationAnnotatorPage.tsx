@@ -258,43 +258,45 @@ function createImageClassificationExtraControlsRenderer(
 
         const labelModal = useLocalModal();
 
-        return <>
-            <button
-                onClick={labelModal.onClick}
-                disabled={onRelabelSelected === undefined}
-            >
-                Relabel
-            </button>
+        return [
+            <>
+                <button
+                    onClick={labelModal.onClick}
+                    disabled={onRelabelSelected === undefined}
+                >
+                    Relabel
+                </button>
 
-            <LocalModal
-                position={labelModal.position}
-                onCancel={labelModal.hide}
-            >
-                <PickClassForm
-                    onSubmit={onRelabelSelected!}
-                    colours={colours}
-                    confirmText={"Relabel"}
-                />
-            </LocalModal>
+                <LocalModal
+                    position={labelModal.position}
+                    onCancel={labelModal.hide}
+                >
+                    <PickClassForm
+                        onSubmit={onRelabelSelected!}
+                        colours={colours}
+                        confirmText={"Relabel"}
+                    />
+                </LocalModal>
 
-            <button
-                onClick={onRequestLabelColourPickerOverlay}
-                disabled={onRequestLabelColourPickerOverlay === undefined}
-            >
-                Labels...
-            </button>
+                <button
+                    onClick={onRequestLabelColourPickerOverlay}
+                    disabled={onRequestLabelColourPickerOverlay === undefined}
+                >
+                    Labels...
+                </button>
 
-            <label>
-                Eval Dataset:
-                <DatasetSelect
-                    domain={"Image Classification"}
-                    projectPK={projectPK}
-                    value={evalPK}
-                    onChanged={setEvalPK}
-                    disabled={evalPKLocked}
-                />
-            </label>
-        </>
+                <label>
+                    Eval Dataset:
+                    <DatasetSelect
+                        domain={"Image Classification"}
+                        projectPK={projectPK}
+                        value={evalPK}
+                        onChanged={setEvalPK}
+                        disabled={evalPKLocked}
+                    />
+                </label>
+            </>
+        ]
     }
 }
 
@@ -315,28 +317,30 @@ function createImageClassificationSelectFragmentRenderer(
     evalDataset: DatasetDispatch<Image, Classification> | undefined
 ): ItemSelectFragmentRenderer<Image, Classification> {
     return (select) => {
-        return <>
-            <ClassSelect
-                onReclassify={(_, classification) => {
-                    select(IC_SELECTIONS.withClassification(classification))
-                }}
-                colours={classColours}
-                allowSelectNone
-                noAnnotationLabel={"[NONE]"}
-            />
-            <button
-                disabled={evalDataset === undefined}
-                onClick={() => select(IC_SELECTIONS.correctForEval(evalDataset!, extractClassificationForEval))}
-            >
-                Correct
-            </button>
-            <button
-                disabled={evalDataset === undefined}
-                onClick={() => select(IC_SELECTIONS.incorrectForEval(evalDataset!, extractClassificationForEval))}
-            >
-                Incorrect
-            </button>
-        </>
+        return [
+            <>
+                <ClassSelect
+                    onReclassify={(_, classification) => {
+                        select(IC_SELECTIONS.withClassification(classification))
+                    }}
+                    colours={classColours}
+                    allowSelectNone
+                    noAnnotationLabel={"[NONE]"}
+                />
+                <button
+                    disabled={evalDataset === undefined}
+                    onClick={() => select(IC_SELECTIONS.correctForEval(evalDataset!, extractClassificationForEval))}
+                >
+                    Correct
+                </button>
+                <button
+                    disabled={evalDataset === undefined}
+                    onClick={() => select(IC_SELECTIONS.incorrectForEval(evalDataset!, extractClassificationForEval))}
+                >
+                    Incorrect
+                </button>
+            </>
+        ]
     }
 }
 

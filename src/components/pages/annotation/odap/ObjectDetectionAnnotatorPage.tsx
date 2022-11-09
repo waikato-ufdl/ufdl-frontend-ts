@@ -39,7 +39,7 @@ import {DatasetDispatchItemAnnotationType} from "../../../../server/hooks/useDat
 import {Absent} from "../../../../util/typescript/types/Possible";
 import hasData from "../../../../util/react/query/hasData";
 import mapQueryResult from "../../../../util/react/query/mapQueryResult";
-import {RefetchOptions, RefetchQueryFilters} from "react-query/types/core/types";
+import {RefetchOptions, RefetchQueryFilters} from "@tanstack/react-query";
 import {Annotated} from "../../../../util/react/component/pictureannotate/annotated";
 import Shape from "../../../../util/react/component/pictureannotate/shapes/Shape";
 
@@ -238,7 +238,7 @@ function createObjectDetectionExtraControlsRenderer(
     // No parameters
 ): AnnotatorTopMenuExtraControlsRenderer {
     return () => {
-        return <></>
+        return [<></>]
     }
 }
 
@@ -246,7 +246,7 @@ function createObjectDetectionSelectFragmentRenderer(
     // No parameters
 ): ItemSelectFragmentRenderer<Image, DetectedObjects> {
     return () => {
-        return <></>
+        return [<></>]
     }
 }
 

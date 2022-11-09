@@ -1,6 +1,6 @@
 import {Component, JSXElementConstructor} from "react";
 
-export type JSXClassElementConstructor<P> = new (props: P) => Component<P, any>
+export type JSXClassElementConstructor<P> = new (props: P) => Component<any, any>
 
 /**
  * Determines if a JSX element constructor refers to a class-based component.

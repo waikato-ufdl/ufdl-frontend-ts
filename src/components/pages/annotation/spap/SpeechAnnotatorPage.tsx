@@ -151,18 +151,20 @@ function createSpeechExtraControlsRenderer(
     // No parameters
 ): AnnotatorTopMenuExtraControlsRenderer {
     return () => {
-        return <>
-            <label>
-                Eval Dataset:
-                <DatasetSelect
-                    domain={"Speech"}
-                    projectPK={projectPK}
-                    value={evalPK}
-                    onChanged={setEvalPK}
-                    disabled={evalPKLocked}
-                />
-            </label>
-        </>
+        return [
+            <>
+                <label>
+                    Eval Dataset:
+                    <DatasetSelect
+                        domain={"Speech"}
+                        projectPK={projectPK}
+                        value={evalPK}
+                        onChanged={setEvalPK}
+                        disabled={evalPKLocked}
+                    />
+                </label>
+            </>
+        ]
     }
 }
 
@@ -170,7 +172,7 @@ function createSpeechSelectFragmentRenderer(
     // No parameters
 ): ItemSelectFragmentRenderer<Audio, Transcription> {
     return () => {
-        return <></>
+        return [<></>]
     }
 }
 

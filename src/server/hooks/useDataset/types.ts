@@ -5,7 +5,7 @@ import {BlobSubject} from "../../../util/rx/data/BlobSubject";
 import {Data} from "../../types/data";
 import {NO_ANNOTATION, OptionalAnnotations} from "../../types/annotations";
 import {DatasetPK} from "../../pk";
-import {UseMutateFunction, UseMutationOptions, UseQueryResult} from "react-query";
+import {UseMutateFunction, UseMutationOptions, UseQueryResult} from "@tanstack/react-query";
 import {TOGGLE} from "./selection";
 import {DatasetItem} from "../../types/DatasetItem";
 import {Dataset} from "../../types/Dataset";

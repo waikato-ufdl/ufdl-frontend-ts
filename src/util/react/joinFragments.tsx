@@ -7,19 +7,21 @@ import iterateLiteral from "../typescript/iterate/iterateLiteral";
 export default function joinFragments(
     ...fragments: ReactFragment[]
 ): ReactFragment {
-    return <>
-        {
-            [
-                ...iteratorConcat(
-                    ...iteratorMap(
-                        fragments[Symbol.iterator](),
-                        (fragment) => {
-                            if (!isArray(fragment)) return iterateLiteral();
-                            return fragment[Symbol.iterator]();
-                        }
+    return [
+        <>
+            {
+                [
+                    ...iteratorConcat(
+                        ...iteratorMap(
+                            fragments[Symbol.iterator](),
+                            (fragment) => {
+                                if (!isArray(fragment)) return iterateLiteral(fragment);
+                                return fragment[Symbol.iterator]();
+                            }
+                        )
                     )
-                )
-            ]
-        }
-    </>
+                ]
+            }
+        </>
+    ]
 }

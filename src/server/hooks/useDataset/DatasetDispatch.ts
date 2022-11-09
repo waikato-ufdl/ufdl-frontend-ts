@@ -5,11 +5,12 @@ import {iteratorReduce} from "../../../util/typescript/iterate/reduce";
 import {TOGGLE} from "./selection";
 import {DatasetInstance} from "ufdl-ts-client/types/core/dataset";
 import {
+    FetchStatus,
     QueryObserverResult,
     RefetchOptions,
     RefetchQueryFilters,
     UseQueryResult
-} from "react-query";
+} from "@tanstack/react-query";
 import {ReadonlyQueryResult} from "../../../util/react/query/types";
 import iterate from "../../../util/typescript/iterate/iterate";
 import {Dataset} from "../../types/Dataset";
@@ -141,12 +142,11 @@ export class DatasetDispatch<D extends Data, A, I extends DatasetDispatchItem<D,
     get data(): DatasetInstance | undefined { return this.datasetResult.data }
     get error(): unknown { return this.datasetResult.error }
     get isError(): boolean { return this.datasetResult.isError }
-    get isIdle(): boolean { return this.datasetResult.isIdle }
     get isLoading(): boolean { return this.datasetResult.isLoading }
     get isLoadingError(): boolean { return this.datasetResult.isLoadingError }
     get isRefetchError(): boolean { return this.datasetResult.isRefetchError }
     get isSuccess(): boolean { return this.datasetResult.isSuccess }
-    get status(): "error" | "idle" | "loading" | "success" { return this.datasetResult.status }
+    get status(): "error" | "loading" | "success" { return this.datasetResult.status }
     refetch<TPageData>(options?: (RefetchOptions & RefetchQueryFilters<TPageData>) | undefined): Promise<QueryObserverResult<DatasetInstance>> {
         return this.datasetResult.refetch(options)
     }
@@ -154,12 +154,16 @@ export class DatasetDispatch<D extends Data, A, I extends DatasetDispatchItem<D,
     get errorUpdateCount(): number { return this.datasetResult.errorUpdateCount }
     get errorUpdatedAt(): number { return this.datasetResult.errorUpdatedAt }
     get failureCount(): number { return this.datasetResult.failureCount }
+    get failureReason(): unknown | null { return this.datasetResult.failureReason }
     get isFetched(): boolean { return this.datasetResult.isFetched }
     get isFetchedAfterMount(): boolean { return this.datasetResult.isFetchedAfterMount }
+    get fetchStatus(): FetchStatus { return this.datasetResult.fetchStatus }
     get isFetching(): boolean { return this.datasetResult.isFetching }
     get isPlaceholderData(): boolean { return this.datasetResult.isPlaceholderData }
     get isPreviousData(): boolean { return this.datasetResult.isPreviousData }
+    get isPaused(): boolean { return this.datasetResult.isPaused }
     get isRefetching(): boolean { return this.datasetResult.isRefetching }
+    get isInitialLoading(): boolean { return this.datasetResult.isInitialLoading }
     get isStale(): boolean { return this.datasetResult.isStale }
 
     forEach(

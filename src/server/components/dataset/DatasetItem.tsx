@@ -92,9 +92,9 @@ function DatasetItemComponent<
                         entry => {
                             if (entry.target !== itemDiv) return;
                             if (entry.isIntersecting) {
-                                if (item.data.isIdle) item.data.refetch({cancelRefetch: true})
-                                if (item.annotations.isIdle) item.annotations.refetch({cancelRefetch: true})
-                                if (comparisonAnnotation !== Absent && comparisonAnnotation.isIdle) comparisonAnnotation.refetch({cancelRefetch: true})
+                                if (!item.data.isFetched) item.data.refetch({ cancelRefetch: false })
+                                if (!item.annotations.isFetched) item.annotations.refetch({ cancelRefetch: false })
+                                if (comparisonAnnotation !== Absent && !comparisonAnnotation.isFetched) comparisonAnnotation.refetch({ cancelRefetch: false })
                                 observer.unobserve(entry.target)
                             }
                         }

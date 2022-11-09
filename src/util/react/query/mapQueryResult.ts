@@ -1,4 +1,4 @@
-import {UseQueryResult} from "react-query";
+import {UseQueryResult} from "@tanstack/react-query";
 import hasData from "./hasData";
 
 export default function mapQueryResult<TDataNew = unknown, TData = unknown, TError = unknown>(
