@@ -33,9 +33,8 @@ function setData(
     _dataset: DatasetInstance,
     _filename: string,
     _data: Image
-): Promise<void> {
+): void {
     // No need to do any additional work for images
-    return Promise.resolve()
 }
 
 async function getAnnotations(

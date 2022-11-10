@@ -22,7 +22,7 @@ async function getData(
     )
 }
 
-async function setData(
+function setData(
     _context: UFDLServerContext,
     _dataset: DatasetInstance,
     _filename: string,

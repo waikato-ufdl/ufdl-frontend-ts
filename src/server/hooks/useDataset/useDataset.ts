@@ -58,6 +58,7 @@ import {
     taskFromPromise
 } from "../../../util/typescript/task/Task";
 import pass from "../../../util/typescript/functions/pass";
+import {raceKeyed} from "../../../util/typescript/async/raceKeyed";
 
 /**
  * Baseline functionality for using a dataset on the server. Extended via the
@@ -287,30 +288,33 @@ export default function useDataset<
 
                                 updateProgress(0.5, "Uploaded files to server")
 
-                                const setDataTasks: ParallelSubTasks<string, void> = {}
+                                const setDataPromises: { [filename: string]: Promise<void> } = {}
+                                let progress = 0
+                                let filenames: string[] = []
 
                                 for (const [filename, data] of files.entries()) {
-                                    setDataTasks[filename] = taskFromPromise(
-                                        setData(
-                                            serverContext,
-                                            dataset,
-                                            filename,
-                                            data
-                                        )
+                                    const setDataResult = setData(
+                                        serverContext,
+                                        dataset,
+                                        filename,
+                                        data
                                     )
+
+                                    if (isPromise(setDataResult)) {
+                                        setDataPromises[filename] = setDataResult
+                                        filenames.push(filename)
+                                    } else {
+                                        progress++
+                                        updateProgress(0.5 + 0.5 * (progress / files.size), `Set data for ${filename}`)
+                                    }
                                 }
 
-                                let filenames = [...files.keys()]
                                 while (filenames.length > 0) {
-                                    const [finished] = await raceSubTasks(
-                                        setDataTasks,
-                                        filenames,
-                                        filenames,
-                                        pass
-                                    )
-                                    delete setDataTasks[finished]
+                                    const [finished] = await raceKeyed(setDataPromises, filenames)
+                                    delete setDataPromises[finished]
                                     filenames = filenames.filter(filename => filename !== finished)
-                                    updateProgress(1.0 - 0.5 * (filenames.length / files.size), `Set data for ${finished}`)
+                                    progress++
+                                    updateProgress(0.5 + 0.5 * (progress / files.size), `Set data for ${finished}`)
                                 }
 
                                 complete(addedFiles)
