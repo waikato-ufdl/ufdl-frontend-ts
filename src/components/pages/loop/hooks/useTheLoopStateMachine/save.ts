@@ -78,24 +78,18 @@ export function restoreLoopState(
     const data = context.get_item(LOOP_DATA_KEY, false)
     if (data === null) return undefined
 
-    console.group("Reviving")
-
     const deserialisedStateAndData = {
         state: state,
         data: JSON.parse(
             data,
-            (key, value) => {
-                console.log(key, value)
+            (_key, value) => {
                 const result = typeof value === 'object' && 'type' in value?
                     fromJSON(value) ?? value
                     : value
-                console.log("RESULT", result)
                 return result
             }
         )
     } as LoopStateAndData<SaveableLoopStates>
-
-    console.groupEnd()
 
     if (isAllowedStateAndData(deserialisedStateAndData, "Prelabel", "Training", "Evaluating")) {
         deserialisedStateAndData.data.progress = jobProgressSubject(
@@ -108,8 +102,6 @@ export function restoreLoopState(
     }
 
     deserialisedStateAndData.data.context = context
-
-    console.log("Revived data", deserialisedStateAndData)
 
     return deserialisedStateAndData
 }
