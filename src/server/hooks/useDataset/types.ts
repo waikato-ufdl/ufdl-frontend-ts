@@ -37,7 +37,7 @@ export type DataSetterFunction<D extends Data> = (
     dataset: DatasetInstance,
     filename: string,
     data: D
-) => Promise<void>
+) => Promise<void> | void
 
 /**
  * The type of function that gets the annotations for a file in a dataset.
