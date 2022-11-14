@@ -14,7 +14,7 @@ import useDerivedReducer, {UNINITIALISED} from "../../util/react/hooks/useDerive
 import {createSimpleStateReducer} from "../../util/react/hooks/SimpleStateReducer";
 import usePromise, {Resolution} from "../../util/react/hooks/usePromise";
 import {useEffect} from "react";
-import {Task} from "../../util/typescript/task/Task";
+import {getTaskCompletionPromise, Task} from "../../util/typescript/task/Task";
 import useTask from "../../util/react/hooks/useTask";
 import TaskProgressModal from "../../util/react/component/TaskProgressModal";
 import pass from "../../util/typescript/functions/pass";
@@ -133,6 +133,22 @@ export default function AddFilesButton<D extends Data, A>(
         },
         [menuModal, setSelectedMenu]
     )
+
+    useEffect(
+        () => {
+            if (addingFilesTask === undefined) return
+
+            let shouldCancel = true
+
+            getTaskCompletionPromise(addingFilesTask).then(() => {
+                if (shouldCancel) onCancel()
+            })
+
+            return () => { shouldCancel = false }
+        },
+        [addingFilesTask, onCancel]
+    )
+
 
     // Get the component for the selected menu
     const menuComponent: Resolution<FunctionComponent | null> = usePromise(
