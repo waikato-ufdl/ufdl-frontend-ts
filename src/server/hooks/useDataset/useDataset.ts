@@ -462,7 +462,8 @@ export default function useDataset<
                         UNREACHABLE("dataset will always be defined before this is called")
                     }
 
-                    const subTasks: ParallelSubTasks<string, void, string> = {}
+                    const annotationObject: { [filename: string]: OptionalAnnotations<A> }
+                        = {}
 
                     for (const [filename, annotation] of annotations.entries()) {
                         annotationObject[filename] = annotation
