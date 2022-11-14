@@ -8,6 +8,9 @@ import SpeechDatasetDispatch, {SpeechDatasetDispatchItem} from "./SpeechDatasetD
 import {NO_ANNOTATION, Transcription} from "../../types/annotations";
 import {BlobSubject} from "../../../util/rx/data/BlobSubject";
 import {DatasetInstance} from "ufdl-ts-client/types/core/dataset";
+import {forEachOwnProperty} from "../../../util/typescript/object";
+import {ParallelSubTasks, subTasksAsTask, taskFromPromise} from "../../../util/typescript/task/Task";
+import {identity} from "../../../util/identity";
 
 
 async function getData(
@@ -43,7 +46,63 @@ async function getAnnotations(
     return transcription
 }
 
-async function setAnnotations(
+/*
+TODO: Implement when server-side support is available
+function setAnnotationsBulk(
+    context: UFDLServerContext,
+    dataset: DatasetInstance,
+    annotations: { [filename: string]: Transcription | typeof NO_ANNOTATION }
+) {
+    const categories: Parameters<typeof SPDataset.set_categories>[2] = {}
+
+    forEachOwnProperty(
+        annotations,
+        (filename, annotation) => {
+            categories[filename] = annotation === NO_ANNOTATION ? [] : [annotation]
+        }
+    )
+
+    return taskFromPromise(
+        ICDataset.set_categories(
+            context,
+            dataset.pk,
+            categories
+        )
+    )
+}
+*/
+
+function setAnnotationsOneByOne(
+    context: UFDLServerContext,
+    dataset: DatasetInstance,
+    annotations: { [filename: string]: Transcription | typeof NO_ANNOTATION }
+) {
+    const subTasks: ParallelSubTasks<string, void, string> = {}
+    const keys: string[] = []
+
+    forEachOwnProperty(
+        annotations,
+        (filename, annotation) => {
+            keys.push(filename as string)
+            subTasks[filename] = taskFromPromise(
+                setAnnotationForFile(
+                    context,
+                    dataset,
+                    filename as string,
+                    annotation
+                )
+            )
+        }
+    )
+
+    return subTasksAsTask(
+        subTasks,
+        keys,
+        identity
+    )
+}
+
+async function setAnnotationForFile(
     context: UFDLServerContext,
     dataset: DatasetInstance,
     filename: string,
@@ -67,7 +126,7 @@ export default function useSpeechDataset(
         getData,
         setData,
         getAnnotations,
-        setAnnotations,
+        setAnnotationsOneByOne,
         SpeechDatasetDispatchItem,
         SpeechDatasetDispatch,
         datasetPK,

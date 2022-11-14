@@ -1,13 +1,14 @@
 import React, {Dispatch, ReactNode} from "react";
 import useStateSafe from "./util/react/hooks/useStateSafe";
 import {constantInitialiser} from "./util/typescript/initialisers";
-import {mapObject, mapOwnProperties} from "./util/typescript/object";
+import {mapObject} from "./util/typescript/object";
 import capitalize from "./util/typescript/strings/capitalize";
 import UFDLServerContext from "../../ufdl-ts-client/dist/UFDLServerContext";
 
 /** The type of the settings for the single-page app. */
 export type AppSettings = {
     readonly prelabelMode: "None" | "Single" | "Multi" | "Default"
+    readonly uploadBulkWherePossible: boolean
 }
 
 export type AppSettingDispatchName<SettingName extends string> = `set${Capitalize<SettingName>}`
@@ -25,12 +26,13 @@ export type AppSettingsDispatch = {
 
 /** The app's default settings. */
 const DEFAULT_APP_SETTINGS: AppSettings = {
-    prelabelMode: "Default"
+    prelabelMode: "Default",
+    uploadBulkWherePossible: true
 } as const
 
 const DEFAULT_APP_SETTINGS_DISPATCH: AppSettingsDispatch = mapObject(
     DEFAULT_APP_SETTINGS,
-    property => {
+    <K extends keyof AppSettings>(property: K) => {
         return {
             [getSettingDispatchName(property)]: () => {
                 throw new Error(`Can't set app setting ${property} on default settings object`)
@@ -71,14 +73,23 @@ export function useAppSettings(
     // No parameters
 ): [AppSettings, AppSettingsDispatch] {
     // Create state for the prelabelMode setting
-    const [prelabelMode, setPrelabelMode] = useStateSafe(constantInitialiser(DEFAULT_APP_SETTINGS.prelabelMode))
+    const [prelabelMode, setPrelabelMode] = useStateSafe(
+        constantInitialiser(DEFAULT_APP_SETTINGS.prelabelMode)
+    )
+
+    // Create state for the prelabelMode setting
+    const [uploadBulkWherePossible, setUploadBulkWherePossible] = useStateSafe(
+        constantInitialiser(DEFAULT_APP_SETTINGS.uploadBulkWherePossible)
+    )
 
     return [
         {
-            prelabelMode
+            prelabelMode,
+            uploadBulkWherePossible
         },
         {
-            setPrelabelMode
+            setPrelabelMode,
+            setUploadBulkWherePossible
         }
     ]
 }
@@ -107,10 +118,8 @@ export async function loadSettingsFromContext(
         : {...DEFAULT_APP_SETTINGS}
 
     if (dispatch !== undefined) {
-        mapOwnProperties(
-            deserialised,
-            (setting, value) => dispatch[getSettingDispatchName(setting)](value)
-        )
+        dispatch.setPrelabelMode(deserialised.prelabelMode)
+        dispatch.setUploadBulkWherePossible(deserialised.uploadBulkWherePossible)
     }
 
     return deserialised

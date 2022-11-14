@@ -52,7 +52,7 @@ export class MutableDatasetDispatchItem<D extends Data, A>
         selected: boolean,
         private readonly _setSelected: React.Dispatch<[string, boolean | typeof TOGGLE]>,
         private readonly _setAnnotationsMutation: UseMutateFunctionWithTask<
-            Task<{ [filename: string]: void }, string, never, never>,
+            Task<unknown, string, never, never>,
             unknown,
             ReadonlyMap<string, OptionalAnnotations<A>>
         >
@@ -71,7 +71,7 @@ export class MutableDatasetDispatchItem<D extends Data, A>
     }
 
     async setAnnotations(annotations: OptionalAnnotations<A>): Promise<void> {
-        const [promise, onResolved] = rendezvous<Task<{ [filename: string]: void }, string, never, never>>()
+        const [promise, onResolved] = rendezvous<Task<unknown, string, never, never>>()
         this._setAnnotationsMutation([new Map([[this.filename, annotations]]), onResolved])
         const task = await promise
         await getTaskCompletionPromise(task)

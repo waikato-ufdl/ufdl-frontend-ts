@@ -54,9 +54,8 @@ export type AnnotationsGetterFunction<A> = (
 export type AnnotationsSetterFunction<A> = (
     context: UFDLServerContext,
     dataset: DatasetInstance,
-    filename: string,
-    annotations: A | typeof NO_ANNOTATION
-) => Promise<void>
+    annotations: { [filename: string]: A | typeof NO_ANNOTATION }
+) => Task<unknown, string, never, never>
 
 /**
  * Function which determines whether or not to select a given dataset item.
@@ -108,7 +107,7 @@ export type MutableDatasetDispatchItemConstructor<D extends Data, A, I extends M
         selected: boolean,
         setSelected: React.Dispatch<[string, boolean | typeof TOGGLE]>,
         setAnnotationsMutation: UseMutateFunctionWithTask<
-            Task<{ [filename: string]: void }, string, never, never>,
+            Task<unknown, string, never, never>,
             unknown,
             ReadonlyMap<string, OptionalAnnotations<A>>
         >

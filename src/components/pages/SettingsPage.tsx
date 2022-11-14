@@ -41,6 +41,14 @@ export default function SettingsPage(
                 onChanged={setPrelabelMode}
             />
         </label>
+        <label>
+            Upload in bulk where possible:
+            <input
+                type={"checkbox"}
+                checked={settings.uploadBulkWherePossible}
+                onClick={() => settingsDispatch.setUploadBulkWherePossible(!settings.uploadBulkWherePossible)}
+            />
+        </label>
         <button
             className={"SaveButton"}
             onClick={

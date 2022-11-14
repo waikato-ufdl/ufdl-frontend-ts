@@ -5,6 +5,9 @@ import {directMapObject, mapOwnProperties} from "../object";
 import promiseAsResult from "../async/promiseAsResult";
 import {raceKeyed} from "../async/raceKeyed";
 import {allKeyed} from "../async/allkeyed";
+import mapPromise from "../async/mapPromise";
+import doAsync from "../async/doAsync";
+import {tryMap} from "../error/tryMap";
 
 /**
  * A report on a task's progress.
@@ -609,6 +612,80 @@ export async function asSubTask<
 
     reportProgress()
     return status
+}
+
+export function mapTask<
+    Result,
+    ProgressMetadata,
+    CancelledByReason,
+    CancelWithReason extends CancelledByReason,
+    MappedResult,
+    MappedProgressMetadata,
+    MappedCancelledByReason
+>(
+    task: Task<Result, ProgressMetadata, CancelledByReason, CancelWithReason>,
+    mapResult: (result: Result) => MappedResult,
+    mapProgressMetadata: (metadata: ProgressMetadata) => MappedProgressMetadata,
+    mapCancelledBy: (reason: CancelledByReason) => MappedCancelledByReason,
+    mapCancelWith?: (reason: MappedCancelledByReason) => CancelWithReason,
+    mapProgressPercent: (percent: number) => number = identity,
+    mapFailure: (reason: any) => any = identity
+): Task<MappedResult, MappedProgressMetadata, MappedCancelledByReason> {
+
+    return startTask(
+        async (complete, fail, updateProgress, checkForCancellation) => {
+
+            let cancellationPromise: Promise<CancelWithReason> | undefined = undefined
+
+            if (checkForCancellation !== undefined && mapCancelWith !== undefined) {
+                const [promise, resolve, reject] = rendezvous<MappedCancelledByReason>()
+
+                doAsync(
+                    async () => {
+                        while (true) {
+                            if (cancellationPromise !== undefined) {
+                                const cancelledByReason = await checkForCancellation(true)
+                                if (cancelledByReason === undefined) continue
+                                resolve(cancelledByReason)
+                            } else {
+                                reject()
+                            }
+                            return
+                        }
+                    }
+                )
+
+                cancellationPromise = mapPromise(promise, mapCancelWith)
+            }
+
+            const status = await asSubTask(
+                task,
+                mapTaskProgress(
+                    updateProgress,
+                    mapProgressMetadata,
+                    mapProgressPercent
+                ),
+                cancellationPromise
+            )
+
+            cancellationPromise = undefined
+
+            switch (status.status) {
+                case "completed":
+                    complete(tryMap(status.result, mapResult, "mapResult"))
+                    break;
+                case "pending":
+                    break;
+                case "failed":
+                    fail(tryMap(status.reason, mapFailure, "mapFailure"))
+                    break;
+                case "cancelled":
+                    fail(tryMap(status.reason, mapCancelledBy, "mapCancelledBy"))
+                    break;
+            }
+        }
+    )
+
 }
 
 export type ParallelSubTasks<

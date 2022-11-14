@@ -9,6 +9,11 @@ import {BlobSubject} from "../../../util/rx/data/BlobSubject";
 import {Image} from "../../types/data";
 import {InTransit} from "../../InTransit";
 import {MutableDatasetDispatchItem} from "../useDataset/DatasetDispatch";
+import {ParallelSubTasks, subTasksAsTask, taskFromPromise} from "../../../util/typescript/task/Task";
+import {forEachOwnProperty} from "../../../util/typescript/object";
+import {identity} from "../../../util/identity";
+import {useContext} from "react";
+import {APP_SETTINGS_REACT_CONTEXT} from "../../../useAppSettings";
 
 
 function getData(
@@ -50,7 +55,60 @@ async function getAnnotations(
     return categories[0];
 }
 
-async function setAnnotations(
+function setAnnotationsBulk(
+    context: UFDLServerContext,
+    dataset: DatasetInstance,
+    annotations: { [filename: string]: Classification | typeof NO_ANNOTATION }
+) {
+    const categories: Parameters<typeof ICDataset.set_categories>[2] = {}
+
+    forEachOwnProperty(
+        annotations,
+        (filename, annotation) => {
+            categories[filename] = annotation === NO_ANNOTATION ? [] : [annotation]
+        }
+    )
+
+    return taskFromPromise(
+        ICDataset.set_categories(
+            context,
+            dataset.pk,
+            categories
+        )
+    )
+}
+
+function setAnnotationsOneByOne(
+    context: UFDLServerContext,
+    dataset: DatasetInstance,
+    annotations: { [filename: string]: Classification | typeof NO_ANNOTATION }
+) {
+    const subTasks: ParallelSubTasks<string, void, string> = {}
+    const keys: string[] = []
+
+    forEachOwnProperty(
+        annotations,
+        (filename, annotation) => {
+            keys.push(filename as string)
+            subTasks[filename] = taskFromPromise(
+                setAnnotationForFile(
+                    context,
+                    dataset,
+                    filename as string,
+                    annotation
+                )
+            )
+        }
+    )
+
+    return subTasksAsTask(
+        subTasks,
+        keys,
+        identity
+    )
+}
+
+async function setAnnotationForFile(
     context: UFDLServerContext,
     dataset: DatasetInstance,
     filename: string,
@@ -72,12 +130,15 @@ export default function useImageClassificationDataset(
     datasetPK?: DatasetPK,
     queryDependencies?: readonly unknown[]
 ): ImageClassificationDatasetDispatch | undefined {
+
+    const [appSettings] = useContext(APP_SETTINGS_REACT_CONTEXT);
+
     return useDataset<Image, Classification, MutableDatasetDispatchItem<Image, Classification>, ImageClassificationDatasetDispatch>(
         serverContext,
         getData,
         setData,
         getAnnotations,
-        setAnnotations,
+        appSettings.uploadBulkWherePossible ? setAnnotationsBulk : setAnnotationsOneByOne,
         MutableDatasetDispatchItem,
         ImageClassificationDatasetDispatch,
         datasetPK,

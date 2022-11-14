@@ -51,8 +51,9 @@ import UNREACHABLE from "../../../util/typescript/UNREACHABLE";
 import {identity} from "../../../util/identity";
 import {
     asSubTask, getTaskCompletionPromise,
+    mapTask,
     mapTaskProgress,
-    ParallelSubTasks, raceSubTasks,
+    ParallelSubTasks,
     startTask, subTasksAsTask,
     Task,
     taskFromPromise
@@ -449,7 +450,7 @@ export default function useDataset<
 
     // Create a mutation for setting the annotations for a file in the dataset
     const setAnnotationsMutationOptions: UseMutationOptionsWithTask<
-        Task<{ [filename: string]: void }, string, never, never>,
+        Task<unknown, string, never, never>,
         unknown,
         ReadonlyMap<string, OptionalAnnotations<A>>
     > = useDerivedState(
@@ -464,21 +465,15 @@ export default function useDataset<
                     const subTasks: ParallelSubTasks<string, void, string> = {}
 
                     for (const [filename, annotation] of annotations.entries()) {
-                        subTasks[filename] = taskFromPromise(
-                            setAnnotations(
-                                serverContext,
-                                dataset,
-                                filename,
-                                annotation
-                            )
-                        )
+                        annotationObject[filename] = annotation
                     }
 
-                    const task = subTasksAsTask(
-                        subTasks,
-                        [...annotations.keys()],
-                        key => `Set annotations for ${key} on server`
-                    ) as Task<{ [filename: string]: void }, string, never, never>
+                    const task = mapTask(
+                        setAnnotations(serverContext, dataset, annotationObject),
+                        identity,
+                        filename => `Set annotations for ${filename} on server`,
+                        identity
+                    )
 
                     exportTask(task)
 
@@ -525,7 +520,7 @@ export default function useDataset<
             selected: boolean,
             setSelected: React.Dispatch<[string, (boolean | typeof TOGGLE)]>,
             setAnnotationsMutation: UseMutateFunctionWithTask<
-                Task<{ [filename: string]: void }, string, never, never>,
+                Task<unknown, string, never, never>,
                 unknown,
                 ReadonlyMap<string, OptionalAnnotations<A>>
             >

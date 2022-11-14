@@ -24,7 +24,7 @@ export type DatasetMutationMethods<
     deleteSelectedFiles: () => Task<{ [filename: string]: NamedFileInstance | undefined}, string, never, never>,
     setAnnotationsForSelected: (annotations: OptionalAnnotations<A>) => void,
     setAnnotationsForFile: (filename: string, annotations: OptionalAnnotations<A>) => Promise<void>,
-    setAnnotations: (modifications: ReadonlyMap<string, OptionalAnnotations<A>>) => Task<{ [filename: string]: void }, string, never, never>,
+    setAnnotations: (modifications: ReadonlyMap<string, OptionalAnnotations<A>>) => Task<unknown, string, never, never>,
     clear: () => Task<{ [filename: string]: NamedFileInstance | undefined}, string, never, never>,
     deleteFile: (filename: string) => Task<{ [filename: string]: NamedFileInstance }, string, void, never> | undefined,
     addFiles: (files: ReadonlyMap<string, D>) => Task<NamedFileInstance[]>
@@ -48,7 +48,7 @@ export default function useDatasetMutationMethods<
         readonly string[]
     >,
     setAnnotationsMutate: UseMutateFunctionWithTask<
-        Task<{ [filename: string]: void }, string, never, never>,
+        Task<unknown, string, never, never>,
         unknown,
         ReadonlyMap<string, OptionalAnnotations<A>>
     >,
@@ -131,7 +131,7 @@ export default function useDatasetMutationMethods<
         false
     )
 
-    const setAnnotationsForSelected: (annotations: OptionalAnnotations<A>) => Task<{ [filename: string]: void }, string, never, never>
+    const setAnnotationsForSelected: (annotations: OptionalAnnotations<A>) => Task<unknown, string, never, never>
         = useDerivedState(
             ([itemMap, fileOrdering, getSetAnnotationsMutateTask]) => {
                 return (annotations) => {
