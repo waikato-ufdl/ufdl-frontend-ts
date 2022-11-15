@@ -20,7 +20,7 @@ import {IC_SELECTIONS} from "../../../../server/hooks/useImageClassificationData
 import useDerivedState from "../../../../util/react/hooks/useDerivedState";
 import {Image} from "../../../../server/types/data";
 import {DEFAULT, WithDefault} from "../../../../util/typescript/default";
-import {BY_FILENAME} from "../../../../server/sorting";
+import {BY_FILENAME, BY_HASH} from "../../../../server/sorting";
 import {BY_CLASSIFICATION} from "../../../../server/components/classification/sorting";
 import createFileClassificationModalRenderer
     from "../../../../server/components/classification/createClassificationModalRenderer";
@@ -44,7 +44,8 @@ import {DatasetSelect} from "../../../../server/components/DatasetSelect";
 
 export const SORT_ORDERS = {
     "filename": BY_FILENAME,
-    "label": BY_CLASSIFICATION
+    "label": BY_CLASSIFICATION,
+    "random": BY_HASH
 } as const
 
 export type ICAPProps = {
