@@ -77,14 +77,6 @@ export default function TheLoopPage(
         [templateControlPK] as const
     )
 
-    const queryDependencies = useDerivedState(
-        ([state]) => state === "User Fixing Categories"
-            ? [state] as const
-            : undefined
-        ,
-        [stateMachine.state] as const
-    )
-
     switch (stateMachine.state) {
         case "Initial":
             return <div />
@@ -277,6 +269,7 @@ export default function TheLoopPage(
                     onBack={stateMachine.transitions.reevaluate}
                     onError={stateMachine.transitions.error}
                     modelType={stateMachine.data.modelType}
+                    evalQueryDependencies={["Checking"]}
                 />
                 <RefineOrDoneModal
                     onRefine={() => {refineOrDoneModal.hide(); stateMachine.transitions.finishChecking(appSettings.prelabelMode === "None" ? "Edit" : "Prelabel")}}
@@ -307,7 +300,7 @@ export default function TheLoopPage(
                 onBack={stateMachine.transitions.back}
                 onError={stateMachine.transitions.error}
                 modelType={stateMachine.data.modelType}
-                queryDependencies={queryDependencies}
+                queryDependencies={["User Fixing Categories"]}
                 mode={
                     appSettings.prelabelMode === "None" || appSettings.prelabelMode === "Default"
                         ? DEFAULT
