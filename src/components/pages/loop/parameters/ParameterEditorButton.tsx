@@ -5,25 +5,30 @@ import {ParameterSpec} from "./ParameterSpec";
 import {ParameterValue} from "../../../../../../ufdl-ts-client/dist/json/generated/CreateJobSpec";
 
 /**
- * @property onChange
- *          Function which receive the new value/type of the parameter when it changes.
- * @property parameterSpec
- *          The specification of the parameter being edited.
+ * Props to the {@link ParameterEditorButton} component.
+ *
  * @property name
  *          The name of the parameter being edited.
- * @property hasValue
- *          Whether a value for this parameter has already been set.
+ * @property parameterSpec
+ *          The specification of the parameter being edited.
+ * @property parameterValue
+ *          The current value of the parameter, if any.
+ * @property onParameterValueChanged
+ *          Callback which receives the new value/type of the parameter when it is changed
+ *          through the editing dialogue.
  */
 export type ParameterEditorButtonProps = {
-    onChange: (parameter_value: any, parameter_type: string) => void
+    parameterName: string,
     parameterSpec: ParameterSpec
-    initial: ParameterValue | undefined
-    name: string,
-    hasValue: boolean
+    parameterValue: ParameterValue | undefined
+    onParameterValueChanged: (parameterValue: any, parameterType: string) => void
 }
 
 /**
  * A button which activates a modal editing dialogue for a parameter when it is clicked.
+ *
+ * @param props
+ *          The [props]{@link ParameterEditorButtonProps} to the component.
  */
 export default function ParameterEditorButton(
     props: ParameterEditorButtonProps
@@ -37,20 +42,20 @@ export default function ParameterEditorButton(
             title={props.parameterSpec.help}
             onClick={(event) => editorModal.show(event.clientX, event.clientY)}
         >
-            {props.name}{props.hasValue ? " ✓" : ""}
+            {props.parameterName}{props.parameterValue !== undefined ? " ✓" : ""}
         </button>
 
         {/* The modal editing dialogue. */}
         <ParameterEditor
-            onChange={
+            onParameterValueChanged={
                 (parameterValue, parameterType) => {
-                    props.onChange(parameterValue, parameterType)
+                    props.onParameterValueChanged(parameterValue, parameterType)
                     editorModal.hide()
                 }
             }
             parameterSpec={props.parameterSpec}
-            initial={props.initial}
-            name={props.name}
+            parameterValue={props.parameterValue}
+            parameterName={props.parameterName}
             position={editorModal.position}
             onCancel={() => editorModal.hide()}
         />

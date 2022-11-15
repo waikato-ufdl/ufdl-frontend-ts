@@ -10,40 +10,48 @@ import {createSimpleStateReducer} from "../../../../util/react/hooks/SimpleState
 import {ParameterValue} from "../../../../../../ufdl-ts-client/dist/json/generated/CreateJobSpec";
 
 /**
- * @property onChange
- *          What to do when the value of this parameter is changed.
+ * The props to the {@link ParameterEditor} component.
+ *
+ * @property parameterName
+ *          The name of the parameter being edited.
  * @property parameterSpec
  *          The specification of the parameter being edited.
- * @property name
- *          The name of the parameter being edited.
+ * @property parameterValue
+ *          The current value of the parameter, if any.
+ * @property onParameterValueChanged
+ *          What to do when the value of this parameter is changed.
  * @property position
  *          Where to display the modal dialogue on screen.
  * @property onCancel
  *          What to do if the user aborts editing the parameter.
  */
 export type ParameterEditorProps = {
-    onChange: (parameter_value: any, parameter_type: string) => void
+    parameterName: string
     parameterSpec: ParameterSpec
-    initial: ParameterValue | undefined
-    name: string
+    parameterValue: ParameterValue | undefined
+    onParameterValueChanged: (parameterValue: any, parameterType: string) => void
     position: [number, number] | undefined
     onCancel: () => void
 }
 
 /**
- * Modal dialogue for editing the value of a parameter to a job-template.
+ * Component for editing the value of a parameter to a job-template.
+ *
+ * @param props
+ *          The [props]{@link ParameterEditorProps} to the component.
  */
 export default function ParameterEditor(
     props: ParameterEditorProps
 ): FunctionComponentReturnType {
 
+    // Get the specification of the parameter's default value
     const parameterDefaultSpec = props.parameterSpec.default
 
     // Create an array of the types that this parameter can take (including DEFAULT
     // to indicate the default type)
     const allowedTypeNames: WithDefault<string>[] = useDerivedState(
         ([parameterTypes, parameterDefaultSpec]) => {
-            let allowedTypeNames: WithDefault<string>[] = []
+            const allowedTypeNames: WithDefault<string>[] = []
 
             // If this parameter has a default, handle adding the default type to the array
             if (parameterDefaultSpec !== undefined) {
@@ -78,12 +86,12 @@ export default function ParameterEditor(
                 return allowedTypeNames[0]
         },
         [parameterDefaultSpec, allowedTypeNames] as const,
-        () => props.initial?.type
+        () => props.parameterValue?.type
     )
 
     // Create a form which lets the user specify the value for the parameter according to the selected type
     const formElement = useDerivedState(
-        ([selectedType, parameterTypes, parameterDefaultSpec, onChange, initial]) => {
+        ([selectedType, parameterTypes, parameterDefaultSpec, onParameterValueChanged, parameterValue]) => {
             // Get the schema of the selected type
             const schema = selectedType === DEFAULT
                 ? parameterDefaultSpec!.schema
@@ -91,8 +99,8 @@ export default function ParameterEditor(
 
             // Set the initial value of the form to the default value of the parameter
             // (if the default type is selected)
-            const formData = initial !== undefined
-                ? initial
+            const formData = parameterValue !== undefined
+                ? parameterValue
                 : parameterDefaultSpec !== undefined && (selectedType === DEFAULT || selectedType === parameterDefaultSpec.type)
                     ? parameterDefaultSpec.value
                     : undefined
@@ -110,11 +118,11 @@ export default function ParameterEditor(
                     schema={schema}
                     formData={formData}
                     disabled={disabled}
-                    onSubmit={(e) => onChange(e.formData, submitType)}
+                    onSubmit={(e) => onParameterValueChanged(e.formData, submitType)}
                 />
             </div>
         },
-        [selectedType, props.parameterSpec.types, props.parameterSpec.default, props.onChange, props.initial?.value] as const
+        [selectedType, props.parameterSpec.types, parameterDefaultSpec, props.onParameterValueChanged, props.parameterValue?.value] as const
     )
 
     return <LocalModal position={props.position} onCancel={props.onCancel}>

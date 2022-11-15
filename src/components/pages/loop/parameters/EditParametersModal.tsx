@@ -6,31 +6,40 @@ import useDerivedState from "../../../../util/react/hooks/useDerivedState";
 import ParameterEditorButton from "./ParameterEditorButton";
 import {any} from "../../../../util/typescript/any";
 import {ParameterValue} from "../../../../../../ufdl-ts-client/dist/json/generated/CreateJobSpec";
-import {useReducer} from "react";
 import {ParameterSpec} from "./ParameterSpec";
+import {ParameterValues} from "./ParameterValues";
+import {Controllable, useControllableState} from "../../../../util/react/hooks/useControllableState";
 
 /**
+ * The props to the {@link EditParametersModal} component.
+ *
+ * @property onParameterValuesChanged
+ *          Callback called when the user changes any parameter values.
  * @property onDone
  *          What to do with the values that the user set for the parameters, once they are done editing them.
  * @property parameterSpecs
  *          The specifications of the parameters that the user can set values for.
+ * @property parameterValues
+ *          A [controllable]{@link Controllable} prop for the current set of parameter values.
  * @property position
  *          Where to display the modal on-screen.
  * @property onCancel
  *          What to do if the user decides to abort setting parameter values.
  */
 export type EditParametersModalProps = {
-    onDone: (
-        parameter_values: { [parameter_name: string]: ParameterValue }
-    ) => void
-    parameterSpecs: { [parameter_name: string]: ParameterSpec }
-    initialValues: { [parameter_name: string]: ParameterValue }
+    onParameterValuesChanged: (parameterValues: ParameterValues) => void
+    onDone: (parameterValues: ParameterValues) => void
+    parameterSpecs: { [parameterName: string]: ParameterSpec }
+    parameterValues: Controllable<ParameterValues>
     position: [number, number] | undefined
     onCancel: () => void
 }
 
 /**
  * Modal dialogue which allows users to set the parameters of a job.
+ *
+ * @param props
+ *          The [props]{@link EditParametersModalProps} to the component.
  */
 export default function EditParametersModal(
     props: EditParametersModalProps
@@ -90,24 +99,23 @@ export default function EditParametersModal(
         [additionalParametersToDisplay, optionalParameterSpecNames, constParameterSpecNames] as const
     )
 
-    // Use a reducer to merge newly-set parameter values into an overall mapping
-    const [
-        parameterValues,
-        setParameterValue
-    ] = useReducer(
-        (
-            prevState: { [parameter_name: string]: ParameterValue},
-            action: [string, ParameterValue]
-        ) => {
-            // Clone the current mapping
-            const newState = {...prevState}
+    // Track the controlled state of the parameter values
+    const [parameterValues, setParameterValues] = useControllableState<ParameterValues>(props.parameterValues, () => { return {} })
 
-            // Set/overwrite the parameter's value under the parameter's name in the mapping
-            newState[action[0]] = action[1]
+    // Derive a function for setting a single parameter's value
+    const setParameterValue = useDerivedState(
+        ([parameterValues, setParameterValues]) => {
+            return (name: string, value: ParameterValue) => {
+                // Clone the current mapping
+                const newState = {...parameterValues}
 
-            return newState
+                // Set/overwrite the parameter's value under the parameter's name in the mapping
+                newState[name] = value
+
+                setParameterValues(newState)
+            }
         },
-        props.initialValues
+        [parameterValues, setParameterValues] as const
     )
 
     // Derive some buttons which allow the user to change which additional parameters are displayed
@@ -148,7 +156,7 @@ export default function EditParametersModal(
         [additionalParametersToDisplay, setAdditionalParametersToDisplay] as const
     )
 
-    // Create a list item for each parameter we are displaying which lets the user edit the parameter's value
+    // Create a button list item for each parameter we are displaying which lets the user edit the parameter's value
     const parameterEditorButtonListItems = useDerivedState(
         ([
             requiredParameterSpecNames,
@@ -157,25 +165,18 @@ export default function EditParametersModal(
             parameterValues,
             setParameterValue
         ]) => {
-            const items = []
+            const namesOfParametersToDisplay = [...requiredParameterSpecNames, ...namesOfAdditionalParametersToDisplay]
 
-            function setParameterValueActual(name: string, value: ParameterValue) {
-                setParameterValue([name, value])
-            }
-
-            items.push(
-                ...requiredParameterSpecNames.map(
-                    name => parameterEditorButtonListItem(parameterSpecs, name, parameterValues, setParameterValueActual)
-                )
+            return namesOfParametersToDisplay.map(
+                name => <li>
+                    <ParameterEditorButton
+                        parameterSpec={parameterSpecs[name]}
+                        parameterName={name}
+                        parameterValue={parameterValues?.[name]}
+                        onParameterValueChanged={(value, type) => setParameterValue(name, {value: value, type: type})}
+                    />
+                </li>
             )
-
-            items.push(
-                ...namesOfAdditionalParametersToDisplay.map(
-                    name => parameterEditorButtonListItem(parameterSpecs, name, parameterValues, setParameterValueActual)
-                )
-            )
-
-            return items
         },
         [
             requiredParameterSpecNames,
@@ -212,21 +213,4 @@ export default function EditParametersModal(
             Done
         </button>
     </LocalModal>
-}
-
-function parameterEditorButtonListItem(
-    parameterSpecs: { [parameter_name: string]: ParameterSpec },
-    name: string,
-    parameterValues: { [parameter_name: string]: ParameterValue },
-    setParameterValue: (name: string, value: ParameterValue) => void
-): JSX.Element {
-    return <li>
-        <ParameterEditorButton
-            parameterSpec={parameterSpecs[name]}
-            name={name}
-            initial={parameterValues?.[name]}
-            hasValue={parameterValues.hasOwnProperty(name)}
-            onChange={(value, type) => setParameterValue(name, {value: value, type: type})}
-        />
-    </li>
 }

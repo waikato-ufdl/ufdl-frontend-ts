@@ -10,7 +10,7 @@ import {constantInitialiser} from "../../../util/typescript/initialisers";
 import RefineOrDoneModal from "./RefineOrDoneModal";
 import useLocalModal from "../../../util/react/hooks/useLocalModal";
 import {ClassColours} from "../../../server/util/classification";
-import SelectTemplateModal from "./SelectTemplateModal";
+import JobTemplateSelectModal from "./JobTemplateSelectModal";
 import {JobTemplateInstance} from "ufdl-ts-client/types/core/jobs/job_template";
 import * as job_template from "ufdl-ts-client/functional/core/jobs/job_template"
 import {ParameterValue} from "ufdl-ts-client/json/generated/CreateJobSpec";
@@ -116,7 +116,7 @@ export default function TheLoopPage(
                     onError={stateMachine.transitions.error}
                     modelType={undefined}
                 />
-                <SelectTemplateModal
+                <JobTemplateSelectModal
                     onDone={
                         async (template_pk, parameter_values) => {
                             const position = trainConfigureModal.position;
@@ -171,7 +171,7 @@ export default function TheLoopPage(
                     position={trainConfigureModal.position}
                     onCancel={() => trainConfigureModal.hide()}
                 />
-                <SelectTemplateModal
+                <JobTemplateSelectModal
                     onDone={(template_pk, parameter_values) => {
                         evalConfigureModal.hide()
                         if (trainTemplate === undefined) return;
@@ -214,7 +214,7 @@ export default function TheLoopPage(
                     onError={stateMachine.transitions.error}
                     modelType={stateMachine.data.modelType}
                 />
-                <SelectTemplateModal
+                <JobTemplateSelectModal
                     onDone={(template_pk, parameter_values) => {
                         evalConfigureModal.hide()
                         stateMachine.transitions.prelabel(template_pk, parameter_values);

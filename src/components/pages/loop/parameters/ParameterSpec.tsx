@@ -6,7 +6,7 @@
  * @property type
  *          The type-name of the default value.
  * @property schema
- *          The JSON schema describing values of the default type (should validate value).
+ *          The JSON schema describing values of the default type (should validate {@link value}).
  * @property const
  *          Whether this is an optional (false) or const (true) parameter.
  */
