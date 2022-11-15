@@ -272,7 +272,7 @@ export default function TheLoopPage(
                     context={ufdlServerContext}
                     setSelectableTemplates={setSelectableTemplates}
                     onNext={refineOrDoneModal.show}
-                    onBack={stateMachine.transitions.reevaluate}
+                    onBack={stateMachine.transitions.back}
                     onError={stateMachine.transitions.error}
                     modelType={stateMachine.data.modelType}
                     evalQueryDependencies={["Checking"]}
