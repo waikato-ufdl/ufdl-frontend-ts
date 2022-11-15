@@ -81,6 +81,15 @@ export default function TheLoopPage(
         [templateControlPK] as const
     )
 
+    const HomeButton = useDerivedState(
+        ([onBack]) => () => {
+            return <button className={"HomeButton"} onClick={onBack}>
+                Home
+            </button>
+        },
+        [props.onBack] as const
+    )
+
     switch (stateMachine.state) {
         case "Initial":
             return <div />
@@ -113,6 +122,7 @@ export default function TheLoopPage(
                     modelType={undefined}
                     selectedSortOrder={UNCONTROLLED_KEEP}
                     heading={"Please select the initial set of images to train against"}
+                    ExtraControls={HomeButton}
                 />
                 <JobTemplateSelectModal
                     onDone={
@@ -213,6 +223,7 @@ export default function TheLoopPage(
                     modelType={stateMachine.data.modelType}
                     selectedSortOrder={UNCONTROLLED_KEEP}
                     heading={"Please select additional images to add to the dataset"}
+                    ExtraControls={HomeButton}
                 />
                 <JobTemplateSelectModal
                     onDone={(template_pk, parameter_values) => {
@@ -280,6 +291,7 @@ export default function TheLoopPage(
                     evalQueryDependencies={["Checking"]}
                     selectedSortOrder={UNCONTROLLED_KEEP}
                     heading={"Please check if the model's accuracy is sufficient"}
+                    ExtraControls={HomeButton}
                 />
                 <RefineOrDoneModal
                     onRefine={() => {refineOrDoneModal.hide(); stateMachine.transitions.finishChecking(appSettings.prelabelMode === "None" ? "Edit" : "Prelabel")}}
@@ -319,6 +331,7 @@ export default function TheLoopPage(
                 selectedSortOrder={"random"}
                 sortOrderLocked
                 heading={"Please check and correct the pre-annotated items"}
+                ExtraControls={HomeButton}
             />
 
         case "Finished":

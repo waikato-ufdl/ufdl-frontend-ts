@@ -1,7 +1,7 @@
 import React, {useContext} from "react";
 import {UFDL_SERVER_REACT_CONTEXT} from "../../../../server/UFDLServerContextProvider";
 import {
-    AnnotatorTopMenuExtraControlsRenderer,
+    AnnotatorTopMenuExtraControlsComponent,
     ItemSelectFragmentRenderer
 } from "../../../../server/components/AnnotatorTopMenu";
 import useStateSafe from "../../../../util/react/hooks/useStateSafe";
@@ -43,6 +43,7 @@ import {RefetchOptions, RefetchQueryFilters} from "@tanstack/react-query";
 import {Annotated} from "../../../../util/react/component/pictureannotate/annotated";
 import Shape from "../../../../util/react/component/pictureannotate/shapes/Shape";
 import {Controllable} from "../../../../util/react/hooks/useControllableState";
+import {FunctionComponentReturnType} from "../../../../util/react/types";
 
 export type ODAPProps = {
     lockedPK?: AnyPK,
@@ -58,6 +59,7 @@ export type ODAPProps = {
     selectedSortOrder: Controllable<WithDefault<string>>
     sortOrderLocked?: boolean
     heading?: string
+    ExtraControls?: AnnotatorTopMenuExtraControlsComponent
 }
 
 export default function ObjectDetectionAnnotatorPage(
@@ -75,7 +77,13 @@ export default function ObjectDetectionAnnotatorPage(
 
     const [itemSelectFragmentRenderer] = useStateSafe(createObjectDetectionSelectFragmentRenderer)
 
-    const [extraControls] = useStateSafe(createObjectDetectionExtraControlsRenderer)
+    const ExtraControls = useDerivedState(
+        ([ExtraControls]) => () => <>
+            <ObjectDetectionExtraControls />
+            {ExtraControls && <ExtraControls />}
+        </>,
+        [props.ExtraControls] as const
+    )
 
     const [filesDetectedObjectsModalRenderer] = useStateSafe(
         () => addFilesRenderer<ImageOrVideo, DetectedObjects>(
@@ -228,7 +236,7 @@ export default function ObjectDetectionAnnotatorPage(
             video: videoDetectedObjectsModalRenderer,
             "video frames": videoFramesDetectedObjectsModalRenderer
         }}
-        extraControls={extraControls}
+        ExtraControls={ExtraControls}
         itemSelectFragmentRenderer={itemSelectFragmentRenderer}
         onSelectedPKChanged={setSelectedPK}
         selectedPK={selectedPK}
@@ -241,12 +249,10 @@ export default function ObjectDetectionAnnotatorPage(
     />
 }
 
-function createObjectDetectionExtraControlsRenderer(
+function ObjectDetectionExtraControls(
     // No parameters
-): AnnotatorTopMenuExtraControlsRenderer {
-    return () => {
-        return [<></>]
-    }
+): FunctionComponentReturnType {
+    return <></>
 }
 
 function createObjectDetectionSelectFragmentRenderer(

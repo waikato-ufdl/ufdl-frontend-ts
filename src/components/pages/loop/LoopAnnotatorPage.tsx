@@ -11,6 +11,7 @@ import {JobTemplateInstance} from "../../../../../ufdl-ts-client/dist/types/core
 import SpeechAnnotatorPage from "../annotation/spap/SpeechAnnotatorPage";
 import {DEFAULT, WithDefault} from "../../../util/typescript/default";
 import {Controllable} from "../../../util/react/hooks/useControllableState";
+import {AnnotatorTopMenuExtraControlsComponent} from "../../../server/components/AnnotatorTopMenu";
 
 export type LoopAnnotatorPageProps = {
     domain: DomainName
@@ -32,6 +33,7 @@ export type LoopAnnotatorPageProps = {
     selectedSortOrder: Controllable<WithDefault<string>>
     sortOrderLocked?: boolean
     heading?: string
+    ExtraControls?: AnnotatorTopMenuExtraControlsComponent
 }
 
 export default function LoopAnnotatorPage(
@@ -75,6 +77,7 @@ export default function LoopAnnotatorPage(
                 selectedSortOrder={props.selectedSortOrder}
                 sortOrderLocked={props.sortOrderLocked}
                 heading={props.heading}
+                ExtraControls={props.ExtraControls}
             />
         case "Object Detection":
             // TODO: Add eval dataset capability
@@ -91,6 +94,7 @@ export default function LoopAnnotatorPage(
                 selectedSortOrder={props.selectedSortOrder}
                 sortOrderLocked={props.sortOrderLocked}
                 heading={props.heading}
+                ExtraControls={props.ExtraControls}
             />
         case "Speech":
             return <SpeechAnnotatorPage
@@ -107,6 +111,7 @@ export default function LoopAnnotatorPage(
                 selectedSortOrder={props.selectedSortOrder}
                 sortOrderLocked={props.sortOrderLocked}
                 heading={props.heading}
+                ExtraControls={props.ExtraControls}
             />
         default:
             props.onError(`No annotator page for domain ${props.domain}`)

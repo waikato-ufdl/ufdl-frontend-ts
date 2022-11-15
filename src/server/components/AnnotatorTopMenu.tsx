@@ -25,14 +25,15 @@ import {ListSelect} from "./ListSelect";
 import {ArraySelect} from "../../util/react/component/ArraySelect";
 import {mapOwnProperties} from "../../util/typescript/object";
 import "./AnnotatorTopMenu.css"
+import {FunctionComponentReturnType} from "../../util/react/types";
 
 export type ItemSelectFragmentRenderer<D extends Data, A> = (
     select: Dispatch<DatasetDispatchItemSelector<D, A>>
 ) => ReactFragment
 
-export type AnnotatorTopMenuExtraControlsRenderer = (
+export type AnnotatorTopMenuExtraControlsComponent = (
     // No parameters
-) => ReactFragment
+) => FunctionComponentReturnType
 
 export type AnnotatorTopMenuProps<D extends DomainName> = {
     /** The domain. */
@@ -55,7 +56,7 @@ export type AnnotatorTopMenuProps<D extends DomainName> = {
     onSelect: ((select: DatasetDispatchItemSelector<DomainDataType<D>, DomainAnnotationType<D>>) => void) | undefined
     itemSelectFragmentRenderer: ItemSelectFragmentRenderer<DomainDataType<D>, DomainAnnotationType<D>>
     onDeleteSelected: (() => void) | undefined
-    extraControls: AnnotatorTopMenuExtraControlsRenderer | undefined
+    ExtraControls?: AnnotatorTopMenuExtraControlsComponent
     numSelected: readonly [number, number]
     onExtractSelected: (() => void) | undefined
     heading?: string
@@ -106,9 +107,7 @@ export default function AnnotatorTopMenu<D extends DomainName>(
     );
 
     // Can't cache the extra controls as they may rely on hooks
-    const extraControls = props.extraControls !== undefined
-        ? props.extraControls()
-        : undefined
+    const ExtraControls = props.ExtraControls
 
     const selectModal = useLocalModal();
 
@@ -200,7 +199,7 @@ export default function AnnotatorTopMenu<D extends DomainName>(
             Extract
         </button>
 
-        {extraControls}
+        {ExtraControls && <ExtraControls />}
 
         <label>
             {`Selected (${numSelected}/${outOf}) `}

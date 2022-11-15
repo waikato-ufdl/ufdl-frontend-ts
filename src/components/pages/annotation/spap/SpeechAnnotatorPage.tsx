@@ -1,7 +1,7 @@
 import React, {Dispatch, useContext} from "react";
 import {UFDL_SERVER_REACT_CONTEXT} from "../../../../server/UFDLServerContextProvider";
 import {
-    AnnotatorTopMenuExtraControlsRenderer,
+    AnnotatorTopMenuExtraControlsComponent,
     ItemSelectFragmentRenderer
 } from "../../../../server/components/AnnotatorTopMenu";
 import useStateSafe from "../../../../util/react/hooks/useStateSafe";
@@ -25,6 +25,7 @@ import hasData from "../../../../util/react/query/hasData";
 import MinimumEditDistance from "./MinimumEditDistance";
 import {Controllable, useControllableState} from "../../../../util/react/hooks/useControllableState";
 import {DatasetSelect} from "../../../../server/components/DatasetSelect";
+import {FunctionComponentReturnType} from "../../../../util/react/types";
 
 export type SPAPProps = {
     lockedPK?: AnyPK,
@@ -41,6 +42,7 @@ export type SPAPProps = {
     selectedSortOrder: Controllable<WithDefault<string>>
     sortOrderLocked?: boolean
     heading?: string
+    ExtraControls?: AnnotatorTopMenuExtraControlsComponent
 }
 
 export default function SpeechAnnotatorPage(
@@ -69,14 +71,18 @@ export default function SpeechAnnotatorPage(
 
     const [itemSelectFragmentRenderer] = useStateSafe(createSpeechSelectFragmentRenderer)
 
-    const extraControls = useDerivedState(
-        ([selectedPK, evalPK, setEvalPK, evalPKLocked]) => createSpeechExtraControlsRenderer(
-            getProjectPK(selectedPK),
-            evalPK,
-            setEvalPK,
-            evalPKLocked
-        ),
-        [selectedPK, evalPK, setEvalPK, evalPKLocked] as const
+    const ExtraControls = useDerivedState(
+        ([selectedPK, evalPK, setEvalPK, evalPKLocked, ExtraControls]) =>
+            () => <>
+                <SpeechExtraControls
+                    projectPK={getProjectPK(selectedPK)}
+                    evalPK={evalPK}
+                    setEvalPK={setEvalPK}
+                    evalPKLocked={evalPKLocked}
+                />
+                {ExtraControls && <ExtraControls />}
+            </>,
+        [selectedPK, evalPK, setEvalPK, evalPKLocked, props.ExtraControls] as const
     )
 
     const [filesDetectedObjectsModalRenderer] = useStateSafe(
@@ -136,7 +142,7 @@ export default function SpeechAnnotatorPage(
             files: filesDetectedObjectsModalRenderer,
             folders: folderDetectedObjectsModalRenderer
         }}
-        extraControls={extraControls}
+        ExtraControls={ExtraControls}
         itemSelectFragmentRenderer={itemSelectFragmentRenderer}
         onSelectedPKChanged={setSelectedPK}
         selectedPK={selectedPK}
@@ -149,29 +155,24 @@ export default function SpeechAnnotatorPage(
     />
 }
 
-function createSpeechExtraControlsRenderer(
-    projectPK: ProjectPK | undefined,
-    evalPK: Controllable<DatasetPK | undefined>,
-    setEvalPK: Dispatch<DatasetPK | undefined>,
-    evalPKLocked: boolean
-    // No parameters
-): AnnotatorTopMenuExtraControlsRenderer {
-    return () => {
-        return [
-            <>
-                <label>
-                    Eval Dataset:
-                    <DatasetSelect
-                        domain={"Speech"}
-                        projectPK={projectPK}
-                        value={evalPK}
-                        onChanged={setEvalPK}
-                        disabled={evalPKLocked}
-                    />
-                </label>
-            </>
-        ]
+function SpeechExtraControls(
+    props: {
+        projectPK: ProjectPK | undefined
+        evalPK: Controllable<DatasetPK | undefined>,
+        setEvalPK: Dispatch<DatasetPK | undefined>,
+        evalPKLocked: boolean
     }
+): FunctionComponentReturnType {
+    return <label>
+        Eval Dataset:
+        <DatasetSelect
+            domain={"Speech"}
+            projectPK={props.projectPK}
+            value={props.evalPK}
+            onChanged={props.setEvalPK}
+            disabled={props.evalPKLocked}
+        />
+    </label>
 }
 
 function createSpeechSelectFragmentRenderer(

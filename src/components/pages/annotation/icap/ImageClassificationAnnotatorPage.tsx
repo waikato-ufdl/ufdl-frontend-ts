@@ -1,7 +1,7 @@
 import React, {Dispatch, useContext} from "react";
 import {UFDL_SERVER_REACT_CONTEXT} from "../../../../server/UFDLServerContextProvider";
 import {
-    AnnotatorTopMenuExtraControlsRenderer,
+    AnnotatorTopMenuExtraControlsComponent,
     ItemSelectFragmentRenderer
 } from "../../../../server/components/AnnotatorTopMenu";
 import {mapAny, mapMap} from "../../../../util/map";
@@ -41,6 +41,7 @@ import {DatasetDispatchItemAnnotationType} from "../../../../server/hooks/useDat
 import {ImageOrVideoRenderer} from "../../../../server/components/image/ImageOrVideoRenderer";
 import {Controllable, useControllableState} from "../../../../util/react/hooks/useControllableState";
 import {DatasetSelect} from "../../../../server/components/DatasetSelect";
+import {FunctionComponentReturnType} from "../../../../util/react/types";
 
 export const SORT_ORDERS = {
     "filename": BY_FILENAME,
@@ -66,6 +67,7 @@ export type ICAPProps = {
     selectedSortOrder: Controllable<WithDefault<string>>
     sortOrderLocked?: boolean
     heading?: string
+    ExtraControls?: AnnotatorTopMenuExtraControlsComponent
 }
 
 export default function ImageClassificationAnnotatorPage(
@@ -162,17 +164,21 @@ export default function ImageClassificationAnnotatorPage(
         [classColoursDispatch.state, evalDataset] as const
     )
 
-    const extraControls = useDerivedState(
-        () => createImageClassificationExtraControlsRenderer(
-            dataset?.setAnnotationsForSelected?.bind(dataset),
-            classColoursDispatch.state,
-            () => setShowLabelColourPickerPage(true),
-            getProjectPK(selectedPK),
-            evalPK,
-            setEvalPK,
-            evalPKLocked
-        ),
-        [dataset, classColoursDispatch.state, setShowLabelColourPickerPage, selectedPK, evalPK, setEvalPK, evalPKLocked]
+    const ExtraControls = useDerivedState(
+        ([dataset, colours, setShowLabelColourPickerPage, selectedPK, evalPK, setEvalPK, evalPKLocked, ExtraControls]) =>
+            () => <>
+                <ImageClassificationExtraControls
+                    onRelabelSelected={dataset?.setAnnotationsForSelected?.bind(dataset)}
+                    colours={colours}
+                    onRequestLabelColourPickerOverlay={() => setShowLabelColourPickerPage(true)}
+                    projectPK={getProjectPK(selectedPK)}
+                    evalPK={evalPK}
+                    setEvalPK={setEvalPK}
+                    evalPKLocked={evalPKLocked}
+                />
+                {ExtraControls && <ExtraControls />}
+            </>,
+        [dataset, classColoursDispatch.state, setShowLabelColourPickerPage, selectedPK, evalPK, setEvalPK, evalPKLocked, props.ExtraControls] as const
     )
 
     const filesClassificationModalRenderer = useDerivedState(
@@ -238,7 +244,7 @@ export default function ImageClassificationAnnotatorPage(
         DataComponent={ImageOrVideoRenderer}
         AnnotationComponent={ClassificationComponent}
         addFilesSubMenus={addFilesSubMenus}
-        extraControls={extraControls}
+        ExtraControls={ExtraControls}
         itemSelectFragmentRenderer={itemSelectFragmentRenderer}
         onSelectedPKChanged={setSelectedPK}
         selectedPK={selectedPK}
@@ -252,59 +258,56 @@ export default function ImageClassificationAnnotatorPage(
     />
 }
 
-function createImageClassificationExtraControlsRenderer(
-    onRelabelSelected: ((label: OptionalAnnotations<Classification>) => void) | undefined,
-    colours: ClassColours,
-    onRequestLabelColourPickerOverlay: (() => void) | undefined,
-    projectPK: ProjectPK | undefined,
-    evalPK: Controllable<DatasetPK | undefined>,
-    setEvalPK: Dispatch<DatasetPK | undefined>,
-    evalPKLocked: boolean
-): AnnotatorTopMenuExtraControlsRenderer {
-    return () => {
-
-        const labelModal = useLocalModal();
-
-        return [
-            <>
-                <button
-                    onClick={labelModal.onClick}
-                    disabled={onRelabelSelected === undefined}
-                >
-                    Relabel
-                </button>
-
-                <LocalModal
-                    position={labelModal.position}
-                    onCancel={labelModal.hide}
-                >
-                    <PickClassForm
-                        onSubmit={onRelabelSelected!}
-                        colours={colours}
-                        confirmText={"Relabel"}
-                    />
-                </LocalModal>
-
-                <button
-                    onClick={onRequestLabelColourPickerOverlay}
-                    disabled={onRequestLabelColourPickerOverlay === undefined}
-                >
-                    Labels...
-                </button>
-
-                <label>
-                    Eval Dataset:
-                    <DatasetSelect
-                        domain={"Image Classification"}
-                        projectPK={projectPK}
-                        value={evalPK}
-                        onChanged={setEvalPK}
-                        disabled={evalPKLocked}
-                    />
-                </label>
-            </>
-        ]
+function ImageClassificationExtraControls(
+    props: {
+        onRelabelSelected: ((label: OptionalAnnotations<Classification>) => void) | undefined,
+        colours: ClassColours,
+        onRequestLabelColourPickerOverlay: (() => void) | undefined,
+        projectPK: ProjectPK | undefined,
+        evalPK: Controllable<DatasetPK | undefined>,
+        setEvalPK: Dispatch<DatasetPK | undefined>,
+        evalPKLocked: boolean
     }
+): FunctionComponentReturnType {
+    const labelModal = useLocalModal();
+
+    return <>
+        <button
+            onClick={labelModal.onClick}
+            disabled={props.onRelabelSelected === undefined}
+        >
+            Relabel
+        </button>
+
+        <LocalModal
+            position={labelModal.position}
+            onCancel={labelModal.hide}
+        >
+            <PickClassForm
+                onSubmit={props.onRelabelSelected!}
+                colours={props.colours}
+                confirmText={"Relabel"}
+            />
+        </LocalModal>
+
+        <button
+            onClick={props.onRequestLabelColourPickerOverlay}
+            disabled={props.onRequestLabelColourPickerOverlay === undefined}
+        >
+            Labels...
+        </button>
+
+        <label>
+            Eval Dataset:
+            <DatasetSelect
+                domain={"Image Classification"}
+                projectPK={props.projectPK}
+                value={props.evalPK}
+                onChanged={props.setEvalPK}
+                disabled={props.evalPKLocked}
+            />
+        </label>
+    </>
 }
 
 function extractClassificationForEval(

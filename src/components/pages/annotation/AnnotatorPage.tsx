@@ -2,7 +2,7 @@ import React, {useContext} from "react";
 import {UFDL_SERVER_REACT_CONTEXT} from "../../../server/UFDLServerContextProvider";
 import Page from "../Page";
 import AnnotatorTopMenu, {
-    AnnotatorTopMenuExtraControlsRenderer,
+    AnnotatorTopMenuExtraControlsComponent,
     ItemSelectFragmentRenderer
 } from "../../../server/components/AnnotatorTopMenu";
 import useStateSafe from "../../../util/react/hooks/useStateSafe";
@@ -50,7 +50,7 @@ export type AnnotatorPageProps<
     AnnotationComponent: AnnotationComponent<DatasetDispatchItemAnnotationType<DomainAnnotationType<Domain>>>
     ExpandedComponent?: ExpandedComponent<Domain, Item>
     addFilesSubMenus: SubMenus<DomainDataType<Domain>, DomainAnnotationType<Domain>>
-    extraControls: AnnotatorTopMenuExtraControlsRenderer | undefined
+    ExtraControls?: AnnotatorTopMenuExtraControlsComponent
     itemSelectFragmentRenderer: ItemSelectFragmentRenderer<DomainDataType<Domain>, DomainAnnotationType<Domain>>
     className: string | undefined
     onSelectedPKChanged: ((selectedPK: AnyPK) => void) | undefined
@@ -198,7 +198,7 @@ export default function AnnotatorPage<
         onSelect={topMenuOnSelect}
         itemSelectFragmentRenderer={props.itemSelectFragmentRenderer}
         onDeleteSelected={isDefined(props.dataset) ? props.dataset.deleteSelectedFiles.bind(props.dataset) : undefined}
-        extraControls={props.extraControls}
+        ExtraControls={props.ExtraControls}
         numSelected={topMenuNumSelected}
         onExtractSelected={onExtractSelected}
         heading={props.heading}
