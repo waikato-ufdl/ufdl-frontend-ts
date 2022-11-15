@@ -26,6 +26,7 @@ export type LoopStates = ValidStates<{
     "Selecting Prelabel Images": {
         context: UFDLServerContext
         primaryDataset: DatasetPK
+        evaluationDataset: DatasetPK
         modelOutputPK: number
         targetDataset: DatasetPK
         domain: DomainName
@@ -108,6 +109,7 @@ export type LoopStates = ValidStates<{
     "Creating Addition Dataset": {
         context: UFDLServerContext
         primaryDataset: DatasetPK
+        evaluationDataset: DatasetPK
         additionDataset: Promise<DatasetPK>
         modelOutputPK: number
         domain: DomainName
@@ -121,6 +123,7 @@ export type LoopStates = ValidStates<{
     "Creating Prelabel Job": {
         context: UFDLServerContext
         primaryDataset: DatasetPK
+        evaluationDataset: DatasetPK
         modelOutputPK: number
         additionDataset: DatasetPK
         jobPK: Promise<number>
@@ -136,6 +139,7 @@ export type LoopStates = ValidStates<{
     "Prelabel": {
         context: UFDLServerContext
         primaryDataset: DatasetPK
+        evaluationDataset: DatasetPK
         modelOutputPK: number
         additionDataset: DatasetPK
         jobPK: number
@@ -151,6 +155,7 @@ export type LoopStates = ValidStates<{
     "User Fixing Categories": {
         context: UFDLServerContext
         primaryDataset: DatasetPK
+        evaluationDataset: DatasetPK
         modelOutputPK: number
         additionDataset: DatasetPK
         domain: DomainName

@@ -256,11 +256,8 @@ export const LOOP_TRANSITIONS = {
             return (current: LoopStateAndData) => {
                 if (current.state !== "Selecting Prelabel Images") return;
 
-                return createNewLoopState("Selecting Initial Images")(
-                    {
-                        ...current.data,
-                        targetDataset: current.data.primaryDataset
-                    }
+                return createNewLoopState("Checking")(
+                    current.data
                 )
             };
         }
