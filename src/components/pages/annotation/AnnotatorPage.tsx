@@ -55,6 +55,7 @@ export type AnnotatorPageProps<
     className: string | undefined
     onSelectedPKChanged: ((selectedPK: AnyPK) => void) | undefined
     mode?: typeof DEFAULT | "Single" | "Multi"
+    heading?: string
 }
 
 export default function AnnotatorPage<
@@ -200,6 +201,7 @@ export default function AnnotatorPage<
         extraControls={props.extraControls}
         numSelected={topMenuNumSelected}
         onExtractSelected={onExtractSelected}
+        heading={props.heading}
     />
 
     const overview = <DatasetOverview<Domain, Item>

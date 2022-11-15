@@ -112,6 +112,7 @@ export default function TheLoopPage(
                     onError={stateMachine.transitions.error}
                     modelType={undefined}
                     selectedSortOrder={UNCONTROLLED_KEEP}
+                    heading={"Please select the initial set of images to train against"}
                 />
                 <JobTemplateSelectModal
                     onDone={
@@ -211,6 +212,7 @@ export default function TheLoopPage(
                     onError={stateMachine.transitions.error}
                     modelType={stateMachine.data.modelType}
                     selectedSortOrder={UNCONTROLLED_KEEP}
+                    heading={"Please select additional images to add to the dataset"}
                 />
                 <JobTemplateSelectModal
                     onDone={(template_pk, parameter_values) => {
@@ -277,6 +279,7 @@ export default function TheLoopPage(
                     modelType={stateMachine.data.modelType}
                     evalQueryDependencies={["Checking"]}
                     selectedSortOrder={UNCONTROLLED_KEEP}
+                    heading={"Please check if the model's accuracy is sufficient"}
                 />
                 <RefineOrDoneModal
                     onRefine={() => {refineOrDoneModal.hide(); stateMachine.transitions.finishChecking(appSettings.prelabelMode === "None" ? "Edit" : "Prelabel")}}
@@ -315,6 +318,7 @@ export default function TheLoopPage(
                 }
                 selectedSortOrder={"random"}
                 sortOrderLocked
+                heading={"Please check and correct the pre-annotated items"}
             />
 
         case "Finished":

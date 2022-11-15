@@ -40,6 +40,7 @@ export type SPAPProps = {
     evalQueryDependencies?: readonly unknown[]
     selectedSortOrder: Controllable<WithDefault<string>>
     sortOrderLocked?: boolean
+    heading?: string
 }
 
 export default function SpeechAnnotatorPage(
@@ -144,6 +145,7 @@ export default function SpeechAnnotatorPage(
         lockedPK={props.lockedPK}
         onBack={props.onBack}
         onNext={(selectedPK, position) => passOnUndefined(props.onNext)(selectedPK, dataset, position)}
+        heading={props.heading}
     />
 }
 

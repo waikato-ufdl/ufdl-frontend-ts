@@ -31,6 +31,7 @@ export type LoopAnnotatorPageProps = {
     mode?: typeof DEFAULT | "Single" | "Multi"
     selectedSortOrder: Controllable<WithDefault<string>>
     sortOrderLocked?: boolean
+    heading?: string
 }
 
 export default function LoopAnnotatorPage(
@@ -73,6 +74,7 @@ export default function LoopAnnotatorPage(
                 mode={props.mode}
                 selectedSortOrder={props.selectedSortOrder}
                 sortOrderLocked={props.sortOrderLocked}
+                heading={props.heading}
             />
         case "Object Detection":
             // TODO: Add eval dataset capability
@@ -88,6 +90,7 @@ export default function LoopAnnotatorPage(
                 evalQueryDependencies={props.evalQueryDependencies}
                 selectedSortOrder={props.selectedSortOrder}
                 sortOrderLocked={props.sortOrderLocked}
+                heading={props.heading}
             />
         case "Speech":
             return <SpeechAnnotatorPage
@@ -103,6 +106,7 @@ export default function LoopAnnotatorPage(
                 evalQueryDependencies={props.evalQueryDependencies}
                 selectedSortOrder={props.selectedSortOrder}
                 sortOrderLocked={props.sortOrderLocked}
+                heading={props.heading}
             />
         default:
             props.onError(`No annotator page for domain ${props.domain}`)

@@ -24,6 +24,7 @@ import {ProjectSelect} from "./ProjectSelect";
 import {ListSelect} from "./ListSelect";
 import {ArraySelect} from "../../util/react/component/ArraySelect";
 import {mapOwnProperties} from "../../util/typescript/object";
+import "./AnnotatorTopMenu.css"
 
 export type ItemSelectFragmentRenderer<D extends Data, A> = (
     select: Dispatch<DatasetDispatchItemSelector<D, A>>
@@ -57,6 +58,7 @@ export type AnnotatorTopMenuProps<D extends DomainName> = {
     extraControls: AnnotatorTopMenuExtraControlsRenderer | undefined
     numSelected: readonly [number, number]
     onExtractSelected: (() => void) | undefined
+    heading?: string
 }
 
 export default function AnnotatorTopMenu<D extends DomainName>(
@@ -150,18 +152,6 @@ export default function AnnotatorTopMenu<D extends DomainName>(
         >
             New...
         </button>
-        {
-            props.onNext &&
-            <button
-                onClick={(event) => {
-                    if (props.onNext !== undefined) props.onNext([event.clientX, event.clientY])
-                }}
-                disabled={props.nextDisabled}
-            >
-                {handleSingleDefault(props.nextLabel, constantInitialiser("Next"))}
-            </button>
-
-        }
         <ArraySelect
             values={sortOrders}
             selected={sortOrders.findIndex(([name]) => name === selectedSortOrder)}
@@ -215,6 +205,19 @@ export default function AnnotatorTopMenu<D extends DomainName>(
         <label>
             {`Selected (${numSelected}/${outOf}) `}
         </label>
+
+        {props.heading && <span className={"AnnotatorTopMenuHeading"}>{props.heading}</span>}
+        {
+            props.onNext &&
+            <button
+                onClick={(event) => {
+                    if (props.onNext !== undefined) props.onNext([event.clientX, event.clientY])
+                }}
+                disabled={props.nextDisabled}
+            >
+                {handleSingleDefault(props.nextLabel, constantInitialiser("Next"))}
+            </button>
+        }
     </div>;
 
 }

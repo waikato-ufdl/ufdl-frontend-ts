@@ -65,6 +65,7 @@ export type ICAPProps = {
     mode?: typeof DEFAULT | "Single" | "Multi"
     selectedSortOrder: Controllable<WithDefault<string>>
     sortOrderLocked?: boolean
+    heading?: string
 }
 
 export default function ImageClassificationAnnotatorPage(
@@ -247,6 +248,7 @@ export default function ImageClassificationAnnotatorPage(
         onBack={props.onBack}
         onNext={onNext}
         mode={props.mode}
+        heading={props.heading}
     />
 }
 
