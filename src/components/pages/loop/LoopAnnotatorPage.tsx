@@ -9,7 +9,8 @@ import {ClassColours} from "../../../server/util/classification";
 import UFDLServerContext from "../../../../../ufdl-ts-client/dist/UFDLServerContext";
 import {JobTemplateInstance} from "../../../../../ufdl-ts-client/dist/types/core/jobs/job_template";
 import SpeechAnnotatorPage from "../annotation/spap/SpeechAnnotatorPage";
-import {DEFAULT} from "../../../util/typescript/default";
+import {DEFAULT, WithDefault} from "../../../util/typescript/default";
+import {Controllable} from "../../../util/react/hooks/useControllableState";
 
 export type LoopAnnotatorPageProps = {
     domain: DomainName
@@ -28,6 +29,8 @@ export type LoopAnnotatorPageProps = {
     queryDependencies?: readonly unknown[],
     evalQueryDependencies?: readonly unknown[]
     mode?: typeof DEFAULT | "Single" | "Multi"
+    selectedSortOrder: Controllable<WithDefault<string>>
+    sortOrderLocked?: boolean
 }
 
 export default function LoopAnnotatorPage(
@@ -68,6 +71,8 @@ export default function LoopAnnotatorPage(
                 queryDependencies={props.queryDependencies}
                 evalQueryDependencies={props.evalQueryDependencies}
                 mode={props.mode}
+                selectedSortOrder={props.selectedSortOrder}
+                sortOrderLocked={props.sortOrderLocked}
             />
         case "Object Detection":
             // TODO: Add eval dataset capability
@@ -81,6 +86,8 @@ export default function LoopAnnotatorPage(
                 onBack={props.onBack}
                 queryDependencies={props.queryDependencies}
                 evalQueryDependencies={props.evalQueryDependencies}
+                selectedSortOrder={props.selectedSortOrder}
+                sortOrderLocked={props.sortOrderLocked}
             />
         case "Speech":
             return <SpeechAnnotatorPage
@@ -94,6 +101,8 @@ export default function LoopAnnotatorPage(
                 onBack={props.onBack}
                 queryDependencies={props.queryDependencies}
                 evalQueryDependencies={props.evalQueryDependencies}
+                selectedSortOrder={props.selectedSortOrder}
+                sortOrderLocked={props.sortOrderLocked}
             />
         default:
             props.onError(`No annotator page for domain ${props.domain}`)

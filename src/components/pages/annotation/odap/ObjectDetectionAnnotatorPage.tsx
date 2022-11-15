@@ -42,6 +42,7 @@ import mapQueryResult from "../../../../util/react/query/mapQueryResult";
 import {RefetchOptions, RefetchQueryFilters} from "@tanstack/react-query";
 import {Annotated} from "../../../../util/react/component/pictureannotate/annotated";
 import Shape from "../../../../util/react/component/pictureannotate/shapes/Shape";
+import {Controllable} from "../../../../util/react/hooks/useControllableState";
 
 export type ODAPProps = {
     lockedPK?: AnyPK,
@@ -54,6 +55,8 @@ export type ODAPProps = {
     onBack?: () => void,
     queryDependencies?: readonly unknown[],
     evalQueryDependencies?: readonly unknown[]
+    selectedSortOrder: Controllable<WithDefault<string>>
+    sortOrderLocked?: boolean
 }
 
 export default function ObjectDetectionAnnotatorPage(
@@ -213,6 +216,8 @@ export default function ObjectDetectionAnnotatorPage(
         domain={"Object Detection"}
         nextLabel={props.nextLabel}
         sortOrders={DEFAULT}
+        selectedSortOrder={props.selectedSortOrder}
+        sortOrderLocked={props.sortOrderLocked}
         DataComponent={ImageOrVideoRenderer}
         AnnotationComponent={DetectedObjectsComponent}
         ExpandedComponent={ExpandedComponent}

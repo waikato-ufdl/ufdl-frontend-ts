@@ -38,6 +38,8 @@ export type SPAPProps = {
     onBack?: () => void,
     queryDependencies?: readonly unknown[],
     evalQueryDependencies?: readonly unknown[]
+    selectedSortOrder: Controllable<WithDefault<string>>
+    sortOrderLocked?: boolean
 }
 
 export default function SpeechAnnotatorPage(
@@ -125,6 +127,8 @@ export default function SpeechAnnotatorPage(
         domain={"Speech"}
         nextLabel={props.nextLabel}
         sortOrders={DEFAULT}
+        selectedSortOrder={props.selectedSortOrder}
+        sortOrderLocked={props.sortOrderLocked}
         DataComponent={AudioRenderer}
         AnnotationComponent={TranscriptionComponent}
         addFilesSubMenus={{

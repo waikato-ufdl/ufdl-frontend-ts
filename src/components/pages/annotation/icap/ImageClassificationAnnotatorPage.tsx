@@ -63,6 +63,8 @@ export type ICAPProps = {
     queryDependencies?: readonly unknown[],
     evalQueryDependencies?: readonly unknown[]
     mode?: typeof DEFAULT | "Single" | "Multi"
+    selectedSortOrder: Controllable<WithDefault<string>>
+    sortOrderLocked?: boolean
 }
 
 export default function ImageClassificationAnnotatorPage(
@@ -230,6 +232,8 @@ export default function ImageClassificationAnnotatorPage(
         domain={"Image Classification"}
         nextLabel={props.nextLabel}
         sortOrders={SORT_ORDERS}
+        selectedSortOrder={props.selectedSortOrder}
+        sortOrderLocked={props.sortOrderLocked}
         DataComponent={ImageOrVideoRenderer}
         AnnotationComponent={ClassificationComponent}
         addFilesSubMenus={addFilesSubMenus}

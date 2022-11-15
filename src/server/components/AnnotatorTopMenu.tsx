@@ -10,12 +10,11 @@ import {exactFilter} from "../util/exactFilter";
 import {DOMAIN_DATASET_METHODS, DomainAnnotationType, DomainDataType, DomainName} from "../domains";
 import nameFromSignature from "../util/nameFromSignature";
 import {augmentClassName} from "../../util/react/augmentClass";
-import {handleSingleDefault, WithDefault} from "../../util/typescript/default";
-import asChangeEventHandler from "../../util/react/asChangeEventHandler";
+import {DEFAULT, handleSingleDefault, WithDefault} from "../../util/typescript/default";
 import useLocalModal from "../../util/react/hooks/useLocalModal";
 import SelectionModal from "./SelectionModal";
 import {Data} from "../types/data";
-import {Possible} from "../../util/typescript/types/Possible";
+import {Absent, Possible} from "../../util/typescript/types/Possible";
 import {BY_FILENAME} from "../sorting";
 import {DomainSortOrderFunction, DomainSortOrders} from "./types";
 import {DatasetDispatchItemSelector} from "../hooks/useDataset/types";
@@ -23,6 +22,8 @@ import {BackButton} from "../../util/react/component/BackButton";
 import {TeamSelect} from "./TeamSelect";
 import {ProjectSelect} from "./ProjectSelect";
 import {ListSelect} from "./ListSelect";
+import {ArraySelect} from "../../util/react/component/ArraySelect";
+import {mapOwnProperties} from "../../util/typescript/object";
 
 export type ItemSelectFragmentRenderer<D extends Data, A> = (
     select: Dispatch<DatasetDispatchItemSelector<D, A>>
@@ -48,6 +49,8 @@ export type AnnotatorTopMenuProps<D extends DomainName> = {
     className?: string
     sortOrders: WithDefault<DomainSortOrders<D>>
     onSortChanged: (name: Possible<string>, order: Possible<DomainSortOrderFunction<D>>) => void
+    selectedSortOrder: Controllable<WithDefault<string>>
+    sortOrderLocked?: boolean
     onSelect: ((select: DatasetDispatchItemSelector<DomainDataType<D>, DomainAnnotationType<D>>) => void) | undefined
     itemSelectFragmentRenderer: ItemSelectFragmentRenderer<DomainDataType<D>, DomainAnnotationType<D>>
     onDeleteSelected: (() => void) | undefined
@@ -67,13 +70,20 @@ export default function AnnotatorTopMenu<D extends DomainName>(
     // Derive the available sort-orders from the props, handling the default
     const sortOrders = useDerivedState(
         ([sortOrders]) => {
-            return handleSingleDefault(
+            const sortOrdersDefaulted = handleSingleDefault(
                 sortOrders,
                 () => { return { "filename": BY_FILENAME } }
+            )
+
+            return mapOwnProperties(
+                sortOrdersDefaulted,
+                (sortName, sortOrderFunction) => [sortName as string, sortOrderFunction] as const
             )
         },
         [props.sortOrders] as const
     )
+
+    const [selectedSortOrder, setSelectedSortOrder] = useControllableState(props.selectedSortOrder, constantInitialiser(DEFAULT))
 
     const teamPK = getTeamPK(selectedPK);
     const projectPK = getProjectPK(selectedPK);
@@ -152,17 +162,24 @@ export default function AnnotatorTopMenu<D extends DomainName>(
             </button>
 
         }
-        <select
-            onChange={asChangeEventHandler((order) => props.onSortChanged(order, sortOrders[order]))}
-        >
-            {
-                Object.getOwnPropertyNames(sortOrders).map(
-                    (order) => {
-                        return <option value={order}>{order}</option>
+        <ArraySelect
+            values={sortOrders}
+            selected={sortOrders.findIndex(([name]) => name === selectedSortOrder)}
+            labelFunction={([name]) => name}
+            onChange={
+                value => {
+                    if (value === undefined) {
+                        props.onSortChanged(Absent, Absent)
+                        setSelectedSortOrder(DEFAULT)
+                    } else {
+                        props.onSortChanged(...value)
+                        setSelectedSortOrder(value[0])
                     }
-                )
+                }
             }
-        </select>
+            disabled={props.sortOrderLocked}
+            disableFirstEmptyOption={false}
+        />
 
         <button
             onClick={selectModal.onClick}

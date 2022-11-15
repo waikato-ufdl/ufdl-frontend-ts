@@ -33,9 +33,9 @@ export function MainMenuPage() {
         <NewTeamPage />
         <NewProjectPage teamPK={UNCONTROLLED_KEEP} />
         <NewDatasetPage domain={UNCONTROLLED_KEEP} licencePK={UNCONTROLLED_KEEP} isPublic={UNCONTROLLED_KEEP}/>
-        <ImageClassificationAnnotatorPage nextLabel={DEFAULT} evalPK={UNCONTROLLED_KEEP} />
-        <ObjectDetectionAnnotatorPage nextLabel={DEFAULT} />
-        <SpeechAnnotatorPage nextLabel={DEFAULT}  evalPK={UNCONTROLLED_KEEP}/>
+        <ImageClassificationAnnotatorPage nextLabel={DEFAULT} evalPK={UNCONTROLLED_KEEP} selectedSortOrder={UNCONTROLLED_KEEP} />
+        <ObjectDetectionAnnotatorPage nextLabel={DEFAULT} selectedSortOrder={UNCONTROLLED_KEEP} />
+        <SpeechAnnotatorPage nextLabel={DEFAULT}  evalPK={UNCONTROLLED_KEEP} selectedSortOrder={UNCONTROLLED_KEEP} />
         <TheLoopPage />
         <SettingsPage />
     </MenuPage>

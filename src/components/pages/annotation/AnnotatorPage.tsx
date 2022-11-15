@@ -8,7 +8,7 @@ import AnnotatorTopMenu, {
 import useStateSafe from "../../../util/react/hooks/useStateSafe";
 import NewDatasetPage from "../NewDatasetPage";
 import {AnyPK, DatasetPK, getProjectPK, getTeamPK, TeamPK} from "../../../server/pk";
-import {UNCONTROLLED_KEEP} from "../../../util/react/hooks/useControllableState";
+import {Controllable, UNCONTROLLED_KEEP, useControllableState} from "../../../util/react/hooks/useControllableState";
 import useDerivedState from "../../../util/react/hooks/useDerivedState";
 import {DEFAULT, WithDefault} from "../../../util/typescript/default";
 import DatasetOverview from "../../../server/components/dataset/DatasetOverview";
@@ -20,12 +20,13 @@ import {
 import {DOMAIN_DATASET_METHODS, DomainAnnotationType, DomainDataType, DomainName} from "../../../server/domains";
 import isDefined from "../../../util/typescript/isDefined";
 import {Absent} from "../../../util/typescript/types/Possible";
-import {DomainSortOrderFunction, DomainSortOrders} from "../../../server/components/types";
+import {DomainSortOrders} from "../../../server/components/types";
 import {AnnotationComponent, DataComponent, ExpandedComponent} from "../../../server/components/dataset/types";
 import {SubMenus} from "../../../server/components/AddFilesButton";
 import {augmentClassName} from "../../../util/react/augmentClass";
 import "./AnnotatorPage.css"
 import {DatasetDispatchItemAnnotationType, DatasetDispatchItemDataType} from "../../../server/hooks/useDataset/types";
+import {constantInitialiser} from "../../../util/typescript/initialisers";
 
 export type AnnotatorPageProps<
     Domain extends DomainName,
@@ -43,6 +44,8 @@ export type AnnotatorPageProps<
     dataset: MutableDatasetDispatch<DomainDataType<Domain>, DomainAnnotationType<Domain>, Item> | undefined
     evalDataset: DatasetDispatch<DomainDataType<Domain>, DomainAnnotationType<Domain>> | undefined
     sortOrders: WithDefault<DomainSortOrders<Domain>>
+    selectedSortOrder: Controllable<WithDefault<string>>
+    sortOrderLocked?: boolean
     DataComponent: DataComponent<DatasetDispatchItemDataType<DomainDataType<Domain>>>
     AnnotationComponent: AnnotationComponent<DatasetDispatchItemAnnotationType<DomainAnnotationType<Domain>>>
     ExpandedComponent?: ExpandedComponent<Domain, Item>
@@ -63,8 +66,9 @@ export default function AnnotatorPage<
     // Get the server context
     const ufdlServerContext = useContext(UFDL_SERVER_REACT_CONTEXT);
 
-    const [sortOrder, setSortOrder] = useStateSafe<WithDefault<DomainSortOrderFunction<Domain>>>(
-        () => DEFAULT
+    const [sortOrder, setSortOrder] = useControllableState<WithDefault<string>>(
+        props.selectedSortOrder,
+        constantInitialiser(DEFAULT)
     )
 
     // Sub-page displays
@@ -187,7 +191,9 @@ export default function AnnotatorPage<
         onBack={props.onBack}
         className={"menuBar"}
         sortOrders={props.sortOrders}
-        onSortChanged={(_, order) => setSortOrder(order === Absent ? DEFAULT : order)}
+        onSortChanged={(order) => setSortOrder(order === Absent ? DEFAULT : order)}
+        selectedSortOrder={sortOrder}
+        sortOrderLocked={props.sortOrderLocked}
         onSelect={topMenuOnSelect}
         itemSelectFragmentRenderer={props.itemSelectFragmentRenderer}
         onDeleteSelected={isDefined(props.dataset) ? props.dataset.deleteSelectedFiles.bind(props.dataset) : undefined}
@@ -202,7 +208,7 @@ export default function AnnotatorPage<
         DataComponent={props.DataComponent}
         AnnotationComponent={props.AnnotationComponent}
         ExpandedComponent={props.ExpandedComponent}
-        sortFunction={sortOrder}
+        sortFunction={sortOrder === DEFAULT || props.sortOrders === DEFAULT ? DEFAULT : props.sortOrders[sortOrder]}
         addFilesSubMenus={props.addFilesSubMenus}
         mode={props.mode}
     />

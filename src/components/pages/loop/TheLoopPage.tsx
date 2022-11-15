@@ -16,7 +16,11 @@ import * as job_template from "ufdl-ts-client/functional/core/jobs/job_template"
 import {ParameterValue} from "ufdl-ts-client/json/generated/CreateJobSpec";
 import LoopAnnotatorPage from "./LoopAnnotatorPage";
 import {isAllowedStateAndData} from "../../../util/react/hooks/useStateMachine/isAllowedState";
-import {UNCONTROLLED_RESET, UncontrolledResetOverride} from "../../../util/react/hooks/useControllableState";
+import {
+    UNCONTROLLED_KEEP,
+    UNCONTROLLED_RESET,
+    UncontrolledResetOverride
+} from "../../../util/react/hooks/useControllableState";
 import useDerivedState from "../../../util/react/hooks/useDerivedState";
 import {APP_SETTINGS_REACT_CONTEXT} from "../../../useAppSettings";
 import {DEFAULT} from "../../../util/typescript/default";
@@ -107,6 +111,7 @@ export default function TheLoopPage(
                     onBack={stateMachine.transitions.back}
                     onError={stateMachine.transitions.error}
                     modelType={undefined}
+                    selectedSortOrder={UNCONTROLLED_KEEP}
                 />
                 <JobTemplateSelectModal
                     onDone={
@@ -205,6 +210,7 @@ export default function TheLoopPage(
                     onBack={stateMachine.transitions.back}
                     onError={stateMachine.transitions.error}
                     modelType={stateMachine.data.modelType}
+                    selectedSortOrder={UNCONTROLLED_KEEP}
                 />
                 <JobTemplateSelectModal
                     onDone={(template_pk, parameter_values) => {
@@ -270,6 +276,7 @@ export default function TheLoopPage(
                     onError={stateMachine.transitions.error}
                     modelType={stateMachine.data.modelType}
                     evalQueryDependencies={["Checking"]}
+                    selectedSortOrder={UNCONTROLLED_KEEP}
                 />
                 <RefineOrDoneModal
                     onRefine={() => {refineOrDoneModal.hide(); stateMachine.transitions.finishChecking(appSettings.prelabelMode === "None" ? "Edit" : "Prelabel")}}
@@ -306,6 +313,8 @@ export default function TheLoopPage(
                         ? DEFAULT
                         : appSettings.prelabelMode
                 }
+                selectedSortOrder={"random"}
+                sortOrderLocked
             />
 
         case "Finished":
