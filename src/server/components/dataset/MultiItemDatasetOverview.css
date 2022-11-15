@@ -4,6 +4,7 @@
 
 .MultiItemDatasetOverview .Samples {
     height: 100%;
+    background-color: dimgray;
 }
 
 .MultiItemDatasetOverview .SampleRow {

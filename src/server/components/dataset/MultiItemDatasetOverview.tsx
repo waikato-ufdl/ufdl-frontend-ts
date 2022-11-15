@@ -238,8 +238,8 @@ export default function MultiItemDatasetOverview<
                             overflow: "hidden",
                             flexGrow: 0,
                             width: "100%",
-                            borderRight: "1px solid black",
-                            borderBottom: "1px solid black"
+                            borderRight: "2px solid black",
+                            borderBottom: "2px solid black"
                         }
                     }
                 }
@@ -261,7 +261,7 @@ export default function MultiItemDatasetOverview<
                             overflow: "hidden",
                             flexGrow: 0,
                             width: "90%",
-                            borderBottom: "1px solid black"
+                            borderBottom: "2px solid black"
                         }
                     }
                 }
