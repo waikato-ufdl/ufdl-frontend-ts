@@ -104,7 +104,7 @@ export default function EditParametersModal(
 
     // Derive a function for setting a single parameter's value
     const setParameterValue = useDerivedState(
-        ([parameterValues, setParameterValues]) => {
+        ([parameterValues, setParameterValues, onParameterValuesChanged]) => {
             return (name: string, value: ParameterValue) => {
                 // Clone the current mapping
                 const newState = {...parameterValues}
@@ -113,9 +113,10 @@ export default function EditParametersModal(
                 newState[name] = value
 
                 setParameterValues(newState)
+                onParameterValuesChanged(newState)
             }
         },
-        [parameterValues, setParameterValues] as const
+        [parameterValues, setParameterValues, props.onParameterValuesChanged] as const
     )
 
     // Derive some buttons which allow the user to change which additional parameters are displayed
