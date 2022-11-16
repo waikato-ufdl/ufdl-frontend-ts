@@ -9,11 +9,12 @@ import {BlobSubject} from "../../../util/rx/data/BlobSubject";
 import {Image} from "../../types/data";
 import {InTransit} from "../../InTransit";
 import {MutableDatasetDispatchItem} from "../useDataset/DatasetDispatch";
-import {ParallelSubTasks, subTasksAsTask, taskFromPromise} from "../../../util/typescript/task/Task";
+import {mapTask, ParallelSubTasks, subTasksAsTask, taskFromPromise} from "../../../util/typescript/task/Task";
 import {forEachOwnProperty} from "../../../util/typescript/object";
 import {identity} from "../../../util/identity";
 import {useContext} from "react";
 import {APP_SETTINGS_REACT_CONTEXT} from "../../../useAppSettings";
+import {anyToString} from "../../../util/typescript/strings/anyToString";
 
 
 function getData(
@@ -42,7 +43,67 @@ function setData(
     // No need to do any additional work for images
 }
 
-async function getAnnotations(
+function getAnnotationsBulk(
+    context: UFDLServerContext,
+    dataset: DatasetInstance
+) {
+    return mapTask(
+        taskFromPromise(
+            ICDataset.get_categories(
+                context,
+                dataset.pk
+            )
+        ),
+        result => {
+            const annotations: { [filename: string]: Classification | typeof NO_ANNOTATION | undefined } = {}
+            forEachOwnProperty(
+                dataset.files,
+                (filename) => {
+                    const categories = result[filename]
+                    if (categories === undefined) return
+                    annotations[filename] = categories.length === 0
+                        ? NO_ANNOTATION
+                        : categories[0]
+                }
+            )
+            return annotations
+        },
+        anyToString,
+        identity
+    )
+}
+
+function getAnnotationsOneByOne(
+    context: UFDLServerContext,
+    dataset: DatasetInstance
+) {
+
+    const subTasks: ParallelSubTasks<string, Classification | typeof NO_ANNOTATION, string, never> = {}
+    const keys: string[] = []
+
+    forEachOwnProperty(
+        dataset.files,
+        (filename) => {
+            if (filename in subTasks) return
+            keys.push(filename as string)
+            subTasks[filename] = taskFromPromise(
+                getAnnotationForFile(
+                    context,
+                    dataset,
+                    filename as string
+                )
+            )
+        }
+    )
+
+    return subTasksAsTask(
+        subTasks,
+        keys,
+        identity
+    )
+}
+
+async function getAnnotationForFile(
     context: UFDLServerContext,
     dataset: DatasetInstance,
     filename: string
@@ -137,7 +198,7 @@ export default function useImageClassificationDataset(
         serverContext,
         getData,
         setData,
-        getAnnotations,
+        appSettings.uploadBulkWherePossible ? getAnnotationsBulk : getAnnotationsOneByOne,
         appSettings.uploadBulkWherePossible ? setAnnotationsBulk : setAnnotationsOneByOne,
         MutableDatasetDispatchItem,
         ImageClassificationDatasetDispatch,

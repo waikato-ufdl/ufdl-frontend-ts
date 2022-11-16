@@ -44,9 +44,8 @@ export type DataSetterFunction<D extends Data> = (
  */
 export type AnnotationsGetterFunction<A> = (
     context: UFDLServerContext,
-    dataset: DatasetInstance,
-    filename: string
-) => Promise<A | typeof NO_ANNOTATION>
+    dataset: DatasetInstance
+) => Task<{[filename: string]: A | typeof NO_ANNOTATION | undefined}, string, never, never>
 
 /**
  * The type of function that sets the annotations for a file in a dataset.

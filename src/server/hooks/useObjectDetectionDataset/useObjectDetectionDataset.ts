@@ -8,9 +8,12 @@ import ObjectDetectionDatasetDispatch, {ObjectDetectionDatasetDispatchItem} from
 import {DetectedObjects, NO_ANNOTATION} from "../../types/annotations";
 import {BlobSubject} from "../../../util/rx/data/BlobSubject";
 import {DatasetInstance} from "ufdl-ts-client/types/core/dataset";
-import {ParallelSubTasks, subTasksAsTask, taskFromPromise} from "../../../util/typescript/task/Task";
+import {mapTask, ParallelSubTasks, subTasksAsTask, taskFromPromise} from "../../../util/typescript/task/Task";
 import {forEachOwnProperty} from "../../../util/typescript/object";
 import {identity} from "../../../util/identity";
+import {anyToString} from "../../../util/typescript/strings/anyToString";
+import {useContext} from "react";
+import {APP_SETTINGS_REACT_CONTEXT} from "../../../useAppSettings";
 
 
 async function getData(
@@ -53,7 +56,67 @@ async function setData(
     )
 }
 
-async function getAnnotations(
+function getAnnotationsBulk(
+    context: UFDLServerContext,
+    dataset: DatasetInstance
+) {
+    return mapTask(
+        taskFromPromise(
+            ODDataset.get_annotations(
+                context,
+                dataset.pk
+            )
+        ),
+        result => {
+            const annotations: { [filename: string]: DetectedObjects | typeof NO_ANNOTATION | undefined } = {}
+            forEachOwnProperty(
+                dataset.files,
+                (filename) => {
+                    const detectedObjects = result[filename]?.annotations
+                    if (detectedObjects === undefined) return
+                    annotations[filename] = detectedObjects.length === 0
+                        ? NO_ANNOTATION
+                        : detectedObjects as DetectedObjects
+                }
+            )
+            return annotations
+        },
+        anyToString,
+        identity
+    )
+}
+
+function getAnnotationsOneByOne(
+    context: UFDLServerContext,
+    dataset: DatasetInstance
+) {
+
+    const subTasks: ParallelSubTasks<string, DetectedObjects | typeof NO_ANNOTATION, string, never> = {}
+    const keys: string[] = []
+
+    forEachOwnProperty(
+        dataset.files,
+        (filename) => {
+            if (filename in subTasks) return
+            keys.push(filename as string)
+            subTasks[filename] = taskFromPromise(
+                getAnnotationsForFile(
+                    context,
+                    dataset,
+                    filename as string
+                )
+            )
+        }
+    )
+
+    return subTasksAsTask(
+        subTasks,
+        keys,
+        identity
+    )
+}
+
+async function getAnnotationsForFile(
     context: UFDLServerContext,
     dataset: DatasetInstance,
     filename: string
@@ -143,11 +206,14 @@ export default function useObjectDetectionDataset(
     datasetPK?: DatasetPK,
     queryDependencies?: readonly unknown[]
 ): ObjectDetectionDatasetDispatch | undefined {
+
+    const [appSettings] = useContext(APP_SETTINGS_REACT_CONTEXT);
+
     return useDataset(
         serverContext,
         getData,
         setData,
-        getAnnotations,
+        appSettings.uploadBulkWherePossible ? getAnnotationsBulk : getAnnotationsOneByOne,
         setAnnotationsOneByOne,
         ObjectDetectionDatasetDispatchItem,
         ObjectDetectionDatasetDispatch,

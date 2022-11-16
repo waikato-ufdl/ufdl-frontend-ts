@@ -9,8 +9,11 @@ import {NO_ANNOTATION, Transcription} from "../../types/annotations";
 import {BlobSubject} from "../../../util/rx/data/BlobSubject";
 import {DatasetInstance} from "ufdl-ts-client/types/core/dataset";
 import {forEachOwnProperty} from "../../../util/typescript/object";
-import {ParallelSubTasks, subTasksAsTask, taskFromPromise} from "../../../util/typescript/task/Task";
+import {mapTask, ParallelSubTasks, subTasksAsTask, taskFromPromise} from "../../../util/typescript/task/Task";
 import {identity} from "../../../util/identity";
+import {anyToString} from "../../../util/typescript/strings/anyToString";
+import {useContext} from "react";
+import {APP_SETTINGS_REACT_CONTEXT} from "../../../useAppSettings";
 
 
 async function getData(
@@ -34,7 +37,67 @@ function setData(
     // No additional work required
 }
 
-async function getAnnotations(
+function getAnnotationsBulk(
+    context: UFDLServerContext,
+    dataset: DatasetInstance
+) {
+    return mapTask(
+        taskFromPromise(
+            SPDataset.get_transcriptions(
+                context,
+                dataset.pk
+            )
+        ),
+        result => {
+            const annotations: { [filename: string]: Transcription | typeof NO_ANNOTATION | undefined } = {}
+            forEachOwnProperty(
+                dataset.files,
+                (filename) => {
+                    const transcription = result[filename]
+                    if (transcription === undefined) return
+                    annotations[filename] = transcription.transcription === undefined || transcription.transcription === ""
+                        ? NO_ANNOTATION
+                        : transcription.transcription
+                }
+            )
+            return annotations
+        },
+        anyToString,
+        identity
+    )
+}
+
+function getAnnotationsOneByOne(
+    context: UFDLServerContext,
+    dataset: DatasetInstance
+) {
+
+    const subTasks: ParallelSubTasks<string, Transcription | typeof NO_ANNOTATION, string, never> = {}
+    const keys: string[] = []
+
+    forEachOwnProperty(
+        dataset.files,
+        (filename) => {
+            if (filename in subTasks) return
+            keys.push(filename as string)
+            subTasks[filename] = taskFromPromise(
+                getAnnotationsForFile(
+                    context,
+                    dataset,
+                    filename as string
+                )
+            )
+        }
+    )
+
+    return subTasksAsTask(
+        subTasks,
+        keys,
+        identity
+    )
+}
+
+async function getAnnotationsForFile(
     context: UFDLServerContext,
     dataset: DatasetInstance,
     filename: string
@@ -121,11 +184,14 @@ export default function useSpeechDataset(
     datasetPK?: DatasetPK,
     queryDependencies?: readonly unknown[]
 ): SpeechDatasetDispatch | undefined {
+
+    const [appSettings] = useContext(APP_SETTINGS_REACT_CONTEXT);
+
     return useDataset(
         serverContext,
         getData,
         setData,
-        getAnnotations,
+        appSettings.uploadBulkWherePossible ? getAnnotationsBulk : getAnnotationsOneByOne,
         setAnnotationsOneByOne,
         SpeechDatasetDispatchItem,
         SpeechDatasetDispatch,

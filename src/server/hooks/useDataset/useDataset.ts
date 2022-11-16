@@ -58,7 +58,6 @@ import {
     Task,
     taskFromPromise
 } from "../../../util/typescript/task/Task";
-import pass from "../../../util/typescript/functions/pass";
 import {raceKeyed} from "../../../util/typescript/async/raceKeyed";
 
 /**
@@ -193,6 +192,8 @@ export default function useDataset<
     // Create queries for the annotations for each of the files in the dataset
     const fileAnnotationQueries = useDerivedState(
         ([files, serverContext, dataset, getAnnotations, queryClient]) => {
+            let task: Task<{[filename: string]: A | typeof NO_ANNOTATION | undefined}, string, never, never> | undefined = undefined
+
             return [...files.keys()].map(
                 (filename) => {
                     // `files` will be empty if dataset is undefined, so this function won't be called
@@ -204,14 +205,17 @@ export default function useDataset<
                             const pk = context.queryKey[1];
                             if (pk === undefined) throw new Error("PK was undefined");
                             const filename = context.queryKey[3] as string;
-                            const annotations = await getAnnotations(serverContext, dataset, filename);
-                            return [filename, annotations] as const
+                            if (task === undefined) {
+                                task = getAnnotations(serverContext, dataset)
+                            }
+                            const annotations = await getTaskCompletionPromise(task)
+                            return [filename, annotations[filename]!] as const
                         },
                         onError() {
                             queryClient.invalidateQueries(datasetQueryKey(datasetPK))
                         },
                         staleTime: Infinity,
-                        enabled: false
+                        enabled: true
                     }
                 }
             )
