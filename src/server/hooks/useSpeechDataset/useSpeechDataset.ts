@@ -182,7 +182,12 @@ async function setAnnotationForFile(
 export default function useSpeechDataset(
     serverContext: UFDLServerContext,
     datasetPK?: DatasetPK,
-    queryDependencies?: readonly unknown[]
+    queryDependencies?: {
+        dataset?: readonly unknown[]
+        fileData?: readonly unknown[]
+        annotations?: readonly unknown[]
+        onlyFetched?: boolean
+    }
 ): SpeechDatasetDispatch | undefined {
 
     const [appSettings] = useContext(APP_SETTINGS_REACT_CONTEXT);

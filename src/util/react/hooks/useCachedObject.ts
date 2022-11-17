@@ -1,11 +1,8 @@
 import useDerivedStates from "./useDerivedStates";
 import {mapOwnProperties} from "../../typescript/object";
 import arrayFlatten from "../../typescript/arrays/arrayFlatten";
-import {localeCompareUndefined} from "../../typescript/strings/localeCompareUndefined";
 import {anyToString} from "../../typescript/strings/anyToString";
 import {tuple, tupleMap} from "../../typescript/arrays/tuple";
-
-
 
 export default function useCachedObject<T extends object>(
     obj: T
@@ -27,10 +24,7 @@ function getCanonicalPropertyAndValuePairArray<T extends object>(
     )
 
     pairArray.sort(
-        ([prop1], [prop2]) => localeCompareUndefined(
-            anyToString(prop1),
-            anyToString(prop2)
-        )
+        ([prop1], [prop2]) => anyToString(prop1).localeCompare(anyToString(prop2))
     )
 
     return pairArray

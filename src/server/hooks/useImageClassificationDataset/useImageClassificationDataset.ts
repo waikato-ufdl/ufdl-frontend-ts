@@ -189,7 +189,12 @@ async function setAnnotationForFile(
 export default function useImageClassificationDataset(
     serverContext: UFDLServerContext,
     datasetPK?: DatasetPK,
-    queryDependencies?: readonly unknown[]
+    queryDependencies?: {
+        dataset?: readonly unknown[]
+        fileData?: readonly unknown[]
+        annotations?: readonly unknown[]
+        onlyFetched?: boolean
+    }
 ): ImageClassificationDatasetDispatch | undefined {
 
     const [appSettings] = useContext(APP_SETTINGS_REACT_CONTEXT);

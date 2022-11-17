@@ -26,9 +26,19 @@ export type LoopAnnotatorPageProps = {
     modelType: string | undefined
     onNext: (x: number, y: number) => void
     onBack: () => void
-    onError: (reason: any) => void,
-    queryDependencies?: readonly unknown[],
-    evalQueryDependencies?: readonly unknown[]
+    onError: (reason: any) => void
+    queryDependencies?: {
+        dataset?: readonly unknown[]
+        fileData?: readonly unknown[]
+        annotations?: readonly unknown[]
+        onlyFetched?: boolean
+    }
+    evalQueryDependencies?: {
+        dataset?: readonly unknown[]
+        fileData?: readonly unknown[]
+        annotations?: readonly unknown[]
+        onlyFetched?: boolean
+    }
     mode?: typeof DEFAULT | "Single" | "Multi"
     selectedSortOrder: Controllable<WithDefault<string>>
     sortOrderLocked?: boolean

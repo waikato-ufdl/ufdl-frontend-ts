@@ -42,9 +42,9 @@ export default function MenuPage(
         }
     </Page>;
 
-    const childrenWithOnBack = props.children === undefined || props.children === null ?
-        [] :
-        React.Children.map(
+    const childrenWithOnBack = props.children === undefined || props.children === null
+        ? []
+        : React.Children.map(
             props.children,
             (child) => {
                 if (!nodeIsElement(child)) return child;

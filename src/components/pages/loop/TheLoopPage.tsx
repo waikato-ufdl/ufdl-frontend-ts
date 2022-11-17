@@ -288,7 +288,7 @@ export default function TheLoopPage(
                     onBack={stateMachine.transitions.back}
                     onError={stateMachine.transitions.error}
                     modelType={stateMachine.data.modelType}
-                    evalQueryDependencies={["Checking"]}
+                    evalQueryDependencies={{annotations: ["Checking"], onlyFetched: false}}
                     selectedSortOrder={UNCONTROLLED_KEEP}
                     heading={"Please check if the model's accuracy is sufficient"}
                     ExtraControls={HomeButton}
@@ -322,7 +322,7 @@ export default function TheLoopPage(
                 onBack={stateMachine.transitions.back}
                 onError={stateMachine.transitions.error}
                 modelType={stateMachine.data.modelType}
-                queryDependencies={["User Fixing Categories"]}
+                queryDependencies={{annotations: ["User Fixing Categories"], onlyFetched: false}}
                 mode={
                     appSettings.prelabelMode === "None" || appSettings.prelabelMode === "Default"
                         ? DEFAULT

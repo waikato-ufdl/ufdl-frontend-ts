@@ -53,10 +53,16 @@ export function DatasetSelect<D extends DomainName>(
         [projectPK] as const
     )
 
+    const onChangedActual = useDerivedState(
+        ([onChanged, projectPK]) =>
+            (_item?: DatasetInstance, pk?: number) => passOnUndefined(onChanged)(projectPK!.dataset(pk)),
+        [onChanged, projectPK] as const
+    )
+
     return <ListSelect<DatasetInstance>
         list={DOMAIN_DATASET_METHODS[domain].list}
         labelFunction={nameFromSignature}
-        onChange={(_, pk) => passOnUndefined(onChanged)(projectPK!.dataset(pk))}
+        onChange={onChangedActual}
         filter={filter}
         forceEmpty={projectPK === undefined}
         value={mapControllable(value, pk => pk?.asNumber ?? -1)}

@@ -13,7 +13,8 @@ import {
     useQueries,
     useQuery,
     useQueryClient,
-    UseQueryOptions
+    UseQueryOptions,
+    UseQueryResult
 } from "@tanstack/react-query";
 import compressFiles from "../../util/compressFiles";
 import useDerivedReducer from "../../../util/react/hooks/useDerivedReducer";
@@ -21,11 +22,11 @@ import {
     AnnotationsGetterFunction,
     AnnotationsSetterFunction,
     DataGetterFunction,
-    MutableDatasetDispatchConstructor,
     DataSetterFunction,
+    MutableDatasetDispatchConstructor,
     MutableDatasetDispatchItemConstructor,
-    UseMutationOptionsWithTask,
-    UseMutateFunctionWithTask
+    UseMutateFunctionWithTask,
+    UseMutationOptionsWithTask
 } from "./types";
 import assert from "assert";
 import {Data} from "../../types/data";
@@ -50,11 +51,13 @@ import {useEffect} from "react";
 import UNREACHABLE from "../../../util/typescript/UNREACHABLE";
 import {identity} from "../../../util/identity";
 import {
-    asSubTask, getTaskCompletionPromise,
+    asSubTask,
+    getTaskCompletionPromise,
     mapTask,
     mapTaskProgress,
     ParallelSubTasks,
-    startTask, subTasksAsTask,
+    startTask,
+    subTasksAsTask,
     Task,
     taskFromPromise
 } from "../../../util/typescript/task/Task";
@@ -95,20 +98,25 @@ export default function useDataset<
     itemConstructor: MutableDatasetDispatchItemConstructor<D, A, I>,
     dispatchConstructor: MutableDatasetDispatchConstructor<D, A, I, DIS>,
     datasetPK?: DatasetPK,
-    queryDependencies?: readonly unknown[]
+    queryDependencies?: {
+        dataset?: readonly unknown[]
+        fileData?: readonly unknown[]
+        annotations?: readonly unknown[]
+        onlyFetched?: boolean
+    }
 ): DIS | undefined {
 
     // Get the React-Query client instance
     const queryClient = useQueryClient()
 
     // Create a query for getting the dataset meta-data
-    const datasetQuery: UseQueryOptions<DatasetInstance | undefined, unknown, DatasetInstance, ["dataset", DatasetPK | undefined]> = useDerivedState(
+    const datasetQuery: UseQueryOptions<DatasetInstance | null, unknown, DatasetInstance | null, ["dataset", DatasetPK | undefined]> = useDerivedState(
         ([serverContext, datasetPK]) => {
             return {
                 queryKey: datasetQueryKey(datasetPK),
                 queryFn(context) {
                     const pk = context.queryKey[1];
-                    if (pk === undefined) return undefined;
+                    if (pk === undefined) return null;
                     return DatasetCore.retrieve(
                         serverContext,
                         pk.asNumber
@@ -141,8 +149,8 @@ export default function useDataset<
         ([files, serverContext, dataset, getData, datasetPK, queryClient]) => {
             return [...files.keys()].map(
                 (filename) => {
-                    // `files` will be empty if dataset is undefined, so this function won't be called
-                    assert(dataset !== undefined)
+                    // `files` will be empty if dataset is undefined or null, so this function won't be called
+                    assert(dataset !== undefined && dataset !== null)
 
                     return {
                         queryKey: fileQueryKey(datasetPK, filename as string),
@@ -190,51 +198,63 @@ export default function useDataset<
     const fileDataResults = useQueries({queries: fileDataQueries})
 
     // Create queries for the annotations for each of the files in the dataset
-    const fileAnnotationQueries = useDerivedState(
-        ([files, serverContext, dataset, getAnnotations, queryClient]) => {
-            let task: Task<{[filename: string]: A | typeof NO_ANNOTATION | undefined}, string, never, never> | undefined = undefined
-
-            return [...files.keys()].map(
-                (filename) => {
-                    // `files` will be empty if dataset is undefined, so this function won't be called
-                    assert(dataset !== undefined)
-
-                    return {
-                        queryKey: annotationsQueryKey(datasetPK, filename as string),
-                        async queryFn(context: QueryFunctionContext<ReturnType<typeof annotationsQueryKey>>) {
-                            const pk = context.queryKey[1];
-                            if (pk === undefined) throw new Error("PK was undefined");
-                            const filename = context.queryKey[3] as string;
-                            if (task === undefined) {
-                                task = getAnnotations(serverContext, dataset)
-                            }
-                            const annotations = await getTaskCompletionPromise(task)
-                            return [filename, annotations[filename]!] as const
-                        },
-                        onError() {
-                            queryClient.invalidateQueries(datasetQueryKey(datasetPK))
-                        },
-                        staleTime: Infinity,
-                        enabled: true
-                    }
-                }
-            )
+    const fileAnnotationsQuery: UseQueryOptions<
+        {[filename: string]: A | typeof NO_ANNOTATION | undefined} | null,
+        unknown,
+        {[filename: string]: A | typeof NO_ANNOTATION | undefined} | null,
+        readonly ["dataset", DatasetPK | undefined, "annotations"]
+    > = useDerivedState(
+        ([serverContext, dataset, getAnnotations, queryClient, datasetPK]) => {
+            return {
+                queryKey: ["dataset", datasetPK, "annotations"] as const,
+                async queryFn(context: QueryFunctionContext<readonly ["dataset", DatasetPK | undefined, "annotations"]>) {
+                    const pk = context.queryKey[1];
+                    if (pk === undefined) return null
+                    return await getTaskCompletionPromise(
+                        getAnnotations(
+                            serverContext,
+                            dataset!
+                        )
+                    )
+                },
+                onError() {
+                    queryClient.invalidateQueries(datasetQueryKey(datasetPK))
+                },
+                staleTime: Infinity,
+                enabled: false
+            }
         },
-        [fileOrdering, serverContext, datasetResult.data, getAnnotations, queryClient] as const
+        [serverContext, datasetResult.data, getAnnotations, queryClient, datasetPK] as const
     )
-    const fileAnnotationResults = useQueries({queries: fileAnnotationQueries})
+    const fileAnnotationsResult = useQuery(fileAnnotationsQuery)
+
+    function refetch(result: QueryObserverResult, all: boolean) {
+        if (result.isFetched || all) result.refetch({ cancelRefetch: false })
+    }
 
     useEffect(
         () => {
-            if (queryDependencies === undefined) return
-            function refetch(result: QueryObserverResult) {
-                result.refetch({ cancelRefetch: false })
-            }
-            refetch(datasetResult)
-            fileDataResults.forEach(refetch)
-            fileAnnotationResults.forEach(refetch)
+            if (queryDependencies?.dataset !== undefined) refetch(datasetResult, true)
         },
-        queryDependencies ?? []
+        queryDependencies?.dataset ?? []
+    )
+
+    useEffect(
+        () => {
+            if (queryDependencies?.fileData !== undefined) {
+                fileDataResults.forEach(
+                    result => refetch(result, !(queryDependencies?.onlyFetched ?? true))
+                )
+            }
+        },
+        queryDependencies?.fileData ?? []
+    )
+
+    useEffect(
+        () => {
+            if (queryDependencies?.annotations !== undefined) refetch(fileAnnotationsResult, !(queryDependencies?.onlyFetched ?? true))
+        },
+        queryDependencies?.annotations ?? []
     )
 
     // Create a mutation for adding new files to the dataset
@@ -249,7 +269,7 @@ export default function useDataset<
                         const task = startTask<NamedFileInstance[]>(
                             async (complete, _, updateProgress) => {
                                 // Can't add to an undefined dataset
-                                if (datasetPK === undefined || dataset === undefined) {
+                                if (datasetPK === undefined || dataset === undefined || dataset === null) {
                                     UNREACHABLE("datasetPK and dataset will always be defined before this function is called")
                                 }
 
@@ -462,7 +482,7 @@ export default function useDataset<
             return {
                 async mutationFn([annotations, exportTask]) {
                     // Can't set annotations against an undefined dataset
-                    if (dataset === undefined) {
+                    if (dataset === undefined || dataset === null) {
                         UNREACHABLE("dataset will always be defined before this is called")
                     }
 
@@ -543,6 +563,15 @@ export default function useDataset<
         [itemConstructor] as const
     )
 
+    const fileAnnotationResults = useDerivedState(
+        ([fileOrdering, fileAnnotationsResult]) => {
+            return [...fileOrdering.keys()].map(
+                filename => mapQueryResult(fileAnnotationsResult, annotations => [filename, annotations?.[filename]! ?? NO_ANNOTATION] as const)
+            )
+        },
+        [fileOrdering, fileAnnotationsResult] as const
+    )
+
     const itemMultiMap = useDerivedStates(
         itemFactory,
         [...zip(
@@ -586,11 +615,12 @@ export default function useDataset<
     const dispatch = useDerivedState(
         ([dispatchConstructor, serverContext, datasetPK, fileOrdering, datasetResult, itemMap, mutations]) => {
             if (datasetPK === undefined) return undefined
+            assert(datasetResult.data !== null)
             return new dispatchConstructor(
                     serverContext,
                     datasetPK,
                     fileOrdering,
-                    datasetResult,
+                    datasetResult as UseQueryResult<DatasetInstance>, // datasetResult.data is not null as backed by above assertion
                     itemMap,
                     mutations
                 )

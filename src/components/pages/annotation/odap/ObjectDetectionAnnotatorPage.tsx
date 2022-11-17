@@ -54,8 +54,18 @@ export type ODAPProps = {
         position: [number, number]
     ) => void
     onBack?: () => void,
-    queryDependencies?: readonly unknown[],
-    evalQueryDependencies?: readonly unknown[]
+    queryDependencies?: {
+        dataset?: readonly unknown[]
+        fileData?: readonly unknown[]
+        annotations?: readonly unknown[]
+        onlyFetched?: boolean
+    }
+    evalQueryDependencies?: {
+        dataset?: readonly unknown[]
+        fileData?: readonly unknown[]
+        annotations?: readonly unknown[]
+        onlyFetched?: boolean
+    }
     selectedSortOrder: Controllable<WithDefault<string>>
     sortOrderLocked?: boolean
     heading?: string
