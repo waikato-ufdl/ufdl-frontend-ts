@@ -229,18 +229,30 @@ export const LOOP_TRANSITIONS = {
                 return createNewLoopState("Creating Prelabel Job")(
                     {
                         ...otherCurrent,
-                        modelOutputPK: modelOutputPK,
+                        modelOutputPK,
                         additionDataset: current.data.targetDataset,
                         jobPK: pk,
-                        progress: progress,
-                        framework: framework,
-                        trainTemplatePK: trainTemplatePK,
-                        trainParameters: trainParameters,
-                        evalTemplatePK: evalTemplatePK,
-                        evalParameters: evalParameters
+                        progress,
+                        framework,
+                        trainTemplatePK,
+                        trainParameters,
+                        evalTemplatePK,
+                        evalParameters
                     }
                 )
             };
+        },
+        label() {
+            return (current: LoopStateAndData) => {
+                if (current.state !== "Selecting Prelabel Images") return;
+
+                return createNewLoopState("User Fixing Categories")(
+                    {
+                        ...current.data,
+                        additionDataset: current.data.targetDataset,
+                    }
+                )
+            }
         },
         error(reason: any) {
             return (current: LoopStateAndData) => {
@@ -415,7 +427,7 @@ export const LOOP_TRANSITIONS = {
         cancel: cancelJobTransition
     },
     "Checking": {
-        finishChecking(next: "Finished" | "Prelabel" | "Edit") {
+        finishChecking(next: "Finished" | "Prelabel") {
             return (current: LoopStateAndData) => {
                 if (current.state !== "Checking") return;
 
@@ -437,13 +449,6 @@ export const LOOP_TRANSITIONS = {
                                     true,
                                     current.data.domain
                                 )
-                            }
-                        )
-                    case "Edit":
-                        return createNewLoopState("Selecting Initial Images")(
-                            {
-                                ...current.data,
-                                targetDataset: current.data.primaryDataset
                             }
                         )
                 }

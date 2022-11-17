@@ -211,13 +211,13 @@ export default function TheLoopPage(
                     domain={stateMachine.data.domain}
                     targetDataset={stateMachine.data.targetDataset}
                     evalDatasetPK={undefined}
-                    nextLabel={"Prelabel"}
+                    nextLabel={appSettings.prelabelMode === "None" ? "Label" : "Prelabel"}
                     contract={"Predict"}
                     classColours={classColours}
                     setClassColours={setClassColours}
                     context={ufdlServerContext}
                     setSelectableTemplates={setSelectableTemplates}
-                    onNext={evalConfigureModal.show}
+                    onNext={appSettings.prelabelMode === "None" ? stateMachine.transitions.label : evalConfigureModal.show}
                     onBack={stateMachine.transitions.back}
                     onError={stateMachine.transitions.error}
                     modelType={stateMachine.data.modelType}
@@ -294,7 +294,7 @@ export default function TheLoopPage(
                     ExtraControls={HomeButton}
                 />
                 <RefineOrDoneModal
-                    onRefine={() => {refineOrDoneModal.hide(); stateMachine.transitions.finishChecking(appSettings.prelabelMode === "None" ? "Edit" : "Prelabel")}}
+                    onRefine={() => {refineOrDoneModal.hide(); stateMachine.transitions.finishChecking("Prelabel")}}
                     onDone={() => {refineOrDoneModal.hide(); stateMachine.transitions.finishChecking("Finished")}}
                     position={refineOrDoneModal.position}
                     onCancel={() => refineOrDoneModal.hide()}
@@ -322,15 +322,25 @@ export default function TheLoopPage(
                 onBack={stateMachine.transitions.back}
                 onError={stateMachine.transitions.error}
                 modelType={stateMachine.data.modelType}
-                queryDependencies={{annotations: ["User Fixing Categories"], onlyFetched: false}}
+                queryDependencies={
+                    appSettings.prelabelMode === "None"
+                        ? undefined
+                        : {annotations: ["User Fixing Categories"], onlyFetched: false}
+                }
                 mode={
-                    appSettings.prelabelMode === "None" || appSettings.prelabelMode === "Default"
+                    appSettings.prelabelMode === "Default"
                         ? DEFAULT
-                        : appSettings.prelabelMode
+                        : appSettings.prelabelMode === "None"
+                            ? "Single"
+                            : appSettings.prelabelMode
                 }
                 selectedSortOrder={"random"}
                 sortOrderLocked
-                heading={"Please check and correct the pre-annotated items"}
+                heading={
+                    appSettings.prelabelMode === "None"
+                        ? "Please annotate the items"
+                        : "Please check and correct the pre-annotated items"
+                }
                 ExtraControls={HomeButton}
             />
 
