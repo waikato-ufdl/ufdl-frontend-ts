@@ -199,17 +199,17 @@ export default function useDataset<
 
     // Create queries for the annotations for each of the files in the dataset
     const fileAnnotationsQuery: UseQueryOptions<
-        {[filename: string]: A | typeof NO_ANNOTATION | undefined} | null,
+        {[filename: string]: OptionalAnnotations<A> | undefined} | null,
         unknown,
-        {[filename: string]: A | typeof NO_ANNOTATION | undefined} | null,
-        readonly ["dataset", DatasetPK | undefined, "annotations"]
+        {[filename: string]: OptionalAnnotations<A> | undefined} | null,
+        readonly ["dataset", DatasetPK | undefined, "annotations", number | undefined]
     > = useDerivedState(
         ([serverContext, dataset, getAnnotations, queryClient, datasetPK]) => {
             return {
-                queryKey: ["dataset", datasetPK, "annotations"] as const,
-                async queryFn(context: QueryFunctionContext<readonly ["dataset", DatasetPK | undefined, "annotations"]>) {
+                queryKey: ["dataset", datasetPK, "annotations", dataset?.pk] as const,
+                async queryFn(context: QueryFunctionContext<readonly ["dataset", DatasetPK | undefined, "annotations", number | undefined]>) {
                     const pk = context.queryKey[1];
-                    if (pk === undefined) return null
+                    if (pk === undefined || dataset === undefined) return null
                     return await getTaskCompletionPromise(
                         getAnnotations(
                             serverContext,
@@ -356,22 +356,29 @@ export default function useDataset<
                         await cancelOutgoingQueries(queryClient, datasetPK)
 
                         // Snapshot the previous values
-                        const currentState = getCurrentState<D, A>(queryClient, datasetPK)
-                        const [previousDatasetJSON] = currentState
+                        const currentState = getCurrentState<D, A>(queryClient, datasetPK!)
+                        const [previousDatasetJSON, , previousAnnotations] = currentState
 
                         // Create the updated values
-                        const updatedDatasetJSON = {
-                            ...previousDatasetJSON,
-                            files: {
-                                ...previousDatasetJSON.files,
-                                ...mapToObject(
-                                    mapMap(
-                                        files,
-                                        (filename) => [[filename, "UNKNOWN HANDLE"]]
+                        const updatedDatasetJSON = previousDatasetJSON === undefined
+                            ? undefined
+                            : {
+                                ...previousDatasetJSON,
+                                files: {
+                                    ...previousDatasetJSON.files,
+                                    ...mapToObject(
+                                        mapMap(
+                                            files,
+                                            (filename) => [[filename, "UNKNOWN HANDLE"]]
+                                        )
                                     )
-                                )
+                                }
                             }
-                        }
+                        const updatedAnnotations = previousAnnotations === undefined
+                            ? undefined
+                            : {
+                                ...previousAnnotations
+                            }
 
                         // Optimistically update to the new value
                         files.forEach(
@@ -380,15 +387,16 @@ export default function useDataset<
                                     fileQueryKey(datasetPK, filename),
                                     [filename, InTransit.fromPlain(fileData)] as const
                                 )
-                                queryClient.setQueryData(
-                                    annotationsQueryKey(datasetPK, filename),
-                                    [filename, NO_ANNOTATION] as const
-                                )
+                                if (updatedAnnotations !== undefined) updatedAnnotations[filename] = NO_ANNOTATION
                             }
                         )
                         queryClient.setQueryData(
                             datasetQueryKey(datasetPK),
                             updatedDatasetJSON
+                        )
+                        queryClient.setQueryData(
+                            annotationsQueryKey(datasetPK, dataset),
+                            updatedAnnotations
                         )
                     },
                     onError() {
@@ -406,7 +414,7 @@ export default function useDataset<
         unknown,
         readonly string[]
     > = useDerivedState(
-            ([serverContext, datasetPK]) => {
+            ([serverContext, datasetPK, dataset]) => {
                 return {
                     async mutationFn([filenames, exportTask]) {
                         // Can't delete from an undefined dataset
@@ -441,24 +449,32 @@ export default function useDataset<
                         await cancelOutgoingQueries(queryClient, datasetPK)
 
                         // Snapshot the previous values
-                        const currentState = getCurrentState(queryClient, datasetPK)
-                        const [previousDatasetJSON] = currentState
+                        const currentState = getCurrentState(queryClient, datasetPK!)
+                        const [previousDatasetJSON, , previousAnnotations] = currentState
 
                         // Create the updated values
-                        const updatedDatasetJSON = {
-                            ...previousDatasetJSON,
-                            files: {
-                                ...previousDatasetJSON.files
+                        const updatedDatasetJSON = previousDatasetJSON === undefined
+                            ? undefined
+                            : {
+                                ...previousDatasetJSON,
+                                files: {
+                                    ...previousDatasetJSON.files
+                                }
                             }
-                        }
+                        const updatedAnnotations = previousAnnotations === undefined
+                            ? undefined
+                            : {
+                                ...previousAnnotations
+                            }
 
                         // Optimistically update to the new value
                         for (const filename of filenames) {
-                            delete updatedDatasetJSON.files[filename]
+                            if (updatedDatasetJSON !== undefined) delete updatedDatasetJSON.files[filename]
                             queryClient.removeQueries(fileQueryKey(datasetPK, filename), {exact: true})
-                            queryClient.removeQueries(annotationsQueryKey(datasetPK, filename), {exact: true})
+                            if (updatedAnnotations !== undefined) delete updatedAnnotations[filename]
                         }
                         queryClient.setQueryData(datasetQueryKey(datasetPK), updatedDatasetJSON)
+                        queryClient.setQueryData(annotationsQueryKey(datasetPK, dataset), updatedAnnotations)
 
                         // Return a context object with the snapshotted value
                         return currentState
@@ -468,7 +484,7 @@ export default function useDataset<
                     }
                 }
             },
-            [serverContext, datasetPK] as const
+            [serverContext, datasetPK, datasetResult.data] as const
         )
     const deleteFileMutation = useMutation(deleteFilesMutationOptions)
 
@@ -508,19 +524,25 @@ export default function useDataset<
                     // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
                     await cancelOutgoingQueries(queryClient, datasetPK)
 
+                    // Snapshot the previous values
+                    const [, , previousAnnotations] = getCurrentState(queryClient, datasetPK!)
+
+                    // Create the updated values
+                    const updatedAnnotations = {
+                        ...previousAnnotations
+                    }
+
                     // Optimistically update to the new value
                     for (const [filename, annotation] of annotations.entries()) {
-                        queryClient.setQueryData(
-                            annotationsQueryKey(datasetPK, filename),
-                            [filename, annotation]
-                        )
+                        updatedAnnotations[filename] = annotation
                     }
+                    queryClient.setQueryData(annotationsQueryKey(datasetPK, dataset), updatedAnnotations)
                 },
                 onError(_, [annotations]) {
                     queryClient.invalidateQueries(datasetQueryKey(datasetPK), {exact: true})
+                    queryClient.invalidateQueries(annotationsQueryKey(datasetPK, dataset), {exact: true})
                     for (const filename of annotations.keys()) {
                         queryClient.invalidateQueries(fileQueryKey(datasetPK, filename), {exact: true})
-                        queryClient.invalidateQueries(annotationsQueryKey(datasetPK, filename), {exact: true})
                     }
                 }
             }
@@ -662,9 +684,9 @@ function fileQueryKey(
 
 function annotationsQueryKey(
     datasetPK: DatasetPK | undefined,
-    filename: string
-): ["dataset", DatasetPK | undefined, "annotations", string] {
-    return ["dataset", datasetPK, "annotations", filename]
+    dataset: DatasetInstance | null | undefined
+): ["dataset", DatasetPK | undefined, "annotations", number | undefined] {
+    return ["dataset", datasetPK, "annotations", dataset?.pk]
 }
 
 /**
@@ -684,13 +706,17 @@ async function cancelOutgoingQueries(
     await queryClient.cancelQueries(["dataset", datasetPK, "annotations"])
 }
 
-type DatasetState<D extends Data, A> = [DatasetInstance, [string, InTransit<D>][], [string, OptionalAnnotations<A>][]]
+type DatasetState<D extends Data, A> = [
+    DatasetInstance | undefined,
+    [string, InTransit<D>][],
+    { [filename: string]: OptionalAnnotations<A> | undefined } | null | undefined
+]
 
 function getCurrentState<D extends Data, A>(
     queryClient: QueryClient,
-    datasetPK: DatasetPK | undefined
+    datasetPK: DatasetPK
 ): DatasetState<D, A> {
-    const previousDatasetJSON = queryClient.getQueryData(datasetQueryKey(datasetPK), {exact: true}) as DatasetInstance
+    const previousDatasetJSON = queryClient.getQueryData(datasetQueryKey(datasetPK), {exact: true}) as DatasetInstance | undefined
 
     const previousFiles = queryClient
         .getQueriesData(["dataset", datasetPK, "files"])
@@ -699,10 +725,7 @@ function getCurrentState<D extends Data, A>(
         )
 
     const previousAnnotations = queryClient
-        .getQueriesData(["dataset", datasetPK, "annotations"])
-        .map(
-            ([_, value]) => value as [string, OptionalAnnotations<A>]
-        )
+        .getQueryData(["dataset", datasetPK, "annotations", previousDatasetJSON?.pk], {exact: true}) as { [filename: string]: OptionalAnnotations<A> | undefined } | null | undefined
 
     return [previousDatasetJSON, previousFiles, previousAnnotations]
 }
