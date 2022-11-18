@@ -1,12 +1,24 @@
+.MultiItemDatasetOverview {
+    height: 100%;
+}
+
 .MultiItemDatasetOverview .Items {
     height: 100%;
 }
 
 .MultiItemDatasetOverview .Samples {
     height: 100%;
-    background-color: dimgray;
 }
 
 .MultiItemDatasetOverview .SampleRow {
     height: 100%;
+}
+
+.MultiItemDatasetOverview .ExamplesColumnHeader {
+    border-right: 2px solid black;
+    border-bottom: 2px solid black;
+}
+
+.MultiItemDatasetOverview .PrelabelledColumnHeader {
+    border-bottom: 2px solid black;
 }

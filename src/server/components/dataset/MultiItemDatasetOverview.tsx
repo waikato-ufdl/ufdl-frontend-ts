@@ -198,80 +198,111 @@ export default function MultiItemDatasetOverview<
         }
     )
 
-    return <FlexContainer
-        className={augmentClassName(className, "MultiItemDatasetOverview")}
-        itemProps={
-            (_, index) => {
-                return {
-                    style: {
-                        margin: 0,
-                        border: 0,
-                        padding: 0,
-                        height: "100%",
-                        flexGrow: 0,
-                        width: index === 0 ? "75%" : "25%"
-                    }
-                };
-            }
-        }
-        style={
-            {
-                flexDirection: "row",
-                flexWrap: "nowrap",
-                alignItems: "flex-start",
-                justifyContent: "initial",
-                alignContent: "flex-start"
-            }
-        }
-    >
+    return <div className={augmentClassName(className, "MultiItemDatasetOverview")}>
         <FlexContainer
-            className={"Samples"}
             itemProps={
-                () => {
+                (_, index) => {
                     return {
                         style: {
                             margin: 0,
                             border: 0,
-                            paddingTop: "1.667%",
-                            paddingBottom: "1.667%",
-                            height: "16.3125%",
-                            overflow: "hidden",
+                            padding: 0,
+                            height: "100%",
                             flexGrow: 0,
-                            width: "100%",
-                            borderRight: "2px solid black",
-                            borderBottom: "2px solid black"
+                            width: index === 0 ? "75%" : "25%",
+                            backgroundColor: index === 0 ? "dimgray" : undefined
                         }
-                    }
+                    };
                 }
             }
-            style={FLEX_CONTAINER_STYLE}
+            style={
+                {
+                    flexDirection: "row",
+                    flexWrap: "nowrap",
+                    alignItems: "flex-start",
+                    justifyContent: "initial",
+                    alignContent: "flex-start"
+                }
+            }
         >
-            {renderedExamples}
+            <div className={"ExamplesColumnHeader"}>Examples</div>
+            <div className={"PrelabelledColumnHeader"}>Pre-labelled</div>
         </FlexContainer>
         <FlexContainer
-            className={"Items"}
+            className={augmentClassName(className, "MultiItemDatasetOverview")}
             itemProps={
-                () => {
+                (_, index) => {
                     return {
                         style: {
                             margin: 0,
                             border: 0,
-                            padding: "5%",
-                            height: "16.3125%",
-                            overflow: "hidden",
+                            padding: 0,
+                            height: "100%",
                             flexGrow: 0,
-                            width: "90%",
-                            borderBottom: "2px solid black"
+                            width: index === 0 ? "75%" : "25%"
+                        }
+                    };
+                }
+            }
+            style={
+                {
+                    flexDirection: "row",
+                    flexWrap: "nowrap",
+                    alignItems: "flex-start",
+                    justifyContent: "initial",
+                    alignContent: "flex-start"
+                }
+            }
+        >
+            <FlexContainer
+                className={"Samples"}
+                itemProps={
+                    () => {
+                        return {
+                            style: {
+                                margin: 0,
+                                border: 0,
+                                paddingTop: "1.667%",
+                                paddingBottom: "1.667%",
+                                height: "16.3125%",
+                                overflow: "hidden",
+                                flexGrow: 0,
+                                width: "100%",
+                                borderRight: "2px solid black",
+                                borderBottom: "2px solid black",
+                                backgroundColor: "dimgray"
+                            }
                         }
                     }
                 }
-            }
-            style={FLEX_CONTAINER_STYLE}
-        >
-            {renderedItems}
+                style={FLEX_CONTAINER_STYLE}
+            >
+                {renderedExamples}
+            </FlexContainer>
+            <FlexContainer
+                className={"Items"}
+                itemProps={
+                    () => {
+                        return {
+                            style: {
+                                margin: 0,
+                                border: 0,
+                                padding: "5%",
+                                height: "16.3125%",
+                                overflow: "hidden",
+                                flexGrow: 0,
+                                width: "90%",
+                                borderBottom: "2px solid black"
+                            }
+                        }
+                    }
+                }
+                style={FLEX_CONTAINER_STYLE}
+            >
+                {renderedItems}
+            </FlexContainer>
         </FlexContainer>
-    </FlexContainer>
-
+    </div>
 }
 
 function useExamples<
