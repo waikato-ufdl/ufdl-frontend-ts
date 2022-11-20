@@ -24,6 +24,7 @@ import {
 import useDerivedState from "../../../util/react/hooks/useDerivedState";
 import {APP_SETTINGS_REACT_CONTEXT} from "../../../useAppSettings";
 import {DEFAULT} from "../../../util/typescript/default";
+import getPredictTemplatesMatchingTrainTemplate from "./jobs/getPredictTemplatesMatchingTrainTemplate";
 
 
 const FRAMEWORK_REGEXP = /^Framework<'(.*)', '(.*)'>$/
@@ -133,18 +134,10 @@ export default function TheLoopPage(
                             setTrainTemplate(template_pk);
                             setTrainParameters(parameter_values);
                             try {
-                                const outputs = await job_template.get_outputs(ufdlServerContext, template_pk)
-
-                                const modelOutputType = outputs["model"];
+                                const [matchingTemplates, modelOutputType]
+                                    = await getPredictTemplatesMatchingTrainTemplate(ufdlServerContext, template_pk)
 
                                 setModelType(modelOutputType);
-
-                                const matchingTemplates = await job_template.get_all_matching_templates(
-                                    ufdlServerContext,
-                                    "Predict",
-                                    {model: `JobOutput<${modelOutputType}>`}
-                                )
-
                                 setSelectableTemplates(matchingTemplates);
 
                                 evalConfigureModal.show(...position);
