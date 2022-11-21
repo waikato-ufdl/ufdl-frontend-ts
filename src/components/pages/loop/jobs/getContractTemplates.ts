@@ -1,7 +1,7 @@
-import * as job_template from "../../../../../../ufdl-ts-client/dist/functional/core/jobs/job_template";
+import * as job_template from "ufdl-ts-client/functional/core/jobs/job_template";
 import {DomainName} from "../../../../server/domains";
-import UFDLServerContext from "../../../../../../ufdl-ts-client/dist/UFDLServerContext";
-import {JobTemplateInstance} from "../../../../../../ufdl-ts-client/dist/types/core/jobs/job_template";
+import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
+import {JobTemplateInstance} from "ufdl-ts-client/types/core/jobs/job_template";
 
 export default async function getContractTemplates(
     ufdlServerContext: UFDLServerContext,
