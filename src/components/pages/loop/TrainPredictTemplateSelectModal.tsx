@@ -23,6 +23,7 @@ export type TrainPredictTemplateSelectModalProps = {
     ufdlServerContext: UFDLServerContext
     selectableTrainTemplates?: readonly JobTemplateInstance[]
     trainTemplatePK: Controllable<number>
+    onTrainTemplateChanged?: (templatePK: number) => void
     initialTrainParameterValues?: ParameterValues
     onPredictTemplatesDetermined?: (templates: readonly JobTemplateInstance[], modelOutputType: string) => [number, ParameterValues] | undefined
     onFrameworkDetermined?: (frameworkName: string, frameworkVersion: string) => void
@@ -50,6 +51,15 @@ export default function TrainPredictTemplateSelectModal(
         constantInitialiser(undefined)
     )
     const [trainParameters, setTrainParameters] = useStateSafe<ParameterValues | undefined>(constantInitialiser(props.initialTrainParameterValues))
+
+    const changeTrainTemplatePK = useDerivedState(
+        ([setTrainTemplatePK, onTrainTemplateChanged]) =>
+            (templatePK: number) => {
+                setTrainTemplatePK(templatePK)
+                withIgnoredCallbackErrors(passOnUndefined(onTrainTemplateChanged))(templatePK)
+            },
+        [setTrainTemplatePK, props.onTrainTemplateChanged] as const
+    )
 
     const [framework, setFramework] = useStateSafe<[string, string] | undefined>(constantInitialiser(undefined))
     const [modelType, setModelType] = useStateSafe<string | undefined>(constantInitialiser(undefined))
@@ -119,24 +129,22 @@ export default function TrainPredictTemplateSelectModal(
         : predictTemplatePKControl
 
     const onTemplatePKChanged = trainMode
-        ? setTrainTemplatePK
+        ? changeTrainTemplatePK
         : undefined
 
     const initialValues = trainMode
         ? props.initialTrainParameterValues ?? {}
         : predictTemplate?.[1] ?? {}
 
-    return <>
-        <JobTemplateSelectModal
-            key={trainMode ? "train" : "predict"}
-            className={"TrainPredictTemplateSelectModal"}
-            onDone={onDone}
-            templates={templates}
-            templatePK={templatePK}
-            onTemplatePKChanged={onTemplatePKChanged}
-            initialValues={initialValues}
-            position={props.position}
-            onCancel={passOnUndefined(props.onCancel)}
-        />
-    </>
+    return <JobTemplateSelectModal
+        key={trainMode ? "train" : "predict"}
+        className={"TrainPredictTemplateSelectModal"}
+        onDone={onDone}
+        templates={templates}
+        templatePK={templatePK}
+        onTemplatePKChanged={onTemplatePKChanged}
+        initialValues={initialValues}
+        position={props.position}
+        onCancel={passOnUndefined(props.onCancel)}
+    />
 }
