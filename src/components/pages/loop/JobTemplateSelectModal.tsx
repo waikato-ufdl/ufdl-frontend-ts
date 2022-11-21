@@ -20,6 +20,7 @@ import {ParameterValues} from "./parameters/ParameterValues";
 import {any} from "../../../util/typescript/any";
 import useStateSafe from "../../../util/react/hooks/useStateSafe";
 import {ownPropertyIterator} from "../../../util/typescript/object";
+import {augmentClassName} from "../../../util/react/augmentClass";
 
 /**
  * Callback which is called when the user has finished specifying the job-template/parameters to use.
@@ -51,6 +52,7 @@ export type JobTemplateSelectModalOnDoneCallback
  *          What to do if the user gives up  on selecting a template.
  */
 export type JobTemplateSelectModalProps = {
+    className?: string
     onDone: JobTemplateSelectModalOnDoneCallback
     templates: JobTemplateInstance[]
     templatePK: Controllable<number>
@@ -116,6 +118,7 @@ export default function JobTemplateSelectModal(
         : {}
 
     return <LocalModal
+        className={augmentClassName(props.className, "JobTemplateSelectModal")}
         position={props.position}
         onCancel={props.onCancel}
     >
