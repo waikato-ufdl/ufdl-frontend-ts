@@ -12,8 +12,6 @@ import useLocalModal from "../../../util/react/hooks/useLocalModal";
 import {ClassColours} from "../../../server/util/classification";
 import JobTemplateSelectModal from "./JobTemplateSelectModal";
 import {JobTemplateInstance} from "ufdl-ts-client/types/core/jobs/job_template";
-import * as job_template from "ufdl-ts-client/functional/core/jobs/job_template"
-import {ParameterValue} from "ufdl-ts-client/json/generated/CreateJobSpec";
 import LoopAnnotatorPage from "./LoopAnnotatorPage";
 import {isAllowedStateAndData} from "../../../util/react/hooks/useStateMachine/isAllowedState";
 import {
@@ -24,10 +22,7 @@ import {
 import useDerivedState from "../../../util/react/hooks/useDerivedState";
 import {APP_SETTINGS_REACT_CONTEXT} from "../../../useAppSettings";
 import {DEFAULT} from "../../../util/typescript/default";
-import getPredictTemplatesMatchingTrainTemplate from "./jobs/getPredictTemplatesMatchingTrainTemplate";
-
-
-const FRAMEWORK_REGEXP = /^Framework<'(.*)', '(.*)'>$/
+import TrainPredictTemplateSelectModal from "./TrainPredictTemplateSelectModal";
 
 export type TheLoopPageProps = {
     onBack?: () => void
@@ -47,36 +42,27 @@ export default function TheLoopPage(
 
     const refineOrDoneModal = useLocalModal();
 
-    const trainConfigureModal = useLocalModal();
-    const evalConfigureModal = useLocalModal();
+    const templateConfigurationModal = useLocalModal();
 
     const [selectableTemplates, setSelectableTemplates] = useStateSafe<JobTemplateInstance[] | undefined>(constantInitialiser(undefined))
-    const [trainTemplate, setTrainTemplate] = useStateSafe<number | undefined>(constantInitialiser(undefined))
-    const [trainParameters, setTrainParameters] = useStateSafe<{[name: string]: ParameterValue} | undefined>(constantInitialiser(undefined))
-    const [framework, setFramework] = useStateSafe<[string, string] | undefined>(constantInitialiser(undefined))
-    const [modelType, setModelType] = useStateSafe<string | undefined>(constantInitialiser(undefined))
 
     const templateControlPK = useDerivedState(
-        ([stateMachine, position]) => {
+        ([stateMachine]) => {
             if (stateMachine.state === "Selecting Prelabel Images") {
                 return stateMachine.data.evalTemplatePK
             } else if (stateMachine.state === "Selecting Initial Images") {
-                if (position === undefined) {
-                    if (stateMachine.data.evalTemplatePK !== undefined) {
-                        return stateMachine.data.evalTemplatePK
-                    }
-                } else if (stateMachine.data.trainTemplatePK !== undefined) {
+                if (stateMachine.data.trainTemplatePK !== undefined) {
                     return stateMachine.data.trainTemplatePK
                 }
             }
             return UNCONTROLLED_RESET
         },
-        [stateMachine, trainConfigureModal.position] as const
+        [stateMachine] as const
     )
 
     const templateControl = useDerivedState(
-        ([templateControlPK]) => templateControlPK === UNCONTROLLED_RESET?
-            UNCONTROLLED_RESET
+        ([templateControlPK]) => templateControlPK === UNCONTROLLED_RESET
+            ? UNCONTROLLED_RESET
             : new UncontrolledResetOverride(templateControlPK)
         ,
         [templateControlPK] as const
@@ -117,7 +103,7 @@ export default function TheLoopPage(
                     setClassColours={setClassColours}
                     context={ufdlServerContext}
                     setSelectableTemplates={setSelectableTemplates}
-                    onNext={trainConfigureModal.show}
+                    onNext={templateConfigurationModal.show}
                     onBack={stateMachine.transitions.back}
                     onError={stateMachine.transitions.error}
                     modelType={undefined}
@@ -125,74 +111,20 @@ export default function TheLoopPage(
                     heading={"Please select the initial set of images to train against"}
                     ExtraControls={HomeButton}
                 />
-                <JobTemplateSelectModal
-                    onDone={
-                        async (template_pk, parameter_values) => {
-                            const position = trainConfigureModal.position;
-                            if (position === undefined) return;
-                            trainConfigureModal.hide()
-                            setTrainTemplate(template_pk);
-                            setTrainParameters(parameter_values);
-                            try {
-                                const [matchingTemplates, modelOutputType]
-                                    = await getPredictTemplatesMatchingTrainTemplate(ufdlServerContext, template_pk)
-
-                                setModelType(modelOutputType);
-                                setSelectableTemplates(matchingTemplates);
-
-                                evalConfigureModal.show(...position);
-                            } catch (e) {
-                                stateMachine.transitions.error(e)
-                            }
-
-                            try {
-                                const types = await job_template.get_types(ufdlServerContext, template_pk)
-
-                                console.log("TYPES", types)
-                                const frameworkType = types["FrameworkType"]
-                                if (frameworkType === undefined) {
-                                    console.log("Couldn't get FrameworkType")
-                                    return;
-                                }
-                                const framework = frameworkType.match(FRAMEWORK_REGEXP);
-                                if (framework === null) {
-                                    console.log(`Couldn't parse FrameworkType ${frameworkType}`)
-                                    return;
-                                }
-                                console.log("FRAMEWORK", framework, framework[1], framework[2])
-                                setFramework([framework[1], framework[2]])
-                            } catch (e) {
-                                stateMachine.transitions.error(e)
-                            }
-                        }
-                    }
-                    templates={selectableTemplates === undefined ? [] : selectableTemplates}
-                    templatePK={templateControl}
-                    initialValues={stateMachine.data.trainParameters ?? {}}
-                    position={trainConfigureModal.position}
-                    onCancel={() => trainConfigureModal.hide()}
-                />
-                <JobTemplateSelectModal
-                    onDone={(template_pk, parameter_values) => {
-                        evalConfigureModal.hide()
-                        if (trainTemplate === undefined) return;
-                        if (trainParameters === undefined) return;
-                        if (framework === undefined) return;
-                        if (modelType === undefined) return;
-                        stateMachine.transitions.trainInitialModel(
-                            trainTemplate,
-                            trainParameters,
-                            template_pk,
-                            parameter_values,
-                            framework,
-                            modelType
-                        )
+                <TrainPredictTemplateSelectModal
+                    ufdlServerContext={ufdlServerContext}
+                    selectableTrainTemplates={selectableTemplates}
+                    trainTemplatePK={templateControl}
+                    initialTrainParameterValues={stateMachine.data.trainParameters}
+                    onPredictTemplatesDetermined={(templates) => {
+                        if (stateMachine.data.evalTemplatePK === undefined) return undefined
+                        if (templates.map(template => template.pk).findIndex(pk => pk === stateMachine.data.evalTemplatePK) === -1) return undefined
+                        return [stateMachine.data.evalTemplatePK, stateMachine.data.evalParameters ?? {}]
                     }}
-                    templates={selectableTemplates === undefined ? [] : selectableTemplates}
-                    templatePK={templateControl}
-                    initialValues={stateMachine.data.evalParameters ?? {}}
-                    position={evalConfigureModal.position}
-                    onCancel={() => evalConfigureModal.hide()}
+                    onDone={stateMachine.transitions.trainInitialModel}
+                    onError={stateMachine.transitions.error}
+                    position={templateConfigurationModal.position}
+                    onCancel={templateConfigurationModal.hide}
                 />
             </>;
         }
@@ -210,7 +142,7 @@ export default function TheLoopPage(
                     setClassColours={setClassColours}
                     context={ufdlServerContext}
                     setSelectableTemplates={setSelectableTemplates}
-                    onNext={appSettings.prelabelMode === "None" ? stateMachine.transitions.label : evalConfigureModal.show}
+                    onNext={appSettings.prelabelMode === "None" ? stateMachine.transitions.label : templateConfigurationModal.show}
                     onBack={stateMachine.transitions.back}
                     onError={stateMachine.transitions.error}
                     modelType={stateMachine.data.modelType}
@@ -220,14 +152,14 @@ export default function TheLoopPage(
                 />
                 <JobTemplateSelectModal
                     onDone={(template_pk, parameter_values) => {
-                        evalConfigureModal.hide()
+                        templateConfigurationModal.hide()
                         stateMachine.transitions.prelabel(template_pk, parameter_values);
                     }}
                     templates={selectableTemplates === undefined ? [] : selectableTemplates}
                     templatePK={templateControl}
                     initialValues={stateMachine.data.evalParameters}
-                    position={evalConfigureModal.position}
-                    onCancel={() => evalConfigureModal.hide()}
+                    position={templateConfigurationModal.position}
+                    onCancel={() => templateConfigurationModal.hide()}
                 />
             </>;
 
