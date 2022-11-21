@@ -21,6 +21,8 @@ import {any} from "../../../util/typescript/any";
 import useStateSafe from "../../../util/react/hooks/useStateSafe";
 import {ownPropertyIterator} from "../../../util/typescript/object";
 import {augmentClassName} from "../../../util/react/augmentClass";
+import passOnUndefined from "../../../util/typescript/functions/passOnUndefined";
+import withIgnoredCallbackErrors from "../../../util/typescript/functions/withIgnoredCallbackErrors";
 
 /**
  * Callback which is called when the user has finished specifying the job-template/parameters to use.
@@ -56,6 +58,7 @@ export type JobTemplateSelectModalProps = {
     onDone: JobTemplateSelectModalOnDoneCallback
     templates: readonly JobTemplateInstance[]
     templatePK: Controllable<number>
+    onTemplatePKChanged?: (pk: number) => void
     initialValues: ParameterValues
     position: [number, number] | undefined
     onCancel: () => void
@@ -75,6 +78,18 @@ export default function JobTemplateSelectModal(
     const ufdlServerContext = useContext(UFDL_SERVER_REACT_CONTEXT);
 
     const [templatePK, setTemplatePK] = useControllableState(props.templatePK, constantInitialiser(-1))
+
+    const changeTemplatePK = useDerivedState(
+        ([current, onTemplatePKChanged]) => {
+            return (templatePK: number) =>  {
+                if (templatePK !== current) {
+                    setTemplatePK(templatePK)
+                    withIgnoredCallbackErrors(passOnUndefined(onTemplatePKChanged))(templatePK)
+                }
+            }
+        },
+        [templatePK, props.onTemplatePKChanged] as const
+    )
 
     // Update the parameter specifications from the server when the selected job-template changes
     const parameterSpecs = usePromise<{ [parameterName: string]: ParameterSpec }>(
@@ -128,7 +143,7 @@ export default function JobTemplateSelectModal(
             selectedPK={templatePK}
             values={props.templates}
             onChange={(_, pk) => {
-                if (pk !== undefined) setTemplatePK(pk)
+                if (pk !== undefined) changeTemplatePK(pk)
             }}
         />
 
