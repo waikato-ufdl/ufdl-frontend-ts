@@ -13,7 +13,7 @@ import getContractTemplates from "./loop/jobs/getContractTemplates";
 import {DomainName} from "../../server/domains";
 import useStateSafe from "../../util/react/hooks/useStateSafe";
 import {JobTemplateInstance} from "../../../../ufdl-ts-client/dist/types/core/jobs/job_template";
-import {UNCONTROLLED_KEEP} from "../../util/react/hooks/useControllableState";
+import {UNCONTROLLED_KEEP, UncontrolledResetOverride} from "../../util/react/hooks/useControllableState";
 import {anyToString} from "../../util/typescript/strings/anyToString";
 
 export type SettingsPageProps = {
@@ -54,6 +54,13 @@ export default function SettingsPage(
 
         templateConfigureModal.onClick(event)
     }
+
+    const trainTemplatePK = useDerivedState(
+        ([train]) => train === undefined
+            ? UNCONTROLLED_KEEP
+            : new UncontrolledResetOverride(train.templatePK),
+        [settings.loopJobTemplateDefaults[domain].train] as const
+    )
 
     return <Page className={"SettingsPage"}>
         <BackButton onBack={props.onBack} />
@@ -104,7 +111,7 @@ export default function SettingsPage(
                 key={domain + anyToString(templateConfigureModal.hidden)}
                 ufdlServerContext={ufdlServerContext}
                 selectableTrainTemplates={trainTemplates}
-                trainTemplatePK={settings.loopJobTemplateDefaults[domain].train?.templatePK ?? UNCONTROLLED_KEEP}
+                trainTemplatePK={trainTemplatePK}
                 initialTrainParameterValues={settings.loopJobTemplateDefaults[domain].train?.parameters}
                 onDone={(
                     trainTemplatePK,

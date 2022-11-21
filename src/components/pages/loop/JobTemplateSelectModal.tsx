@@ -19,7 +19,7 @@ import {RawJSONObjectSelect} from "../../../server/components/RawJSONObjectSelec
 import {ParameterValues} from "./parameters/ParameterValues";
 import {any} from "../../../util/typescript/any";
 import useStateSafe from "../../../util/react/hooks/useStateSafe";
-import {ownPropertyIterator} from "../../../util/typescript/object";
+import {forEachOwnProperty, ownPropertyIterator} from "../../../util/typescript/object";
 import {augmentClassName} from "../../../util/react/augmentClass";
 import passOnUndefined from "../../../util/typescript/functions/passOnUndefined";
 import withIgnoredCallbackErrors from "../../../util/typescript/functions/withIgnoredCallbackErrors";
@@ -132,6 +132,20 @@ export default function JobTemplateSelectModal(
         ? parameterSpecs.value
         : {}
 
+    const excludeInvalidParameters = useDerivedState(
+        ([resolvedParameterSpecs]) => (parameterValues: ParameterValues) => {
+            const validParameterValues: ParameterValues = {}
+            forEachOwnProperty(
+                resolvedParameterSpecs,
+                property => {
+                    validParameterValues[property] = parameterValues[property]
+                }
+            )
+            return validParameterValues
+        },
+        [resolvedParameterSpecs] as const
+    )
+
     return <LocalModal
         className={augmentClassName(props.className, "JobTemplateSelectModal")}
         position={props.position}
@@ -157,7 +171,7 @@ export default function JobTemplateSelectModal(
 
         {/* A button which allows the user to accept the parameter values without opening the editor */}
         <button
-            onClick={() => {props.onDone(templatePK, parameterValues)}}
+            onClick={() => {props.onDone(templatePK, excludeInvalidParameters(parameterValues))}}
             disabled={
                 // The done button is disabled if any required parameter has not had its value set
                 templatePK === -1
@@ -183,7 +197,7 @@ export default function JobTemplateSelectModal(
         <EditParametersModal
             key={templatePK} // Force internal state of parameter editor to reset on template changes
             onParameterValuesChanged={setParameterValues}
-            onDone={(parameterValues) => props.onDone(templatePK, parameterValues)}
+            onDone={(parameterValues) => props.onDone(templatePK, excludeInvalidParameters(parameterValues))}
             parameterSpecs={resolvedParameterSpecs}
             position={editParametersModal.position}
             parameterValues={parameterValues}
