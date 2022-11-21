@@ -118,6 +118,10 @@ export default function TrainPredictTemplateSelectModal(
         ? trainTemplatePK ?? -1
         : predictTemplatePKControl
 
+    const onTemplatePKChanged = trainMode
+        ? setTrainTemplatePK
+        : undefined
+
     const initialValues = trainMode
         ? props.initialTrainParameterValues ?? {}
         : predictTemplate?.[1] ?? {}
@@ -129,6 +133,7 @@ export default function TrainPredictTemplateSelectModal(
             onDone={onDone}
             templates={templates}
             templatePK={templatePK}
+            onTemplatePKChanged={onTemplatePKChanged}
             initialValues={initialValues}
             position={props.position}
             onCancel={passOnUndefined(props.onCancel)}
