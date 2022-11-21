@@ -11,7 +11,7 @@ import {UFDLServerContextProvider} from "./server/UFDLServerContextProvider";
 const queryClient = new QueryClient()
 
 export default function App() {
-    const [context] = useStateSafe(() => UFDLServerContext.for_current_host("", "", localStorage))
+    const [context] = useStateSafe(() => UFDLServerContext.for_current_host("admin", "admin", localStorage))
 
     const [settings, settingsDispatch] = useAppSettings()
 

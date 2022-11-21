@@ -17,7 +17,7 @@ import SettingsPage from "./SettingsPage";
 
 export function MainMenuPage() {
 
-    const [loggedIn, setLoggedIn] = useStateSafe<boolean>(() => false);
+    const [loggedIn, setLoggedIn] = useStateSafe<boolean>(() => true);
 
     if (!loggedIn) {
         return <LoginPage
