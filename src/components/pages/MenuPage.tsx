@@ -20,7 +20,7 @@ export default function MenuPage(
 
     const [selected, setSelected] = useStateSafe(() => 0);
     const onBack = useDerivedState(
-        ([setSelected]) => () => setSelected(0),
+        ([setSelected]) => () => setSelected(9), // 9 is The Loop
         [setSelected]
     );
 
