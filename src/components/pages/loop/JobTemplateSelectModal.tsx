@@ -54,7 +54,7 @@ export type JobTemplateSelectModalOnDoneCallback
 export type JobTemplateSelectModalProps = {
     className?: string
     onDone: JobTemplateSelectModalOnDoneCallback
-    templates: JobTemplateInstance[]
+    templates: readonly JobTemplateInstance[]
     templatePK: Controllable<number>
     initialValues: ParameterValues
     position: [number, number] | undefined
