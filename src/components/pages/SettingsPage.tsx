@@ -4,9 +4,17 @@ import {APP_SETTINGS_REACT_CONTEXT, AppSettings, saveSettingsToContext} from "..
 import InterlatchedCheckboxes from "../../util/react/component/InterlatchedCheckboxes";
 import useDerivedState from "../../util/react/hooks/useDerivedState";
 import {identity} from "../../util/identity";
-import {useContext} from "react";
+import React, {useContext} from "react";
 import {BackButton} from "../../util/react/component/BackButton";
 import {UFDL_SERVER_REACT_CONTEXT} from "../../server/UFDLServerContextProvider";
+import useLocalModal from "../../util/react/hooks/useLocalModal";
+import TrainPredictTemplateSelectModal from "./loop/TrainPredictTemplateSelectModal";
+import getContractTemplates from "./loop/jobs/getContractTemplates";
+import {DomainName} from "../../server/domains";
+import useStateSafe from "../../util/react/hooks/useStateSafe";
+import {JobTemplateInstance} from "../../../../ufdl-ts-client/dist/types/core/jobs/job_template";
+import {UNCONTROLLED_KEEP} from "../../util/react/hooks/useControllableState";
+import {anyToString} from "../../util/typescript/strings/anyToString";
 
 export type SettingsPageProps = {
     onBack?: () => void
@@ -29,26 +37,105 @@ export default function SettingsPage(
         [settingsDispatch.setPrelabelMode] as const
     )
 
+    const templateConfigureModal = useLocalModal();
+
+    const [domain, setDomain] = useStateSafe<DomainName>(() => "Image Classification")
+    const [trainTemplates, setTrainTemplates] = useStateSafe<JobTemplateInstance[]>(() => [])
+
+    async function configureLoopTemplateDefaults(domain: DomainName, event: React.MouseEvent) {
+        const templates = await getContractTemplates(
+            ufdlServerContext,
+            domain,
+            "Train"
+        )
+
+        setDomain(domain)
+        setTrainTemplates(templates)
+
+        templateConfigureModal.onClick(event)
+    }
+
     return <Page className={"SettingsPage"}>
         <BackButton onBack={props.onBack} />
-        <label>
-            Prelabel Mode:
-            <InterlatchedCheckboxes
-                options={PRELABEL_MODES}
-                labelExtractor={identity}
-                canSelectNone={true}
-                selected={PRELABEL_MODES.indexOf(settings.prelabelMode)}
-                onChanged={setPrelabelMode}
+        <div>
+            <label>
+                Prelabel Mode:
+                <InterlatchedCheckboxes
+                    options={PRELABEL_MODES}
+                    labelExtractor={identity}
+                    canSelectNone={true}
+                    selected={PRELABEL_MODES.indexOf(settings.prelabelMode)}
+                    onChanged={setPrelabelMode}
+                />
+            </label>
+        </div>
+        <div>
+            <label>
+                Upload in bulk where possible:
+                <input
+                    type={"checkbox"}
+                    checked={settings.uploadBulkWherePossible}
+                    onClick={() => settingsDispatch.setUploadBulkWherePossible(!settings.uploadBulkWherePossible)}
+                />
+            </label>
+        </div>
+        <div>
+            <button
+                onClick={event => configureLoopTemplateDefaults("Image Classification", event)}
+            >
+                Set Image Classification Loop Template Defaults
+            </button>
+            <button
+                onClick={event => configureLoopTemplateDefaults("Object Detection", event)}
+            >
+                Set Object Detection Loop Template Defaults
+            </button>
+            <button
+                onClick={event => configureLoopTemplateDefaults("Image Segmentation", event)}
+            >
+                Set Image Segmentation Loop Template Defaults
+            </button>
+            <button
+                onClick={event => configureLoopTemplateDefaults("Speech", event)}
+            >
+                Set Speech Loop Template Defaults
+            </button>
+            <TrainPredictTemplateSelectModal
+                key={domain + anyToString(templateConfigureModal.hidden)}
+                ufdlServerContext={ufdlServerContext}
+                selectableTrainTemplates={trainTemplates}
+                trainTemplatePK={settings.loopJobTemplateDefaults[domain].train?.templatePK ?? UNCONTROLLED_KEEP}
+                initialTrainParameterValues={settings.loopJobTemplateDefaults[domain].train?.parameters}
+                onDone={(
+                    trainTemplatePK,
+                    trainParameterValues,
+                    predictTemplatePK,
+                    predictParameterValues
+                ) => {
+                    const current = settings.loopJobTemplateDefaults
+
+                    settingsDispatch.setLoopJobTemplateDefaults(
+                        {
+                            ...current,
+                            [domain]: {
+                                train: {
+                                    templatePK: trainTemplatePK,
+                                    parameters: trainParameterValues
+                                },
+                                predict: {
+                                    templatePK: predictTemplatePK,
+                                    parameters: predictParameterValues
+                                }
+                            }
+                        }
+                    )
+
+                    templateConfigureModal.hide()
+                }}
+                position={templateConfigureModal.position}
+                onCancel={templateConfigureModal.hide}
             />
-        </label>
-        <label>
-            Upload in bulk where possible:
-            <input
-                type={"checkbox"}
-                checked={settings.uploadBulkWherePossible}
-                onClick={() => settingsDispatch.setUploadBulkWherePossible(!settings.uploadBulkWherePossible)}
-            />
-        </label>
+        </div>
         <button
             className={"SaveButton"}
             onClick={
@@ -57,6 +144,5 @@ export default function SettingsPage(
         >
             Save
         </button>
-
     </Page>
 }

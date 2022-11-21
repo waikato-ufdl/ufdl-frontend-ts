@@ -82,7 +82,7 @@ export default function TheLoopPage(
             return <div />
         case "Selecting Primary Dataset":
             return <SelectDatasetPage
-                onDatasetSelected={stateMachine.transitions.setSelected}
+                onDatasetSelected={(pk, domain) => stateMachine.transitions.setSelected(pk, domain, appSettings)}
                 onProjectSelected={stateMachine.transitions.setSelected}
                 onTeamSelected={stateMachine.transitions.setSelected}
                 from={stateMachine.data.from}

@@ -24,6 +24,7 @@ import {formatResponseError} from "../../../../../server/util/responseError";
 import {ParameterValue} from "ufdl-ts-client/json/generated/CreateJobSpec";
 import {restoreLoopState, trySaveLoopState} from "./save";
 import loopStateDataConstructor from "./loopStateDataConstructor";
+import {AppSettings} from "../../../../../useAppSettings";
 
 export const LOOP_TRANSITIONS = {
     "Initial": {
@@ -34,7 +35,6 @@ export const LOOP_TRANSITIONS = {
             const context = current.data.context
 
             const previousLoopState = restoreLoopState(context)
-            console.log("PREVIOUS LOOP STATE", previousLoopState)
 
             if (previousLoopState !== undefined) {
                 changeState(
@@ -64,7 +64,7 @@ export const LOOP_TRANSITIONS = {
         }
     },
     "Selecting Primary Dataset": {
-        setSelected(selection?: DatasetPK | ProjectPK | TeamPK, domain?: DomainName) {
+        setSelected(selection?: DatasetPK | ProjectPK | TeamPK, domain?: DomainName, settings?: AppSettings) {
             return (current: LoopStateAndData) => {
                 if (current.state !== "Selecting Primary Dataset") return;
 
@@ -76,10 +76,10 @@ export const LOOP_TRANSITIONS = {
                             primaryDataset: selection,
                             targetDataset: selection,
                             domain: domain,
-                            trainTemplatePK: undefined,
-                            trainParameters: undefined,
-                            evalTemplatePK: undefined,
-                            evalParameters: undefined
+                            trainTemplatePK: settings?.loopJobTemplateDefaults[domain].train?.templatePK,
+                            trainParameters: settings?.loopJobTemplateDefaults[domain].train?.parameters,
+                            evalTemplatePK: settings?.loopJobTemplateDefaults[domain].predict?.templatePK,
+                            evalParameters: settings?.loopJobTemplateDefaults[domain].predict?.parameters
                         }
                     );
                 } else {

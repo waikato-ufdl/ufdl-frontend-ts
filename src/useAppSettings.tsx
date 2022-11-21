@@ -4,11 +4,25 @@ import {constantInitialiser} from "./util/typescript/initialisers";
 import {mapObject} from "./util/typescript/object";
 import capitalize from "./util/typescript/strings/capitalize";
 import UFDLServerContext from "../../ufdl-ts-client/dist/UFDLServerContext";
+import {DomainName} from "./server/domains";
+import {ParameterValue} from "../../ufdl-ts-client/dist/json/generated/CreateJobSpec";
 
 /** The type of the settings for the single-page app. */
 export type AppSettings = {
     readonly prelabelMode: "None" | "Single" | "Multi" | "Default"
     readonly uploadBulkWherePossible: boolean
+    readonly loopJobTemplateDefaults: {
+        [Domain in DomainName]: {
+            train?: {
+                templatePK: number
+                parameters: { [name: string]: ParameterValue }
+            }
+            predict?: {
+                templatePK: number
+                parameters: { [name: string]: ParameterValue }
+            }
+        }
+    }
 }
 
 export type AppSettingDispatchName<SettingName extends string> = `set${Capitalize<SettingName>}`
@@ -27,7 +41,13 @@ export type AppSettingsDispatch = {
 /** The app's default settings. */
 const DEFAULT_APP_SETTINGS: AppSettings = {
     prelabelMode: "Default",
-    uploadBulkWherePossible: true
+    uploadBulkWherePossible: true,
+    loopJobTemplateDefaults: {
+        'Image Classification': {},
+        'Object Detection': {},
+        'Image Segmentation': {},
+        'Speech': {}
+    }
 } as const
 
 const DEFAULT_APP_SETTINGS_DISPATCH: AppSettingsDispatch = mapObject(
@@ -82,14 +102,21 @@ export function useAppSettings(
         constantInitialiser(DEFAULT_APP_SETTINGS.uploadBulkWherePossible)
     )
 
+    // Create state for the prelabelMode setting
+    const [loopJobTemplateDefaults, setLoopJobTemplateDefaults] = useStateSafe(
+        constantInitialiser(DEFAULT_APP_SETTINGS.loopJobTemplateDefaults)
+    )
+
     return [
         {
             prelabelMode,
-            uploadBulkWherePossible
+            uploadBulkWherePossible,
+            loopJobTemplateDefaults
         },
         {
             setPrelabelMode,
-            setUploadBulkWherePossible
+            setUploadBulkWherePossible,
+            setLoopJobTemplateDefaults
         }
     ]
 }
@@ -98,13 +125,15 @@ export async function saveSettingsToContext(
     settings: AppSettings,
     context: UFDLServerContext
 ) {
-    context.store_item(
-        "AppSettings",
-        JSON.stringify(settings),
-        true
-    ).catch(
-        reason => console.error("Failed to save settings to context", reason)
-    )
+    try {
+        await context.store_item(
+            "AppSettings",
+            JSON.stringify(settings),
+            true
+        )
+    } catch (reason) {
+        console.error("Failed to save settings to context", reason)
+    }
 }
 
 export async function loadSettingsFromContext(
@@ -120,6 +149,7 @@ export async function loadSettingsFromContext(
     if (dispatch !== undefined) {
         dispatch.setPrelabelMode(deserialised.prelabelMode)
         dispatch.setUploadBulkWherePossible(deserialised.uploadBulkWherePossible)
+        dispatch.setLoopJobTemplateDefaults(deserialised.loopJobTemplateDefaults)
     }
 
     return deserialised
