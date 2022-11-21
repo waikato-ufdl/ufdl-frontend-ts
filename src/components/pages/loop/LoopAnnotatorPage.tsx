@@ -12,6 +12,7 @@ import SpeechAnnotatorPage from "../annotation/spap/SpeechAnnotatorPage";
 import {DEFAULT, WithDefault} from "../../../util/typescript/default";
 import {Controllable} from "../../../util/react/hooks/useControllableState";
 import {AnnotatorTopMenuExtraControlsComponent} from "../../../server/components/AnnotatorTopMenu";
+import getContractTemplates from "./jobs/getContractTemplates";
 
 export type LoopAnnotatorPageProps = {
     domain: DomainName
@@ -49,23 +50,21 @@ export type LoopAnnotatorPageProps = {
 export default function LoopAnnotatorPage(
     props: LoopAnnotatorPageProps
 ): FunctionComponentReturnType {
-    const datasetPKType = `PK<Dataset<Domain<'${props.domain}'>>>`
 
     function updateMatchingTemplates() {
-        if (props.contract !== undefined) {
-            const types: {[p: string]: string} = {dataset: datasetPKType}
+        const contract = props.contract
+        if (contract === undefined) return
 
-            if (props.modelType !== undefined)
-                types['model'] = `JobOutput<${props.modelType}>`
-
-            job_template.get_all_matching_templates(
-                props.context,
-                props.contract,
-                types
-            ).then(
-                props.setSelectableTemplates
-            ).catch(props.onError)
-        }
+        getContractTemplates(
+            props.context,
+            props.domain,
+            contract,
+            props.modelType
+        ).then(
+            props.setSelectableTemplates
+        ).catch(
+            props.onError
+        )
     }
 
     switch (props.domain) {
