@@ -7,14 +7,15 @@
  * @return
  *          The modified version of the callback.
  */
-export default function withIgnoredCallbackErrors<Args extends readonly unknown[]>(
-    callback: (...args: Args) => void
-): (...args: Args) => void {
+export default function withIgnoredCallbackErrors<Args extends readonly unknown[], R>(
+    callback: (...args: Args) => R
+): (...args: Args) => R | undefined {
     return (...args) => {
         try {
-            callback(...args)
+            return callback(...args)
         } catch (_) {
             // Ignore the error
+            return undefined
         }
     }
 }
