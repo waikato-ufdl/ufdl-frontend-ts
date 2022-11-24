@@ -255,8 +255,8 @@ export default function TheLoopPage(
                 sortOrderLocked
                 heading={
                     stateMachine.data.prelabelMode === "None"
-                        ? "Please annotate the items and then click -> "
-                        : "Please check and correct the pre-annotated items and then click -> "
+                        ? `[${stateMachine.data.iteration - 1}/19] Please annotate the items and then click -> `
+                        : `[${stateMachine.data.iteration - 1}/19] Please check and correct the pre-annotated items and then click -> `
                 }
             />
 
