@@ -6,14 +6,15 @@ import {StateMachineDispatch} from "../../../../../util/react/hooks/useStateMach
 import {constantInitialiser} from "../../../../../util/typescript/initialisers";
 
 export default function useTheLoopStateMachine(
-    context: UFDLServerContext
+    context: UFDLServerContext,
+    prelabelMode: "None" | "Single" | "Multi" | "Default"
 ): StateMachineDispatch<LoopStates, LoopTransitions> {
     return useStateMachine<LoopStates, LoopTransitions>(
         constantInitialiser(LOOP_TRANSITIONS),
         () => {
             return {
                 state: "Initial",
-                data: {context: context}
+                data: {context, prelabelMode}
             }
         }
     );

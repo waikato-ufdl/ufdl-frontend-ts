@@ -134,14 +134,6 @@ function DatasetItemComponent<
             comparisonAnnotation={comparisonAnnotation}
             disabled={disabled}
         />
-
-        <input
-            className={"DatasetItemSelectBox"}
-            type={"checkbox"}
-            checked={item.selected}
-            onClick={onSelect}
-            disabled={disabled || !(item instanceof MutableDatasetDispatchItem)}
-        />
     </div>
 }
 

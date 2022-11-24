@@ -12,12 +12,14 @@ export const HANDLED_ERROR_RESPONSE = Symbol("The expected value cannot be retur
 
 export function createErrorState(
     context: UFDLServerContext,
-    reason: any
+    reason: any,
+    prelabelMode: "None" | "Single" | "Multi" | "Default"
 ): ErrorStateAndData {
     return createNewLoopState("Error")(
         {
-            context: context,
-            reason: reason
+            context,
+            reason,
+            prelabelMode
         }
     );
 }
@@ -27,10 +29,10 @@ export function createErrorStateTransition(
     reason: any
 ): LoopStateTransition {
     return (newCurrent) => {
+        console.error("Encountered error response in state transition", reason);
         if (newCurrent === current) {
-            return createErrorState(current.data.context, reason);
+            return createErrorState(current.data.context, reason, current.data.prelabelMode);
         } else {
-            console.log("Encountered error response in state transition", reason);
             return undefined;
         }
     }

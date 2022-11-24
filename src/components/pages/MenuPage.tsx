@@ -18,9 +18,9 @@ export default function MenuPage(
     props: PropsWithChildren<MenuPageProps>
 ): FunctionComponentReturnType {
 
-    const [selected, setSelected] = useStateSafe(() => 0);
+    const [selected, setSelected] = useStateSafe(() => 9); // 9 is The Loop
     const onBack = useDerivedState(
-        ([setSelected]) => () => setSelected(9), // 9 is The Loop
+        ([setSelected]) => () => setSelected(0),
         [setSelected]
     );
 

@@ -3,6 +3,7 @@ import withPromiseParameters, {PromiseParameters} from "../util/typescript/async
 import {blobSubject, BlobSubject} from "../util/rx/data/BlobSubject";
 import {dataStreamSubject} from "../util/rx/data/DataStreamSubject";
 import {immediateBehaviourSubject} from "../util/rx/immediate";
+import {get_response_stream} from "ufdl-ts-client/util";
 
 /**
  * Converts actions that download data from the server into
@@ -22,4 +23,14 @@ export default function forDownload<P extends unknown[]>(
         const subjectImmediate = immediateBehaviourSubject(dsSubject, new Uint8Array());
         return blobSubject(subjectImmediate);
     }
+}
+
+export function responseForDownload<P extends unknown[]>(
+    action: (...args: P) => Promise<Response>
+): (...args: PromiseParameters<P>) => BlobSubject {
+    return forDownload(
+        async (...args) => {
+            return get_response_stream(await action(...args))
+        }
+    )
 }

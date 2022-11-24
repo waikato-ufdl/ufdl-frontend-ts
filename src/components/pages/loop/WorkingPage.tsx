@@ -8,7 +8,6 @@ import {useEffect} from "react";
 export type WorkingPageProps = {
     title: string,
     progress: BehaviorSubject<[number, string | undefined]> | number
-    onCancel: () => void
 }
 
 export default function WorkingPage(
@@ -51,9 +50,6 @@ export default function WorkingPage(
 
     return <Page>
         {progressTitle}
-        <button onClick={props.onCancel}>
-            Cancel
-        </button>
         {messageElements}
     </Page>
 }

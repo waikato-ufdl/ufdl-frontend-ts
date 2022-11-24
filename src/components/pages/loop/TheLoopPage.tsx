@@ -23,6 +23,8 @@ import useDerivedState from "../../../util/react/hooks/useDerivedState";
 import {APP_SETTINGS_REACT_CONTEXT} from "../../../useAppSettings";
 import {DEFAULT} from "../../../util/typescript/default";
 import TrainPredictTemplateSelectModal from "./TrainPredictTemplateSelectModal";
+import pass from "../../../util/typescript/functions/pass";
+import {CLASS_COLOURS} from "./hooks/useTheLoopStateMachine/dogs";
 
 export type TheLoopPageProps = {
     onBack?: () => void
@@ -36,9 +38,9 @@ export default function TheLoopPage(
 
     const [appSettings] = useContext(APP_SETTINGS_REACT_CONTEXT);
 
-    const stateMachine = useTheLoopStateMachine(ufdlServerContext);
+    const stateMachine = useTheLoopStateMachine(ufdlServerContext, appSettings.prelabelMode);
 
-    const [classColours, setClassColours] = useStateSafe<ClassColours | undefined>(constantInitialiser(undefined));
+    const [classColours, setClassColours] = useStateSafe<ClassColours | undefined>(constantInitialiser(CLASS_COLOURS));
 
     const refineOrDoneModal = useLocalModal();
 
@@ -70,7 +72,10 @@ export default function TheLoopPage(
 
     switch (stateMachine.state) {
         case "Initial":
-            return <div />
+            return <WorkingPage
+                title={"Initialising..."}
+                progress={0.0}
+            />
         case "Selecting Primary Dataset":
             return <SelectDatasetPage
                 onDatasetSelected={(pk, domain) => stateMachine.transitions.setSelected(pk, domain, appSettings)}
@@ -126,14 +131,14 @@ export default function TheLoopPage(
                     domain={stateMachine.data.domain}
                     targetDataset={stateMachine.data.targetDataset}
                     evalDatasetPK={undefined}
-                    nextLabel={appSettings.prelabelMode === "None" ? "Label" : "Prelabel"}
+                    nextLabel={stateMachine.data.prelabelMode === "None" ? "Label" : "Prelabel"}
                     contract={"Predict"}
                     classColours={classColours}
                     setClassColours={setClassColours}
                     context={ufdlServerContext}
                     setSelectableTemplates={setSelectableTemplates}
-                    onNext={appSettings.prelabelMode === "None" ? stateMachine.transitions.label : templateConfigurationModal.show}
-                    onBack={stateMachine.transitions.back}
+                    onNext={stateMachine.data.prelabelMode === "None" ? stateMachine.transitions.label : templateConfigurationModal.show}
+                    onBack={pass}
                     onError={stateMachine.transitions.error}
                     modelType={stateMachine.data.modelType}
                     selectedSortOrder={UNCONTROLLED_KEEP}
@@ -182,7 +187,6 @@ export default function TheLoopPage(
                 key={stateMachine.state} // Reset internal state on state-machine transition
                 title={stateMachine.state}
                 progress={progress}
-                onCancel={onCancel}
             />;
 
         case "Checking":
@@ -232,25 +236,25 @@ export default function TheLoopPage(
                 context={ufdlServerContext}
                 setSelectableTemplates={() => {}}
                 onNext={stateMachine.transitions.finishedFixing}
-                onBack={stateMachine.transitions.back}
+                onBack={pass}
                 onError={stateMachine.transitions.error}
                 modelType={stateMachine.data.modelType}
                 queryDependencies={
-                    appSettings.prelabelMode === "None"
+                    stateMachine.data.prelabelMode === "None"
                         ? undefined
                         : {annotations: ["User Fixing Categories"], onlyFetched: false}
                 }
                 mode={
-                    appSettings.prelabelMode === "Default"
+                    stateMachine.data.prelabelMode === "Default"
                         ? DEFAULT
-                        : appSettings.prelabelMode === "None"
+                        : stateMachine.data.prelabelMode === "None"
                             ? "Single"
-                            : appSettings.prelabelMode
+                            : stateMachine.data.prelabelMode
                 }
                 selectedSortOrder={"random"}
                 sortOrderLocked
                 heading={
-                    appSettings.prelabelMode === "None"
+                    stateMachine.data.prelabelMode === "None"
                         ? "Please annotate the items"
                         : "Please check and correct the pre-annotated items"
                 }

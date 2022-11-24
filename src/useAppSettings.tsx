@@ -39,11 +39,38 @@ export type AppSettingsDispatch = {
 }
 
 /** The app's default settings. */
-const DEFAULT_APP_SETTINGS: AppSettings = {
+export const DEFAULT_APP_SETTINGS = {
     prelabelMode: "Default",
     uploadBulkWherePossible: true,
     loopJobTemplateDefaults: {
-        'Image Classification': {},
+        'Image Classification': {
+            train: {
+                templatePK: 10,
+                parameters: {
+                    delay: {
+                        value: 0,
+                        type: "float"
+                    },
+                    factor: {
+                        value: 1000,
+                        type: "int"
+                    }
+                }
+            },
+            predict: {
+                templatePK: 11,
+                parameters: {
+                    per_class: {
+                        value: true,
+                        type: "bool"
+                    },
+                    store_predictions: {
+                        value: true,
+                        type: "bool"
+                    }
+                }
+            }
+        },
         'Object Detection': {},
         'Image Segmentation': {},
         'Speech': {}
@@ -63,7 +90,9 @@ const DEFAULT_APP_SETTINGS_DISPATCH: AppSettingsDispatch = mapObject(
 
 
 /** The React context which specifies the app's settings. */
-export const APP_SETTINGS_REACT_CONTEXT = React.createContext([DEFAULT_APP_SETTINGS, DEFAULT_APP_SETTINGS_DISPATCH] as const);
+export const APP_SETTINGS_REACT_CONTEXT = React.createContext<readonly [AppSettings,  AppSettingsDispatch]>(
+    [DEFAULT_APP_SETTINGS, DEFAULT_APP_SETTINGS_DISPATCH] as const
+);
 
 /**
  * The type of props passed to the AppSettingsProvider component.
@@ -93,17 +122,17 @@ export function useAppSettings(
     // No parameters
 ): [AppSettings, AppSettingsDispatch] {
     // Create state for the prelabelMode setting
-    const [prelabelMode, setPrelabelMode] = useStateSafe(
+    const [prelabelMode, setPrelabelMode] = useStateSafe<AppSettings["prelabelMode"]>(
         constantInitialiser(DEFAULT_APP_SETTINGS.prelabelMode)
     )
 
     // Create state for the prelabelMode setting
-    const [uploadBulkWherePossible, setUploadBulkWherePossible] = useStateSafe(
+    const [uploadBulkWherePossible, setUploadBulkWherePossible] = useStateSafe<AppSettings["uploadBulkWherePossible"]>(
         constantInitialiser(DEFAULT_APP_SETTINGS.uploadBulkWherePossible)
     )
 
     // Create state for the prelabelMode setting
-    const [loopJobTemplateDefaults, setLoopJobTemplateDefaults] = useStateSafe(
+    const [loopJobTemplateDefaults, setLoopJobTemplateDefaults] = useStateSafe<AppSettings["loopJobTemplateDefaults"]>(
         constantInitialiser(DEFAULT_APP_SETTINGS.loopJobTemplateDefaults)
     )
 

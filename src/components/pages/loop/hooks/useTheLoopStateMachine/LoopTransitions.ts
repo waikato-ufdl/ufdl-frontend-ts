@@ -1,7 +1,8 @@
 import {DatasetPK, ProjectPK, TeamPK} from "../../../../../server/pk";
 import {createNewLoopState} from "./createNewLoopState";
 import {
-    createErrorResponseTransitionHandler, createErrorState,
+    createErrorResponseTransitionHandler,
+    createErrorState,
     HANDLED_ERROR_RESPONSE,
     tryTransitionToErrorState
 } from "./errorTransition";
@@ -24,7 +25,12 @@ import {formatResponseError} from "../../../../../server/util/responseError";
 import {ParameterValue} from "ufdl-ts-client/json/generated/CreateJobSpec";
 import {restoreLoopState, trySaveLoopState} from "./save";
 import loopStateDataConstructor from "./loopStateDataConstructor";
-import {AppSettings} from "../../../../../useAppSettings";
+import {AppSettings, DEFAULT_APP_SETTINGS} from "../../../../../useAppSettings";
+import * as team from "ufdl-ts-client/functional/core/team"
+import * as project from "ufdl-ts-client/functional/core/project"
+import {exactFilter} from "../../../../../server/util/exactFilter";
+import * as ICDataset from "ufdl-ts-client/functional/image_classification/dataset"
+import {addIterationFilesToDataset} from "./dogs";
 
 export const LOOP_TRANSITIONS = {
     "Initial": {
@@ -45,14 +51,82 @@ export const LOOP_TRANSITIONS = {
                     }
                 )
             } else {
+
+                const handleErrorResponse = createErrorResponseTransitionHandler(current, changeState);
+
+                const teams = await team.list(context)
+                const teamPK = teams.length === 0
+                    ? (await team.create(context, "ui-ex-team")).pk
+                    : teams[0].pk
+
+                const projects = await project.list(context, exactFilter("team", teamPK))
+                const projectPK = projects.length === 0
+                    ? (await project.create(context, "ui-ex-proj", teamPK)).pk
+                    : projects[0].pk
+
+                const datasets = await ICDataset.list(context, exactFilter("project", projectPK))
+                let datasetPK
+                if (datasets.length === 0) {
+                    const datasetInstance = await handleErrorResponse(ICDataset.create(context, "ui-ex-dogs", projectPK, 1))
+                    if (datasetInstance === HANDLED_ERROR_RESPONSE) return
+                    datasetPK = datasetInstance.pk
+                } else {
+                    datasetPK = datasets[0].pk
+                }
+
+                const primaryDataset = (new TeamPK(teamPK)).project(projectPK).dataset(datasetPK)
+                const domain = "Image Classification"
+
+                const trainTemplatePK = DEFAULT_APP_SETTINGS.loopJobTemplateDefaults["Image Classification"].train.templatePK
+                const trainParameters = DEFAULT_APP_SETTINGS.loopJobTemplateDefaults["Image Classification"].train.parameters
+                const evalTemplatePK = DEFAULT_APP_SETTINGS.loopJobTemplateDefaults["Image Classification"].predict.templatePK
+                const evalParameters = DEFAULT_APP_SETTINGS.loopJobTemplateDefaults["Image Classification"].predict.parameters
+
+                const prelabelMode = (await (await context.get(`v1/html/prelabelMode`, false)).text()).trim()
+
+                if (
+                    prelabelMode !== "Default" &&
+                    prelabelMode !== "None" &&
+                    prelabelMode !== "Single" &&
+                    prelabelMode !== "Multi"
+                ) {
+                    throw new Error(`Unknown prelabel mode: '${prelabelMode}'`)
+                }
+
+                await addIterationFilesToDataset(
+                    context,
+                    datasetPK,
+                    1,
+                    false
+                )
+
+                const [jobPK, progress] = train(
+                    context,
+                    primaryDataset,
+                    trainTemplatePK,
+                    trainParameters,
+                    domain
+                );
+
                 changeState(
                     (newCurrent) => {
                         if (newCurrent !== current) return;
 
-                        const newState = loopStateDataConstructor("Selecting Primary Dataset")(
+                        const newState = loopStateDataConstructor("Creating Train Job")(
                             {
-                                context: context,
-                                from: undefined
+                                context,
+                                prelabelMode,
+                                primaryDataset,
+                                domain,
+                                trainTemplatePK,
+                                trainParameters,
+                                evalTemplatePK,
+                                evalParameters,
+                                jobPK,
+                                progress,
+                                framework: ["dogs_dummy", "1"],
+                                modelType: "Model<Domain<'Image Classification'>, Framework<'dogs_dummy', '1'>>",
+                                iteration: 1
                             }
                         )
                         trySaveLoopState(newState)
@@ -128,6 +202,7 @@ export const LOOP_TRANSITIONS = {
                 return createNewLoopState("Creating Train Job")(
                     {
                         context: current.data.context,
+                        prelabelMode: current.data.prelabelMode,
                         primaryDataset: current.data.primaryDataset,
                         jobPK: pk,
                         progress: progress,
@@ -137,7 +212,8 @@ export const LOOP_TRANSITIONS = {
                         trainTemplatePK: trainTemplatePK,
                         trainParameters: trainParameters,
                         evalTemplatePK: evalTemplatePK,
-                        evalParameters: evalParameters
+                        evalParameters: evalParameters,
+                        iteration: -1
                     }
                 )
             };
@@ -150,13 +226,15 @@ export const LOOP_TRANSITIONS = {
                     return formatResponseError(reason).then((formatted) => {
                         return createErrorState(
                             current.data.context,
-                            formatted
+                            formatted,
+                            current.data.prelabelMode
                         )
                     })
 
                 return createErrorState(
                     current.data.context,
-                    reason
+                    reason,
+                    current.data.prelabelMode
                 );
             }
         },
@@ -167,6 +245,7 @@ export const LOOP_TRANSITIONS = {
                 return createNewLoopState("Selecting Primary Dataset")(
                     {
                         context: current.data.context,
+                        prelabelMode: current.data.prelabelMode,
                         from: current.data.primaryDataset.project
                     }
                 )
@@ -237,7 +316,8 @@ export const LOOP_TRANSITIONS = {
                         trainTemplatePK,
                         trainParameters,
                         evalTemplatePK,
-                        evalParameters
+                        evalParameters,
+                        iteration: -1
                     }
                 )
             };
@@ -250,6 +330,7 @@ export const LOOP_TRANSITIONS = {
                     {
                         ...current.data,
                         additionDataset: current.data.targetDataset,
+                        iteration: -1
                     }
                 )
             }
@@ -260,18 +341,10 @@ export const LOOP_TRANSITIONS = {
 
                 return createErrorState(
                     current.data.context,
-                    reason
+                    reason,
+                    current.data.prelabelMode
                 );
             }
-        },
-        back() {
-            return (current: LoopStateAndData) => {
-                if (current.state !== "Selecting Prelabel Images") return;
-
-                return createNewLoopState("Checking")(
-                    current.data
-                )
-            };
         }
     },
     "Creating Train Job": {
@@ -334,43 +407,22 @@ export const LOOP_TRANSITIONS = {
 
             if (await hasStateChanged(current, changeState)) return;
 
-            // Start creating the evaluation dataset
-            const evaluationDataset = await handleErrorResponse(
-                copyDataset(current.data.context, current.data.primaryDataset, false, current.data.domain)
-            );
-
-            if (evaluationDataset === HANDLED_ERROR_RESPONSE) {
-                silentlyCancelJob(current.data.context, current.data.jobPK);
-                return
-            }
-
-            if (await hasStateChanged(current, changeState)) return;
-
-            // Create the evaluation job
-            const [jobPK, progress] = evaluate(
-                current.data.context,
-                current.data.evalTemplatePK,
-                evaluationDataset,
-                modelOutputPK,
-                current.data.evalParameters,
-                current.data.domain,
-                current.data.framework
-            );
-
             changeState(
                 (newCurrent) => {
-                    if (newCurrent !== current) {
-                        silentlyCancelJob(current.data.context, jobPK);
-                        return;
-                    }
+                    if (newCurrent !== current) return;
 
-                    return createNewLoopState("Creating Evaluate Job")(
+                    return createNewLoopState("Creating Addition Dataset")(
                         {
                             ...current.data,
-                            evaluationDataset: evaluationDataset,
-                            modelOutputPK: modelOutputPK,
-                            progress: progress,
-                            jobPK: jobPK
+                            additionDataset: copyDataset(
+                                current.data.context,
+                                current.data.primaryDataset,
+                                true,
+                                current.data.domain
+                            ),
+                            iteration: current.data.iteration + 1,
+                            modelOutputPK,
+                            evaluationDataset: current.data.primaryDataset // Isn't used, so doesn't matter what it is
                         }
                     )
                 }
@@ -420,7 +472,18 @@ export const LOOP_TRANSITIONS = {
                 (newCurrent) => {
                     if (newCurrent !== current) return;
 
-                    return createNewLoopState("Checking")(current.data);
+                    return createNewLoopState("Creating Addition Dataset")(
+                        {
+                            ...current.data,
+                            additionDataset: copyDataset(
+                                current.data.context,
+                                current.data.primaryDataset,
+                                true,
+                                current.data.domain
+                            ),
+                            iteration: current.data.iteration + 1
+                        }
+                    )
                 }
             );
         },
@@ -436,6 +499,7 @@ export const LOOP_TRANSITIONS = {
                         return createNewLoopState("Finished")(
                             {
                                 context: current.data.context,
+                                prelabelMode: current.data.prelabelMode,
                                 modelOutputPK: current.data.modelOutputPK
                             }
                         )
@@ -448,7 +512,8 @@ export const LOOP_TRANSITIONS = {
                                     current.data.primaryDataset,
                                     true,
                                     current.data.domain
-                                )
+                                ),
+                                iteration: current.data.iteration + 1
                             }
                         )
                 }
@@ -460,7 +525,8 @@ export const LOOP_TRANSITIONS = {
 
                 return createErrorState(
                     current.data.context,
-                    reason
+                    reason,
+                    current.data.prelabelMode
                 );
             }
         },
@@ -512,16 +578,44 @@ export const LOOP_TRANSITIONS = {
 
             if (targetDataset === HANDLED_ERROR_RESPONSE) return;
 
+            // TODO: Automatically add images to dataset
+            await addIterationFilesToDataset(
+                current.data.context,
+                targetDataset.asNumber,
+                current.data.iteration
+            )
+
             changeState(
                 (newCurrent) => {
                     if (newCurrent !== current) return;
 
-                    return createNewLoopState("Selecting Prelabel Images")(
-                        {
-                            ...current.data,
-                            targetDataset: targetDataset
-                        }
-                    )
+                    if (current.data.prelabelMode === "None") {
+                        return createNewLoopState("User Fixing Categories")(
+                            {
+                                ...current.data,
+                                additionDataset: targetDataset,
+                            }
+                        )
+                    } else {
+                        const [jobPK, progress] = evaluate(
+                            current.data.context,
+                            current.data.evalTemplatePK,
+                            targetDataset,
+                            current.data.modelOutputPK,
+                            current.data.evalParameters,
+                            current.data.domain,
+                            current.data.framework
+                        );
+
+                        return createNewLoopState("Creating Prelabel Job")(
+                            {
+                                ...newCurrent.data,
+                                additionDataset: targetDataset,
+                                jobPK,
+                                progress
+                            }
+                        )
+                    }
                 }
             );
         }
@@ -595,25 +689,14 @@ export const LOOP_TRANSITIONS = {
                 )
             };
         },
-        back() {
-            return (current: LoopStateAndData) => {
-                if (current.state !== "User Fixing Categories") return;
-
-                return createNewLoopState("Selecting Prelabel Images")(
-                    {
-                        ...current.data,
-                        targetDataset: current.data.additionDataset
-                    }
-                )
-            };
-        },
         error(reason: any) {
             return (current: LoopStateAndData) => {
                 if (current.state !== "User Fixing Categories") return;
 
                 return createErrorState(
                     current.data.context,
-                    reason
+                    reason,
+                    current.data.prelabelMode
                 );
             }
         },
@@ -669,10 +752,10 @@ export const LOOP_TRANSITIONS = {
         },
         reset() {
             return (current: LoopStateAndData) => {
-                return createNewLoopState("Selecting Primary Dataset")(
+                return createNewLoopState("Initial")(
                     {
                         context: current.data.context,
-                        from: undefined
+                        prelabelMode: current.data.prelabelMode
                     }
                 );
             };
@@ -681,10 +764,10 @@ export const LOOP_TRANSITIONS = {
     "Error": {
         reset() {
             return (current: LoopStateAndData) => {
-                return createNewLoopState("Selecting Primary Dataset")(
+                return createNewLoopState("Initial")(
                     {
                         context: current.data.context,
-                        from: undefined
+                        prelabelMode: current.data.prelabelMode
                     }
                 );
             };
