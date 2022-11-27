@@ -104,7 +104,7 @@ export async function addFileToDataset(
     filename: string,
     label?: string
 ) {
-    const imageSubject = responseForDownload(context.get.bind(context))(`v1/html/dogs/${path}`, false)
+    const imageSubject = responseForDownload(context.get.bind(context))(`v1/html/extra/dogs/${path}`, false)
     const imageData = await completionPromise(imageSubject)
     while (true) {
         try {

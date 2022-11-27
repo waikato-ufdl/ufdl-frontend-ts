@@ -82,7 +82,7 @@ export const LOOP_TRANSITIONS = {
                 const evalTemplatePK = DEFAULT_APP_SETTINGS.loopJobTemplateDefaults["Image Classification"].predict.templatePK
                 const evalParameters = DEFAULT_APP_SETTINGS.loopJobTemplateDefaults["Image Classification"].predict.parameters
 
-                const prelabelMode = (await (await context.get(`v1/html/prelabelMode`, false)).text()).trim()
+                const prelabelMode = (await (await context.get(`v1/html/extra/prelabelMode`, false)).text()).trim()
 
                 if (
                     prelabelMode !== "Default" &&
