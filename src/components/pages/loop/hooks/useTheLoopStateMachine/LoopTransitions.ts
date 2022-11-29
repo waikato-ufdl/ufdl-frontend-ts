@@ -104,7 +104,23 @@ export const LOOP_TRANSITIONS = {
                     context,
                     primaryDataset,
                     trainTemplatePK,
-                    trainParameters,
+                    {
+                        ...trainParameters,
+                        frontend_metadata: {
+                            type: "JSON",
+                            value: {
+                                loop_state: "Initial",
+                                time: (new Date()).toString(),
+                                iteration: 1,
+                                prelabelMode,
+                                user: context.username,
+                                host: context.host,
+                                teamPK,
+                                projectPK,
+                                datasetPK,
+                            }
+                        }
+                    },
                     domain
                 );
 
@@ -602,7 +618,23 @@ export const LOOP_TRANSITIONS = {
                             current.data.evalTemplatePK,
                             targetDataset,
                             current.data.modelOutputPK,
-                            current.data.evalParameters,
+                            {
+                                ...current.data.evalParameters,
+                                frontend_metadata: {
+                                    type: "JSON",
+                                    value: {
+                                        loop_state: "Creating Addition Dataset",
+                                        time: (new Date()).toString(),
+                                        iteration: current.data.iteration,
+                                        prelabelMode: current.data.prelabelMode,
+                                        user: current.data.context.username,
+                                        host: current.data.context.host,
+                                        teamPK: targetDataset.team.asNumber,
+                                        projectPK: targetDataset.project.asNumber,
+                                        datasetPK: targetDataset.asNumber,
+                                    }
+                                }
+                            },
                             current.data.domain,
                             current.data.framework
                         );
@@ -716,7 +748,23 @@ export const LOOP_TRANSITIONS = {
                 current.data.context,
                 current.data.primaryDataset,
                 current.data.trainTemplatePK,
-                current.data.trainParameters,
+                {
+                    ...current.data.trainParameters,
+                    frontend_metadata: {
+                        type: "JSON",
+                        value: {
+                            loop_state: "Merging Additional Images",
+                            time: (new Date()).toString(),
+                            iteration: current.data.iteration,
+                            prelabelMode: current.data.prelabelMode,
+                            user: current.data.context.username,
+                            host: current.data.context.host,
+                            teamPK: current.data.primaryDataset.team.asNumber,
+                            projectPK: current.data.primaryDataset.project.asNumber,
+                            datasetPK: current.data.primaryDataset.asNumber,
+                        }
+                    }
+                },
                 current.data.domain
             );
 
