@@ -244,6 +244,11 @@ export default function TheLoopPage(
                         ? undefined
                         : {annotations: ["User Fixing Categories"], onlyFetched: false}
                 }
+                evalQueryDependencies={
+                    stateMachine.data.prelabelMode !== "Multi"
+                        ? undefined
+                        : {dataset: ["User Fixing Categories"], annotations: ["User Fixing Categories"], onlyFetched: false}
+                }
                 mode={
                     stateMachine.data.prelabelMode === "Default"
                         ? DEFAULT
