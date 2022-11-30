@@ -3,6 +3,7 @@ import {NotificationOverride} from "ufdl-ts-client/json/generated/CreateJobSpec"
 export default function webSocketNotificationOverride(
     // No parameters
 ): NotificationOverride {
+    // All transitions simply notify via web-socket (indicated by the empty object)
     return {
         actions: {
             on_abort: [{}],
