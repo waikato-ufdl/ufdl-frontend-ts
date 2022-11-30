@@ -11,10 +11,8 @@ import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import {DatasetInstance} from "ufdl-ts-client/types/core/dataset";
 import asChangeEventHandler from "../../util/react/asChangeEventHandler";
 import {DatasetPK, ProjectPK, TeamPK} from "../../server/pk";
-import {
-    DEFAULT_HANDLED_ERROR_RESPONSE,
-    withErrorResponseHandler
-} from "../../server/util/responseError";
+import {DEFAULT_HANDLED_ERROR_RESPONSE} from "../../server/error/DEFAULT_HANDLED_ERROR_RESPONSE";
+import {withErrorResponseHandler} from "../../server/error/withErrorResponseHandler";
 import {DOMAIN_DATASET_METHODS, DOMAIN_NAMES, DomainName} from "../../server/domains";
 import {BackButton} from "../../util/react/component/BackButton";
 import {DomainSelect} from "../../server/components/DomainSelect";

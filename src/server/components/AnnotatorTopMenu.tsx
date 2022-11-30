@@ -8,7 +8,7 @@ import {constantInitialiser} from "../../util/typescript/initialisers";
 import useDerivedState from "../../util/react/hooks/useDerivedState";
 import {exactFilter} from "../util/exactFilter";
 import {DOMAIN_DATASET_METHODS, DomainAnnotationType, DomainDataType, DomainName} from "../domains";
-import nameFromSignature from "../util/nameFromSignature";
+import signatureFromJSON from "../util/signatureFromJSON";
 import {augmentClassName} from "../../util/react/augmentClass";
 import {DEFAULT, handleSingleDefault, WithDefault} from "../../util/typescript/default";
 import useLocalModal from "../../util/react/hooks/useLocalModal";
@@ -137,7 +137,7 @@ export default function AnnotatorTopMenu<D extends DomainName>(
             Dataset:
             <ListSelect<DatasetInstance>
                 list={DOMAIN_DATASET_METHODS[props.domain].list}
-                labelFunction={nameFromSignature}
+                labelFunction={signatureFromJSON}
                 onChange={props.onDatasetChanged}
                 filter={datasetProjectFilter}
                 forceEmpty={projectPK === undefined}

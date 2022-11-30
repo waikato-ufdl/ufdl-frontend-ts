@@ -1,5 +1,6 @@
 import {createNewLoopState} from "./createNewLoopState";
-import {formatResponseError, handleErrorResponse} from "../../../../../server/util/responseError";
+import {formatResponseError} from "../../../../../server/error/formatResponseError";
+import {handleErrorResponse} from "../../../../../server/error/handleErrorResponse";
 import {StateAndData} from "../../../../../util/react/hooks/useStateMachine/types";
 import {LoopStates} from "./LoopStates";
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";

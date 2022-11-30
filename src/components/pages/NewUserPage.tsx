@@ -9,10 +9,8 @@ import useStateSafe from "../../util/react/hooks/useStateSafe";
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import {UserInstance} from "ufdl-ts-client/types/core/user";
 import asChangeEventHandler from "../../util/react/asChangeEventHandler";
-import {
-    DEFAULT_HANDLED_ERROR_RESPONSE,
-    withErrorResponseHandler
-} from "../../server/util/responseError";
+import {DEFAULT_HANDLED_ERROR_RESPONSE} from "../../server/error/DEFAULT_HANDLED_ERROR_RESPONSE";
+import {withErrorResponseHandler} from "../../server/error/withErrorResponseHandler";
 import isPromise from "../../util/typescript/async/isPromise";
 import {BackButton} from "../../util/react/component/BackButton";
 

@@ -9,7 +9,7 @@
  * @param handler
  *          The handler to execute.
  */
-export default function onCompletion<T>(
+export default function onPromiseCompletion<T>(
     promise: Promise<T>,
     handler: (result : T | any, success: boolean) => void
 ): void {

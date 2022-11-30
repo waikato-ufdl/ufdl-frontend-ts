@@ -94,9 +94,8 @@ export function restoreLoopState(
     if (isAllowedStateAndData(deserialisedStateAndData, "Prelabel", "Training", "Evaluating")) {
         deserialisedStateAndData.data.progress = jobProgressSubject(
             monitorJob(
-                Promise.resolve(deserialisedStateAndData.data.jobPK),
-                undefined,
-                context
+                context,
+                Promise.resolve(deserialisedStateAndData.data.jobPK)
             )
         )
     }

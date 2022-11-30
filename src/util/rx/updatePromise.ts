@@ -4,7 +4,7 @@ import {rendezvous} from "../typescript/async/rendezvous";
 /** Symbol indicating that the observable completed. */
 export const COMPLETED = Symbol("The observable completed");
 
-/** The type of a value-update from the observable. */
+/** The type of value-update from the observable. */
 export type NextUpdate<T> = {
     /** The value that the observable produced. */
     value: T,

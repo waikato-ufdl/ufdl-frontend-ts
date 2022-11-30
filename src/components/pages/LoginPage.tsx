@@ -5,7 +5,8 @@ import Page from "./Page";
 import {Form} from "../../util/react/component/Form";
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import useStateSafe from "../../util/react/hooks/useStateSafe";
-import {DEFAULT_HANDLED_ERROR_RESPONSE, handleErrorResponse} from "../../server/util/responseError";
+import {DEFAULT_HANDLED_ERROR_RESPONSE} from "../../server/error/DEFAULT_HANDLED_ERROR_RESPONSE";
+import {handleErrorResponse} from "../../server/error/handleErrorResponse";
 import logo from "../../logo.svg"
 import "../../logo.css";
 import {constantInitialiser} from "../../util/typescript/initialisers";

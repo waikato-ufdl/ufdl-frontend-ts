@@ -2,7 +2,7 @@ import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import {DataStream} from "ufdl-ts-client/types/base";
 import {dataStreamSubject} from "../../util/rx/data/DataStreamSubject";
 import {get_output} from "ufdl-ts-client/functional/core/jobs/job";
-import completionPromise from "../../util/rx/completionPromise";
+import behaviourSubjectCompletionPromise from "../../util/rx/behaviourSubjectCompletionPromise";
 import JSZip from "jszip";
 import {JobLog} from "../types/JobLog";
 
@@ -16,7 +16,7 @@ export async function getJobLog(
 
     // Buffer the log data into memory
     const logDataZipped: Uint8Array
-        = await completionPromise(dataStreamSubject(logDataStream));
+        = await behaviourSubjectCompletionPromise(dataStreamSubject(logDataStream));
 
     // Interpret the data as a zip archive
     const logDataArchive: JSZip

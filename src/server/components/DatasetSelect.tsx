@@ -3,7 +3,7 @@ import {DatasetPK, ProjectPK} from "../pk";
 import {Controllable, mapControllable, UNCONTROLLED_KEEP} from "../../util/react/hooks/useControllableState";
 import React, {Dispatch} from "react";
 import {DatasetInstance} from "../../../../ufdl-ts-client/dist/types/core/dataset";
-import nameFromSignature from "../util/nameFromSignature";
+import signatureFromJSON from "../util/signatureFromJSON";
 import {exactFilter} from "../util/exactFilter";
 import {ListSelect} from "./ListSelect";
 import {FunctionComponentReturnType} from "../../util/react/types";
@@ -61,7 +61,7 @@ export function DatasetSelect<D extends DomainName>(
 
     return <ListSelect<DatasetInstance>
         list={DOMAIN_DATASET_METHODS[domain].list}
-        labelFunction={nameFromSignature}
+        labelFunction={signatureFromJSON}
         onChange={onChangedActual}
         filter={filter}
         forceEmpty={projectPK === undefined}

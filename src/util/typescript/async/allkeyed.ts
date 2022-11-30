@@ -2,7 +2,7 @@ import enumerate from "../iterate/enumerate";
 import {tupleMap} from "../arrays/tuple";
 
 /**
- * Returns a promise which awaits all of the values of the given keys
+ * Returns a promise which awaits all the values of the given keys
  * of the given object.
  *
  * @param values

@@ -1,6 +1,7 @@
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import {DatasetPK} from "../../../../server/pk";
-import {throwOnError, handleErrorResponse} from "../../../../server/util/responseError";
+import {handleErrorResponse} from "../../../../server/error/handleErrorResponse";
+import {ERROR_RESPONSE_HANDLERS} from "../../../../server/error/ERROR_RESPONSE_HANDLERS";
 import {DomainName, DOMAIN_DATASET_METHODS} from "../../../../server/domains";
 
 export default async function merge(
@@ -11,6 +12,6 @@ export default async function merge(
 ): Promise<void> {
     await handleErrorResponse(
         DOMAIN_DATASET_METHODS[domain].merge(context, primaryDatasetPK.asNumber, preLabelDatasetPK.asNumber, true),
-        throwOnError
+        ERROR_RESPONSE_HANDLERS.THROW
     );
 }

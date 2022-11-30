@@ -9,7 +9,7 @@ import * as Dataset from "ufdl-ts-client/functional/core/dataset";
 import React from "react";
 import useDerivedState from "../../util/react/hooks/useDerivedState";
 import {exactFilter} from "../../server/util/exactFilter";
-import nameFromSignature from "../../server/util/nameFromSignature";
+import signatureFromJSON from "../../server/util/signatureFromJSON";
 import RenderSelectedChildren from "../../util/react/component/RenderSelectedChildren";
 import {constantInitialiser} from "../../util/typescript/initialisers";
 import {DatasetInstance} from "ufdl-ts-client/types/core/dataset";
@@ -73,7 +73,7 @@ export default function SelectDatasetPage(
             Dataset:
             <ListSelect<DatasetInstance>
                 list={Dataset.list}
-                labelFunction={nameFromSignature}
+                labelFunction={signatureFromJSON}
                 onChange={(item, pk) => {
                     if (pk !== undefined && item !== undefined && from instanceof ProjectPK)
                         props.onDatasetSelected(from.dataset(pk), item.domain as DomainName)

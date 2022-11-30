@@ -17,10 +17,10 @@ import {Dispatch} from "react";
 import hasStateChanged from "../../../../../util/react/hooks/useStateMachine/hasStateChanged";
 import {silentlyCancelJob} from "./silentlyCancelJob";
 import cancelJobTransition from "./cancelJobTransition";
-import completionPromise from "../../../../../util/rx/completionPromise";
+import behaviourSubjectCompletionPromise from "../../../../../util/rx/behaviourSubjectCompletionPromise";
 import {CANCELLED} from "../../../../../server/websocket/observeJobTransitionsViaWebSocket";
 import {DomainName} from "../../../../../server/domains";
-import {formatResponseError} from "../../../../../server/util/responseError";
+import {formatResponseError} from "../../../../../server/error/formatResponseError";
 import {ParameterValue} from "ufdl-ts-client/json/generated/CreateJobSpec";
 import {restoreLoopState, trySaveLoopState} from "./save";
 import loopStateDataConstructor from "./loopStateDataConstructor";
@@ -312,7 +312,7 @@ export const LOOP_TRANSITIONS = {
 
             // Wait for the training to complete successfully
             try {
-                await completionPromise(current.data.progress);
+                await behaviourSubjectCompletionPromise(current.data.progress);
             } catch (e) {
                 if (e === CANCELLED) return;
                 return tryTransitionToErrorState(current, changeState, e);
@@ -410,7 +410,7 @@ export const LOOP_TRANSITIONS = {
         ) {
             // Wait for the training to complete successfully
             try {
-                await completionPromise(current.data.progress);
+                await behaviourSubjectCompletionPromise(current.data.progress);
             } catch (e) {
                 if (e === CANCELLED) return;
                 return tryTransitionToErrorState(current, changeState, e);
@@ -559,7 +559,7 @@ export const LOOP_TRANSITIONS = {
         ) {
             // Wait for the evaluation to complete successfully
             try {
-                await completionPromise(current.data.progress);
+                await behaviourSubjectCompletionPromise(current.data.progress);
             } catch (e) {
                 if (e === CANCELLED) return;
                 return tryTransitionToErrorState(current, changeState, e);
