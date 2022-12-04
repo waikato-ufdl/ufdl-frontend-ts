@@ -2,10 +2,9 @@ import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import {DatasetPK, ProjectPK, TeamPK} from "../../../../../server/pk";
 import {BehaviorSubject} from "rxjs";
 import {DomainName} from "../../../../../server/domains";
-import {ParameterValue} from "../../../../../../../ufdl-ts-client/dist/json/generated/CreateJobSpec";
-import {ValidStates} from "../../../../../util/react/hooks/useStateMachine/types";
+import {ParameterValue} from "ufdl-ts-client/json/generated/CreateJobSpec";
 
-export type LoopStates = ValidStates<{
+export type LoopStates = {
     "Initial": {
         context: UFDLServerContext
     }
@@ -187,4 +186,4 @@ export type LoopStates = ValidStates<{
         context: UFDLServerContext
         reason: any
     }
-}>
+}

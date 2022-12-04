@@ -13,3 +13,12 @@ export function silentlyCancelJob(
         discard(cancel_job(context, jobPK));
     }
 }
+
+export function silentlyCancelJobOnTransitionFailure(
+    context: UFDLServerContext,
+    jobPK: number | Promise<number>
+): (success: boolean) => void {
+    return success => {
+        if (!success) silentlyCancelJob(context, jobPK)
+    }
+}

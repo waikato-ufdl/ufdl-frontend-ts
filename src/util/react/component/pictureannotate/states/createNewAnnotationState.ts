@@ -1,13 +1,10 @@
-import {StateDataConstructor} from "../../../hooks/useStateMachine/stateDataConstructor";
 import {AnnotatingStates} from "./AnnotatingStates";
-import annotatingStateDataConstructor from "./annotatingStateDataConstructor";
+import {StateDataConstructor} from "../../../hooks/useStateMachine/types/StateDataConstructor";
+import {stateDataConstructor} from "../../../hooks/useStateMachine/stateDataConstructor";
 
 
 export function createNewAnnotatingState<State extends keyof AnnotatingStates>(
     state: State
 ): StateDataConstructor<AnnotatingStates, State> {
-    const constructor = annotatingStateDataConstructor(state)
-    return (data) => {
-        return constructor(data)
-    }
+    return stateDataConstructor(state)
 }

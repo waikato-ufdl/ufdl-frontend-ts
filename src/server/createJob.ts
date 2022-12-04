@@ -78,7 +78,7 @@ export function monitorJob(
     // Always print the log on job completion
     onPromiseCompletion(
         behaviourSubjectCompletionPromise(jobMonitor),
-        async (result, success) => {
+        async result => {
             // Check whether job-creation failed
             let pk: number
             try {
@@ -88,7 +88,7 @@ export function monitorJob(
                 return
             }
 
-            if (!success) {
+            if (!result.success) {
                 console.error(`Error monitoring job #${pk} (${description})`, result)
             }
 

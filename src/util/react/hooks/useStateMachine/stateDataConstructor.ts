@@ -1,11 +1,5 @@
-import {StateAndData, StatesBase, ValidStates} from "./types";
-
-export type StateDataConstructor<
-    States extends StatesBase,
-    State extends keyof ValidStates<States>
-> = {
-    [StateName in State]: (data: States[StateName]) => StateAndData<States, StateName>
-}[State]
+import {StateMachineStates} from "./types/StateMachineStates";
+import {StateDataConstructor} from "./types/StateDataConstructor";
 
 /**
  * Creates a function to aid in constructing the data-type for
@@ -17,8 +11,8 @@ export type StateDataConstructor<
  *          A function which takes the data and ties it to the state.
  */
 export function stateDataConstructor<
-    States extends StatesBase,
-    State extends keyof ValidStates<States>
+    States extends StateMachineStates,
+    State extends keyof States
 > (
     state: State
 ): StateDataConstructor<States, State> {

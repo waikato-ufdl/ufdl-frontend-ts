@@ -1,3 +1,6 @@
+import {Result} from "../result";
+import promiseAsResult from "./promiseAsResult";
+
 /**
  * Executes a handler against the result of a promise, whether successful
  * or not. Useful when the returned promise of a finally call is not needed
@@ -11,10 +14,7 @@
  */
 export default function onPromiseCompletion<T>(
     promise: Promise<T>,
-    handler: (result : T | any, success: boolean) => void
+    handler: (result: Result<T>) => void
 ): void {
-    promise.then(
-        (value) => handler(value, true),
-        (reason) => handler(reason, false)
-    );
+    promiseAsResult(promise).then(handler);
 }

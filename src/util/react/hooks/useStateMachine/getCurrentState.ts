@@ -1,30 +1,28 @@
-import {StateAndData, StatesBase, StateTransition} from "./types";
 import {Dispatch} from "react";
 import {rendezvous} from "../../../typescript/async/rendezvous";
+import {StateMachineStates} from "./types/StateMachineStates";
+import {StateAndData} from "./types/StateAndData";
+import {StateMachineReducerAction} from "./types/StateMachineReducerAction";
 
 /**
  * Uses the state transition dispatch to get the current state.
  *
- * @param changeState
- *          The transition dispatch.
+ * @param stateMachineReducerDispatch
+ *          The reducer dispatch for the state-machine.
  * @return
  *          A promise of the current state.
  */
 export default function getCurrentState<
-    States extends StatesBase
+    States extends StateMachineStates
 >(
-    changeState: Dispatch<StateTransition<States>>
+    stateMachineReducerDispatch: Dispatch<StateMachineReducerAction<States>>
 ): Promise<StateAndData<States>> {
 
-    const [promise, resolve] = rendezvous<StateAndData<States>>();
+    // Set up a rendezvous to receive the current state from the reducer when available
+    const [currentStateAndDataPromise, resolveCurrentStateAndData] = rendezvous<StateAndData<States>>();
 
-    const transition: StateTransition<States> = (
-        current
-    ) => {
-        resolve(current);
-    };
+    // Pass the transition to the reducer
+    stateMachineReducerDispatch([resolveCurrentStateAndData, undefined]);
 
-    changeState(transition);
-
-    return promise;
+    return currentStateAndDataPromise;
 }

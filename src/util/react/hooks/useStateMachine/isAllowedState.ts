@@ -1,20 +1,21 @@
-import {StateAndData, StatesBase, ValidStates} from "./types";
+import {StateMachineStates} from "./types/StateMachineStates";
+import {StateAndData} from "./types/StateAndData";
 
 export function isAllowedState<
-    States extends StatesBase,
-    AllowedStates extends keyof ValidStates<States>
+    States extends StateMachineStates,
+    AllowedStates extends keyof States
 >(
-    state: keyof ValidStates<States>,
+    state: keyof States,
     ...allowedStates: readonly AllowedStates[]
 ): state is AllowedStates {
-    return (allowedStates as readonly (keyof ValidStates<States>)[]).indexOf(state) !== -1
+    return (allowedStates as readonly (keyof States)[]).indexOf(state) !== -1
 }
 
 export function isAllowedStateAndData<
-    States extends StatesBase,
-    AllowedStates extends keyof ValidStates<States>
+    States extends StateMachineStates,
+    AllowedStates extends keyof States
 >(
-    stateAndData: StateAndData<ValidStates<States>>,
+    stateAndData: StateAndData<States>,
     ...allowedStates: readonly AllowedStates[]
 ): stateAndData is StateAndData<States, AllowedStates> {
     return isAllowedState(stateAndData.state, ...allowedStates)

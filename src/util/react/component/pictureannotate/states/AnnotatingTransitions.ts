@@ -1,173 +1,147 @@
 import {AnnotatingStateAndData} from "./types";
 import {createNewAnnotatingState} from "./createNewAnnotationState";
+import {StateMachineTransitions} from "../../../hooks/useStateMachine/types/StateMachineTransitions";
+import {AnnotatingStates} from "./AnnotatingStates";
+import {FINISH_TRANSITION} from "./FINISH_TRANSITION";
 
 export const ANNOTATING_TRANSITIONS = {
     "Idle": {
-        refresh() {
-            return (current: AnnotatingStateAndData) => {
-                if (current.state !== "Idle") return
-
-                return createNewAnnotatingState("Idle")(
-                    {
-                        ...current.data
-                    }
-                )
-            }
+        refresh(
+            this: AnnotatingStateAndData<"Idle">
+        ) {
+            return createNewAnnotatingState("Idle")()
         },
-        addBox(x: number, y: number) {
-            return (current: AnnotatingStateAndData) => {
-                if (current.state !== "Idle") return
-
-                return createNewAnnotatingState("Adding Box")(
-                    {
-                        x,
-                        y,
-                        width: 0,
-                        height: 0
-                    }
-                )
-            }
+        addBox(
+            this: AnnotatingStateAndData<"Idle">,
+            x: number,
+            y: number
+        ) {
+            return createNewAnnotatingState("Adding Box")(
+                {
+                    x,
+                    y,
+                    width: 0,
+                    height: 0
+                }
+            )
         },
-        addPolygon(x: number, y: number) {
-            return (current: AnnotatingStateAndData) => {
-                if (current.state !== "Idle") return
-
-                return createNewAnnotatingState("Adding Polygon")(
-                    {
-                        x,
-                        y,
-                        points: [{x, y}]
-                    }
-                )
-            }
+        addPolygon(
+            this: AnnotatingStateAndData<"Idle">,
+            x: number,
+            y: number
+        ) {
+            return createNewAnnotatingState("Adding Polygon")(
+                {
+                    x,
+                    y,
+                    points: [{x, y}]
+                }
+            )
         },
-        moveShape(x: number, y: number) {
-            return (current: AnnotatingStateAndData) => {
-                if (current.state !== "Idle") return
-
-                return createNewAnnotatingState("Moving Shape")(
-                    {
-                        x,
-                        y
-                    }
-                )
-            }
+        moveShape(
+            this: AnnotatingStateAndData<"Idle">,
+            x: number,
+            y: number
+        ) {
+            return createNewAnnotatingState("Moving Shape")(
+                {
+                    x,
+                    y
+                }
+            )
         },
-        moveHandle(handleIndex: number, x: number, y: number) {
-            return (current: AnnotatingStateAndData) => {
-                if (current.state !== "Idle") return
-
-                return createNewAnnotatingState("Moving Handle")(
-                    {
-                        handleIndex,
-                        x,
-                        y
-                    }
-                )
-            }
+        moveHandle(
+            this: AnnotatingStateAndData<"Idle">,
+            handleIndex: number,
+            x: number,
+            y: number
+        ) {
+            return createNewAnnotatingState("Moving Handle")(
+                {
+                    handleIndex,
+                    x,
+                    y
+                }
+            )
         }
     },
     "Adding Box": {
-        update(x: number, y: number) {
-            return (current: AnnotatingStateAndData) => {
-                if (current.state !== "Adding Box") return
-
-                return createNewAnnotatingState("Adding Box")(
-                    {
-                        ...current.data,
-                        width: x - current.data.x + 1,
-                        height: y - current.data.y + 1
-                    }
-                )
-            }
+        update(
+            this: AnnotatingStateAndData<"Adding Box">,
+            x: number,
+            y: number
+        ) {
+            return createNewAnnotatingState("Adding Box")(
+                {
+                    ...this.data,
+                    width: x - this.data.x + 1,
+                    height: y - this.data.y + 1
+                }
+            )
         },
-        finish() {
-            return (current: AnnotatingStateAndData) => {
-                if (current.state !== "Adding Box") return
-
-                return createNewAnnotatingState("Idle")({})
-            }
-        }
+        finish: FINISH_TRANSITION
     },
     "Adding Polygon": {
-        update(x: number, y: number) {
-            return (current: AnnotatingStateAndData) => {
-                if (current.state !== "Adding Polygon") return
-
-                return createNewAnnotatingState("Adding Polygon")(
-                    {
-                        ...current.data,
-                        x,
-                        y
-                    }
-                )
-            }
+        update(
+            this: AnnotatingStateAndData<"Adding Polygon">,
+            x: number,
+            y: number
+        ) {
+            return createNewAnnotatingState("Adding Polygon")(
+                {
+                    ...this.data,
+                    x,
+                    y
+                }
+            )
         },
-        newPoint(x: number, y: number) {
-            return (current: AnnotatingStateAndData) => {
-                if (current.state !== "Adding Polygon") return
-
-                return createNewAnnotatingState("Adding Polygon")(
-                    {
-                        points: [...current.data.points, { x, y }],
-                        x,
-                        y
-                    }
-                )
-            }
+        newPoint(
+            this: AnnotatingStateAndData<"Adding Polygon">,
+            x: number,
+            y: number
+        ) {
+            return createNewAnnotatingState("Adding Polygon")(
+                {
+                    points: [...this.data.points, { x, y }],
+                    x,
+                    y
+                }
+            )
         },
-        finish() {
-            return (current: AnnotatingStateAndData) => {
-                if (current.state !== "Adding Polygon") return
-
-                return createNewAnnotatingState("Idle")({})
-            }
-        }
+        finish: FINISH_TRANSITION
     },
     "Moving Shape": {
-        update(x: number, y: number) {
-            return (current: AnnotatingStateAndData) => {
-                if (current.state !== "Moving Shape") return
-
-                return createNewAnnotatingState("Moving Shape")(
-                    {
-                        ...current.data,
-                        x,
-                        y
-                    }
-                )
-            }
+        update(
+            this: AnnotatingStateAndData<"Moving Shape">,
+            x: number,
+            y: number
+        ) {
+            return createNewAnnotatingState("Moving Shape")(
+                {
+                    ...this.data,
+                    x,
+                    y
+                }
+            )
         },
-        finish() {
-            return (current: AnnotatingStateAndData) => {
-                if (current.state !== "Moving Shape") return
-
-                return createNewAnnotatingState("Idle")({})
-            }
-        }
+        finish: FINISH_TRANSITION
     },
     "Moving Handle": {
-        update(x: number, y: number) {
-            return (current: AnnotatingStateAndData) => {
-                if (current.state !== "Moving Handle") return
-
-                return createNewAnnotatingState("Moving Handle")(
-                    {
-                        ...current.data,
-                        x,
-                        y
-                    }
-                )
-            }
+        update(
+            this: AnnotatingStateAndData<"Moving Handle">,
+            x: number,
+            y: number
+        ) {
+            return createNewAnnotatingState("Moving Handle")(
+                {
+                    ...this.data,
+                    x,
+                    y
+                }
+            )
         },
-        finish() {
-            return (current: AnnotatingStateAndData) => {
-                if (current.state !== "Moving Handle") return
-
-                return createNewAnnotatingState("Idle")({})
-            }
-        }
+        finish: FINISH_TRANSITION
     }
-}
+} as const satisfies StateMachineTransitions<AnnotatingStates>
 
 export type AnnotatingTransitions = typeof ANNOTATING_TRANSITIONS

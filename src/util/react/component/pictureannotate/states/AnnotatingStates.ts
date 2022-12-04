@@ -1,9 +1,7 @@
-import {ValidStates} from "../../../hooks/useStateMachine/types";
 import {Point} from "../util/Point";
 
-export type AnnotatingStates = ValidStates<{
-    "Idle": {
-    },
+export type AnnotatingStates = {
+    "Idle": void,
     "Adding Box": {
         x: number
         y: number
@@ -24,4 +22,4 @@ export type AnnotatingStates = ValidStates<{
         x: number
         y: number
     }
-}>
+}
