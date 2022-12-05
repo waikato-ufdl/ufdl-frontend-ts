@@ -15,7 +15,7 @@ import createStateTransitionsDispatch from "./createStateTransitionsDispatch";
 import createCheckForStateChange from "./createCheckForStateChange";
 import createStateTransitionAction from "./createStateTransitionAction";
 import {AutomaticStateTransition} from "./types/AutomaticStateTransition";
-import {StateTransitionAttempt} from "./types/StateTransitionAttempt";
+import {StateMachineErrorTransitionHandler} from "./types/StateMachineErrorTransitionHandler";
 
 /**
  * Hook which creates a state-machine with defined states and transitions between
@@ -27,12 +27,13 @@ import {StateTransitionAttempt} from "./types/StateTransitionAttempt";
  * @param init
  *          Initialiser of the initial state for the state-machine. Only called on
  *          first use, so changing this has no effect.
- * @param errorTransition
- *          An optional function which will be called if an exception occurs in any
- *          other transition (either manual or automatic) to transition to another
- *          state. If omitted, the exception will be logged and no state transition
- *          will occur. This is also the behaviour if the given function itself throws
- *          an exception. Only consumed on first use, so changing this has no effect.
+ * @param errorTransitionHandler
+ *          An optional [handler]{@link StateMachineErrorTransitionHandler} which will
+ *          be called if an exception occurs in any other transition (either manual
+ *          or automatic) to transition to another state. If omitted, the exception will
+ *          be logged and no state transition will occur. This is also the behaviour if
+ *          the given handler itself throws an exception. Only consumed on first use,
+ *          so changing this has no effect.
  * @return
  *          A [dispatch]{@link StateMachineDispatch} object allowing interaction with
  *          the state-machine.
@@ -43,11 +44,7 @@ export default function useStateMachine<
 >(
     transitionsInit: () => Transitions,
     init: () => StateAndData<States>,
-    errorTransition?: (
-        stateAndData: StateAndData<States>,
-        transition: string | typeof AUTOMATIC,
-        reason: any
-    ) => StateTransitionAttempt<States>
+    errorTransitionHandler?: StateMachineErrorTransitionHandler<States>
 ): StateMachineDispatch<States, Transitions> {
     // Save the transitions
     const [transitions] = useStateSafe(transitionsInit);
@@ -64,7 +61,7 @@ export default function useStateMachine<
                 stateMachineStateAndData: init(),
                 [AUTOMATIC]: extractAutomaticTransitions<States, Transitions>(transitions),
                 reducerDispatch: transition => reducerDispatch(transition),
-                errorTransition
+                errorTransition: errorTransitionHandler
             }
         }
     );

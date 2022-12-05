@@ -22,7 +22,7 @@ import {PossiblePromise} from "../../../typescript/types/promise";
  * Reducer function which handles transitions for a state machine.
  *
  * @param prevState
- *          The prior state of the state machine.
+ *          The current [state]{@link StateMachineReducerState} of the state machine.
  * @param action
  *          The transition to perform.
  * @return
@@ -49,7 +49,7 @@ export default function stateMachineReducer<
         if (transitionName === undefined) UNREACHABLE("transitionName should always be defined for throwing transitions")
 
         // If no error-handler is defined, record the error to the console, and don't change state
-        if (prevState.errorTransition === undefined) {
+        if (prevState.errorTransitionHandler === undefined) {
             console.error(
                 `Error occurred in state-machine transition '${anyToString(transitionName)}' ` +
                 `of state '${anyToString(prevState.stateMachineStateAndData.state)}'`,
@@ -59,7 +59,7 @@ export default function stateMachineReducer<
         }
 
         try {
-            const errorTransitionAttempt = prevState.errorTransition(
+            const errorTransitionAttempt = prevState.errorTransitionHandler(
                 prevState.stateMachineStateAndData,
                 transitionName,
                 transitionAttemptError
@@ -93,12 +93,19 @@ export default function stateMachineReducer<
 
     // If a new state is promised, schedule the state change to happen in future
     if (isPromise(transitionAttempt)) {
-        // Close on the current state for later comparison
-        const state = prevState.stateMachineStateAndData;
+        // transitionName is only undefined when checking for state change in automatic transitions,
+        // which always returns void and so never reaches here
+        if (transitionName === undefined) UNREACHABLE("transitionName should always be defined for async transitions")
 
         onPromiseCompletion(
             transitionAttempt,
-            result => prevState.reducerDispatch(createStateTransitionAction(state, () => inlineResult(result), transitionName!))
+            result => prevState.reducerDispatch(
+                createStateTransitionAction(
+                    prevState.stateMachineStateAndData,
+                    () => inlineResult(result),
+                    transitionName
+                )
+            )
         )
 
         return prevState;
@@ -110,13 +117,14 @@ export default function stateMachineReducer<
     // At this point, the transition is considered complete, so call the callback
     callAttemptCallback(transitionAttempt, true)
 
-    // See if the new state has an automatic transition
-    const automaticTransitionForNewState: AutomaticStateTransitions<States, Transitions>[keyof States] = prevState[AUTOMATIC][newState.state];
-
+    // Create the new state for the reducer
     const newReducerState = {
         ...prevState,
         stateMachineStateAndData: newState
     }
+
+    // See if the new state has an automatic transition
+    const automaticTransitionForNewState: AutomaticStateTransitions<States, Transitions>[keyof States] = prevState[AUTOMATIC][newState.state];
 
     // If it does, trigger it and handle the result by recursion
     if (automaticTransitionForNewState !== undefined) {
@@ -124,11 +132,11 @@ export default function stateMachineReducer<
             newReducerState,
             createStateTransitionAction(
                 newState,
-                () => (automaticTransitionForNewState as unknown as AutomaticStateTransition<States>).call(
-                    // We can't show that the automatic transition can take the new state at compile time, but this is
-                    // necessarily the case due to the AllowedFromStates type-arg on the AutomaticStateTransition type
-                    // being required to match the key under which it is stored in AutomaticStateTransitions, which is
-                    // newState.state in the line above.
+                // We can't show that the automatic transition can take the new state at compile time, but this is
+                // necessarily the case due to the AllowedFromStates type-arg on the AutomaticStateTransition type
+                // being required to match the key under which it is stored in AutomaticStateTransitions, which is
+                // newState.state in the line above.
+                () => (automaticTransitionForNewState as AutomaticStateTransition<States>).call(
                     newState,
                     createCheckForStateChange(newState, prevState.reducerDispatch)
                 ),

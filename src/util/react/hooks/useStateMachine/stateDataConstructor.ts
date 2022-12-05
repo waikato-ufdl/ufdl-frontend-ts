@@ -2,7 +2,7 @@ import {StateMachineStates} from "./types/StateMachineStates";
 import {StateDataConstructor} from "./types/StateDataConstructor";
 
 /**
- * Creates a function to aid in constructing the data-type for
+ * Creates a function to aid in constructing the parameterised data-type for
  * a given loop-state.
  *
  * @param state
@@ -16,12 +16,10 @@ export function stateDataConstructor<
 > (
     state: State
 ): StateDataConstructor<States, State> {
-    return (
-        (data) => {
-            return {
-                state: state,
-                data: data
-            }
+    return data => {
+        return {
+            state: state,
+            data: data
         }
-    )
+    }
 }
