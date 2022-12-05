@@ -32,6 +32,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "link": "mkdir build/extra && ln -s ~/WORK/UFDL/ui-experiment/dogs_split build/extra/dogs && echo Multi > build/extra/prelabelMode",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "reimport": "npm uninstall ufdl-ts-client && npm install ../ufdl-ts-client/dist",
