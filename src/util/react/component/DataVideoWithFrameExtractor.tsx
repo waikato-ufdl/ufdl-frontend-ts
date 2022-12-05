@@ -1,4 +1,4 @@
-import {FunctionComponentReturnType} from "../types";
+import {FunctionComponentReturnType} from "../types/FunctionComponentReturnType";
 import React from "react";
 import {augmentClassName} from "../augmentClass";
 import DataVideo, {DataVideoProps} from "./DataVideo";

@@ -6,7 +6,9 @@ import {
 } from "../../../../server/components/AnnotatorTopMenu";
 import useStateSafe from "../../../../util/react/hooks/useStateSafe";
 import {AnyPK, getDatasetPK} from "../../../../server/pk";
-import {Classification, DetectedObjects, NO_ANNOTATION} from "../../../../server/types/annotations";
+import {NO_ANNOTATION} from "../../../../server/NO_ANNOTATION";
+import {Classification} from "../../../../server/types/annotations/Classification";
+import {DetectedObjects} from "../../../../server/types/annotations/DetectedObjects";
 import useDerivedState from "../../../../util/react/hooks/useDerivedState";
 import {Image, ImageOrVideo} from "../../../../server/types/data";
 import {DEFAULT, WithDefault} from "../../../../util/typescript/default";
@@ -43,7 +45,7 @@ import {RefetchOptions, RefetchQueryFilters} from "@tanstack/react-query";
 import {Annotated} from "../../../../util/react/component/pictureannotate/annotated";
 import Shape from "../../../../util/react/component/pictureannotate/shapes/Shape";
 import {Controllable} from "../../../../util/react/hooks/useControllableState";
-import {FunctionComponentReturnType} from "../../../../util/react/types";
+import {FunctionComponentReturnType} from "../../../../util/react/types/FunctionComponentReturnType";
 
 export type ODAPProps = {
     lockedPK?: AnyPK,

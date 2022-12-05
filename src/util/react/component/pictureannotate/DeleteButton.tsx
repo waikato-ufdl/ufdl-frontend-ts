@@ -1,5 +1,5 @@
 import React from "react";
-import {FunctionComponentReturnType} from "../../types";
+import {FunctionComponentReturnType} from "../../types/FunctionComponentReturnType";
 
 export default function DeleteButton(
     _props: {}

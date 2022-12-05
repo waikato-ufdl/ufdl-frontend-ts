@@ -1,4 +1,4 @@
-import {FunctionComponentReturnType} from "../types";
+import {FunctionComponentReturnType} from "../types/FunctionComponentReturnType";
 import {SubmitCancelPictureAnnotation, SubmitCancelPictureAnnotationProps} from "./SubmitCancelPictureAnnotation";
 import useDerivedState from "../hooks/useDerivedState";
 import {constantInitialiser} from "../../typescript/initialisers";

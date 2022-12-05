@@ -6,7 +6,8 @@ import {
 } from "../../../../server/components/AnnotatorTopMenu";
 import useStateSafe from "../../../../util/react/hooks/useStateSafe";
 import {AnyPK, DatasetPK, getDatasetPK, getProjectPK, ProjectPK} from "../../../../server/pk";
-import {NO_ANNOTATION, Transcription} from "../../../../server/types/annotations";
+import {NO_ANNOTATION} from "../../../../server/NO_ANNOTATION";
+import {Transcription} from "../../../../server/types/annotations/Transcription";
 import useDerivedState from "../../../../util/react/hooks/useDerivedState";
 import {Audio} from "../../../../server/types/data";
 import {DEFAULT, WithDefault} from "../../../../util/typescript/default";
@@ -25,7 +26,7 @@ import hasData from "../../../../util/react/query/hasData";
 import MinimumEditDistance from "./MinimumEditDistance";
 import {Controllable, useControllableState} from "../../../../util/react/hooks/useControllableState";
 import {DatasetSelect} from "../../../../server/components/DatasetSelect";
-import {FunctionComponentReturnType} from "../../../../util/react/types";
+import {FunctionComponentReturnType} from "../../../../util/react/types/FunctionComponentReturnType";
 
 export type SPAPProps = {
     lockedPK?: AnyPK,

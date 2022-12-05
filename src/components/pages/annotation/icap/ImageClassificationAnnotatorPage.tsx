@@ -12,7 +12,9 @@ import "./ImageClassificationAnnotatorPage.css";
 import {AnyPK, DatasetPK, getDatasetPK, getProjectPK, ProjectPK} from "../../../../server/pk";
 import ImageClassificationDatasetDispatch
     from "../../../../server/hooks/useImageClassificationDataset/ImageClassificationDatasetDispatch";
-import {Classification, NO_ANNOTATION, OptionalAnnotations} from "../../../../server/types/annotations";
+import {NO_ANNOTATION} from "../../../../server/NO_ANNOTATION";
+import {OptionalAnnotations} from "../../../../server/types/annotations/OptionalAnnotations";
+import {Classification} from "../../../../server/types/annotations/Classification";
 import {ClassColour, ClassColours, storeColoursInContext} from "../../../../server/util/classification";
 import useClassColours from "../../../../server/hooks/useClassColours";
 import ClassColourPickerPage from "../../ClassColourPickerPage";
@@ -41,7 +43,7 @@ import {DatasetDispatchItemAnnotationType} from "../../../../server/hooks/useDat
 import {ImageOrVideoRenderer} from "../../../../server/components/image/ImageOrVideoRenderer";
 import {Controllable, useControllableState} from "../../../../util/react/hooks/useControllableState";
 import {DatasetSelect} from "../../../../server/components/DatasetSelect";
-import {FunctionComponentReturnType} from "../../../../util/react/types";
+import {FunctionComponentReturnType} from "../../../../util/react/types/FunctionComponentReturnType";
 
 export const SORT_ORDERS = {
     "filename": BY_FILENAME,

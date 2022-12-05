@@ -1,10 +1,10 @@
-import {FunctionComponentReturnType} from "../types";
+import {FunctionComponentReturnType} from "../types/FunctionComponentReturnType";
 import {SubmitCancelPictureAnnotation, SubmitCancelPictureAnnotationProps} from "./SubmitCancelPictureAnnotation";
 import {ObjectDetectionDatasetDispatchItem} from "../../../server/hooks/useObjectDetectionDataset/ObjectDetectionDatasetDispatch";
 import isDefined from "../../typescript/isDefined";
 import {SubmitCancelVideoAnnotation} from "./SubmitCancelVideoAnnotation";
 import useDerivedState from "../hooks/useDerivedState";
-import {NO_ANNOTATION} from "../../../server/types/annotations";
+import {NO_ANNOTATION} from "../../../server/NO_ANNOTATION";
 import {Annotated} from "./pictureannotate/annotated";
 import Shape from "./pictureannotate/shapes/Shape";
 import {UNCONTROLLED_RESET, UncontrolledResetOverride} from "../hooks/useControllableState";

@@ -1,7 +1,9 @@
 import "./ClassSelect.css";
-import {Classification, NO_ANNOTATION, OptionalAnnotations} from "../../types/annotations";
+import {NO_ANNOTATION} from "../../NO_ANNOTATION";
+import {OptionalAnnotations} from "../../types/annotations/OptionalAnnotations";
+import {Classification} from "../../types/annotations/Classification";
 import {asLabel, ClassColour, ClassColours} from "../../util/classification";
-import {FunctionComponentReturnType} from "../../../util/react/types";
+import {FunctionComponentReturnType} from "../../../util/react/types/FunctionComponentReturnType";
 import {ClassSelectOption} from "./ClassSelectOption";
 import asChangeEventHandler from "../../../util/react/asChangeEventHandler";
 import {mapToArray} from "../../../util/map";

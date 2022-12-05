@@ -1,6 +1,7 @@
 import "./AddFilesButton.css";
 import useLocalModal from "../../util/react/hooks/useLocalModal";
-import {FunctionComponent, FunctionComponentReturnType} from "../../util/react/types";
+import {FunctionComponent} from "../../util/react/types/FunctionComponent";
+import {FunctionComponentReturnType} from "../../util/react/types/FunctionComponentReturnType";
 import selectFiles, {SelectFilesMethod} from "../../util/files/selectFiles";
 import doAsync from "../../util/typescript/async/doAsync";
 import {isArray} from "../../util/typescript/arrays/isArray";
@@ -9,7 +10,7 @@ import LocalModal from "../../util/react/component/LocalModal";
 import {mapOwnProperties} from "../../util/typescript/object";
 import {PossiblePromise} from "../../util/typescript/types/promise";
 import {Data} from "../types/data";
-import {OptionalAnnotations} from "../types/annotations";
+import {OptionalAnnotations} from "../types/annotations/OptionalAnnotations";
 import useDerivedReducer, {UNINITIALISED} from "../../util/react/hooks/useDerivedReducer";
 import {createSimpleStateReducer} from "../../util/react/hooks/SimpleStateReducer";
 import usePromise, {Resolution} from "../../util/react/hooks/usePromise";

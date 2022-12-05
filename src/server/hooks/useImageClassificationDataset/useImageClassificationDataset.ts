@@ -1,7 +1,8 @@
 import useDataset from "../useDataset/useDataset";
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import {DatasetPK} from "../../pk";
-import {Classification, NO_ANNOTATION} from "../../types/annotations";
+import {NO_ANNOTATION} from "../../NO_ANNOTATION";
+import {Classification} from "../../types/annotations/Classification";
 import * as ICDataset from "ufdl-ts-client/functional/image_classification/dataset";
 import ImageClassificationDatasetDispatch from "./ImageClassificationDatasetDispatch";
 import {DatasetInstance} from "ufdl-ts-client/types/core/dataset";

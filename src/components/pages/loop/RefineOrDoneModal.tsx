@@ -1,4 +1,4 @@
-import {FunctionComponentReturnType} from "../../../util/react/types";
+import {FunctionComponentReturnType} from "../../../util/react/types/FunctionComponentReturnType";
 import LocalModal from "../../../util/react/component/LocalModal";
 
 export type RefineOrDoneModalProps = {

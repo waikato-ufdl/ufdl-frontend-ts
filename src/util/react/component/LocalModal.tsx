@@ -1,6 +1,6 @@
 import React, {PropsWithChildren} from "react";
 import ReactModal from "react-modal";
-import {FunctionComponentReturnType} from "../types";
+import {FunctionComponentReturnType} from "../types/FunctionComponentReturnType";
 import {augmentClassName} from "../augmentClass";
 import "./LocalModal.css";
 

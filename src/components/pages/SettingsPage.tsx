@@ -1,4 +1,4 @@
-import {FunctionComponentReturnType} from "../../util/react/types";
+import {FunctionComponentReturnType} from "../../util/react/types/FunctionComponentReturnType";
 import Page from "./Page";
 import {APP_SETTINGS_REACT_CONTEXT, AppSettings, saveSettingsToContext} from "../../useAppSettings";
 import InterlatchedCheckboxes from "../../util/react/component/InterlatchedCheckboxes";

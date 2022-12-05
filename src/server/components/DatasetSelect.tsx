@@ -6,7 +6,7 @@ import {DatasetInstance} from "../../../../ufdl-ts-client/dist/types/core/datase
 import signatureFromJSON from "../util/signatureFromJSON";
 import {exactFilter} from "../util/exactFilter";
 import {ListSelect} from "./ListSelect";
-import {FunctionComponentReturnType} from "../../util/react/types";
+import {FunctionComponentReturnType} from "../../util/react/types/FunctionComponentReturnType";
 import passOnUndefined from "../../util/typescript/functions/passOnUndefined";
 import useDerivedState from "../../util/react/hooks/useDerivedState";
 

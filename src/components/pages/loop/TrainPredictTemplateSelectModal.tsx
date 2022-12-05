@@ -1,4 +1,4 @@
-import {FunctionComponentReturnType} from "../../../util/react/types";
+import {FunctionComponentReturnType} from "../../../util/react/types/FunctionComponentReturnType";
 import JobTemplateSelectModal, {JobTemplateSelectModalOnDoneCallback} from "./JobTemplateSelectModal";
 import getPredictTemplatesMatchingTrainTemplate from "./jobs/getPredictTemplatesMatchingTrainTemplate";
 import * as job_template from "ufdl-ts-client/functional/core/jobs/job_template";

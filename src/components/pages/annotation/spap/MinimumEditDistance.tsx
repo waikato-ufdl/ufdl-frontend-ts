@@ -1,4 +1,4 @@
-import {FunctionComponentReturnType} from "../../../../util/react/types";
+import {FunctionComponentReturnType} from "../../../../util/react/types/FunctionComponentReturnType";
 import useDerivedState from "../../../../util/react/hooks/useDerivedState";
 import UNREACHABLE from "../../../../util/typescript/UNREACHABLE";
 import "./MinimumEditDistance.css"

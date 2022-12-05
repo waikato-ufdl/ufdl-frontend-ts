@@ -1,5 +1,5 @@
 import {MutableDatasetDispatch, MutableDatasetDispatchItem} from "../useDataset/DatasetDispatch";
-import {NO_ANNOTATION} from "../../types/annotations";
+import {NO_ANNOTATION} from "../../NO_ANNOTATION";
 import {DomainAnnotationType, DomainDataType} from "../../domains";
 import isDefined from "../../../util/typescript/isDefined";
 import hasData from "../../../util/react/query/hasData";

@@ -1,4 +1,4 @@
-import {FunctionComponentReturnType} from "../../types";
+import {FunctionComponentReturnType} from "../../types/FunctionComponentReturnType";
 import {CSSProperties} from "react";
 import {augmentClass} from "../../augmentClass";
 

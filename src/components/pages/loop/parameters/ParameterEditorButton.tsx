@@ -1,4 +1,4 @@
-import {FunctionComponentReturnType} from "../../../../util/react/types";
+import {FunctionComponentReturnType} from "../../../../util/react/types/FunctionComponentReturnType";
 import useLocalModal from "../../../../util/react/hooks/useLocalModal";
 import ParameterEditor from "./ParameterEditor";
 import {ParameterSpec} from "./ParameterSpec";

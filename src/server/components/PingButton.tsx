@@ -1,6 +1,6 @@
 import React, {ButtonHTMLAttributes, useContext} from "react";
 import {ping} from "ufdl-ts-client/functional/core/nodes/node";
-import {FunctionComponentReturnType} from "../../util/react/types";
+import {FunctionComponentReturnType} from "../../util/react/types/FunctionComponentReturnType";
 import {UFDL_SERVER_REACT_CONTEXT} from "../UFDLServerContextProvider";
 import {formatResponseError} from "../error/formatResponseError";
 import {withErrorResponseHandler} from "../error/withErrorResponseHandler";

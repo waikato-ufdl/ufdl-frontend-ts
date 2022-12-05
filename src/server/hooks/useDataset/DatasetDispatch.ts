@@ -15,7 +15,7 @@ import {ReadonlyQueryResult} from "../../../util/react/query/types";
 import iterate from "../../../util/typescript/iterate/iterate";
 import {Dataset} from "../../types/Dataset";
 import {Data} from "../../types/data";
-import {OptionalAnnotations} from "../../types/annotations";
+import {OptionalAnnotations} from "../../types/annotations/OptionalAnnotations";
 import iteratorFilter from "../../../util/typescript/iterate/filter";
 import {SelfIterableIterator} from "../../../util/typescript/iterate/SelfIterableIterator";
 import {

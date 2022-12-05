@@ -1,4 +1,4 @@
-import {FunctionComponentReturnType} from "../types";
+import {FunctionComponentReturnType} from "../types/FunctionComponentReturnType";
 import {TaskStatus} from "../../typescript/task/Task";
 import {anyToString} from "../../typescript/strings/anyToString";
 import LocalModal, {LocalModalProps} from "./LocalModal";

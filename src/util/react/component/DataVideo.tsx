@@ -1,4 +1,4 @@
-import {FunctionComponentReturnType} from "../types";
+import {FunctionComponentReturnType} from "../types/FunctionComponentReturnType";
 import React, {ForwardedRef, VideoHTMLAttributes} from "react";
 import {BehaviorSubject} from "rxjs";
 import {augmentClassName} from "../augmentClass";

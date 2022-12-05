@@ -1,6 +1,6 @@
 import {ClassColours} from "../../util/classification";
 import {addFilesRenderer, FileAnnotationModalRenderer} from "../AddFilesButton";
-import {Classification} from "../../types/annotations";
+import {Classification} from "../../types/annotations/Classification";
 import PickClassForm from "./PickClassForm";
 import React from "react";
 import {Data} from "../../types/data";

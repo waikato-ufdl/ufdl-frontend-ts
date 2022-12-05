@@ -1,6 +1,8 @@
 import {Dataset} from "../../types/Dataset";
 import {SELECTIONS} from "../useDataset/selection";
-import {Classification, NO_ANNOTATION, OptionalAnnotations} from "../../types/annotations";
+import {NO_ANNOTATION} from "../../NO_ANNOTATION";
+import {OptionalAnnotations} from "../../types/annotations/OptionalAnnotations";
+import {Classification} from "../../types/annotations/Classification";
 import randomSubset from "../../../util/typescript/random/randomSubset";
 import {DatasetDispatchItem} from "../useDataset/DatasetDispatch";
 import hasData from "../../../util/react/query/hasData";

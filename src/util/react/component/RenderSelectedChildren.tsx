@@ -3,7 +3,7 @@ import {cloneElementAsHideable} from "../hideable";
 import {nodeIsElement} from "../node/nodeIsElement";
 import getNodeID from "../node/getNodeID";
 import elementIsCustom from "../node/elementIsCustom";
-import {FunctionComponentReturnType} from "../types";
+import {FunctionComponentReturnType} from "../types/FunctionComponentReturnType";
 
 export type ManualChildSelector = (child: ReactNode, index: number) => boolean
 

@@ -3,7 +3,9 @@ import * as ODDataset from "ufdl-ts-client/functional/object_detection/dataset";
 import * as ISDataset from "ufdl-ts-client/functional/image_segmentation/dataset";
 import * as SPDataset from "ufdl-ts-client/functional/speech/dataset";
 import {Data, Image, ImageOrVideo, Audio} from "./types/data";
-import {Classification, DetectedObjects, Transcription} from "./types/annotations";
+import {Classification} from "./types/annotations/Classification";
+import {DetectedObjects} from "./types/annotations/DetectedObjects";
+import {Transcription} from "./types/annotations/Transcription";
 import {ownPropertyIterator} from "../util/typescript/object";
 import iteratorMap from "../util/typescript/iterate/map";
 

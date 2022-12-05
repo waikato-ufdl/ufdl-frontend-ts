@@ -1,4 +1,4 @@
-import {FunctionComponentReturnType} from "../types";
+import {FunctionComponentReturnType} from "../types/FunctionComponentReturnType";
 import React from "react";
 import useDerivedState from "../hooks/useDerivedState";
 import "./SubmitCancelPictureAnnotation.css"

@@ -1,5 +1,5 @@
 import React from "react";
-import {FunctionComponentReturnType} from "../../util/react/types";
+import {FunctionComponentReturnType} from "../../util/react/types/FunctionComponentReturnType";
 import {SELECTIONS} from "../hooks/useDataset/selection";
 import {ItemSelectFragmentRenderer} from "./AnnotatorTopMenu";
 import LocalModal from "../../util/react/component/LocalModal";

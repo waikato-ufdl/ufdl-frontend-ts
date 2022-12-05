@@ -1,4 +1,4 @@
-import {FunctionComponentReturnType} from "../../../util/react/types";
+import {FunctionComponentReturnType} from "../../../util/react/types/FunctionComponentReturnType";
 import {BehaviorSubject} from "rxjs";
 import Page from "../Page";
 import {useObservable} from "../../../util/react/hooks/useObservable";

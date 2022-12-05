@@ -1,5 +1,5 @@
 import React, {CSSProperties, ReactNode} from "react";
-import {FunctionComponentReturnType} from "../../types";
+import {FunctionComponentReturnType} from "../../types/FunctionComponentReturnType";
 import {augmentClass} from "../../augmentClass";
 import {SemiRequired} from "../../../typescript/types/SemiRequired";
 import {nodeIsElement} from "../../node/nodeIsElement";

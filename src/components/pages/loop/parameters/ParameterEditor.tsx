@@ -1,4 +1,4 @@
-import {FunctionComponentReturnType} from "../../../../util/react/types";
+import {FunctionComponentReturnType} from "../../../../util/react/types/FunctionComponentReturnType";
 import LocalModal from "../../../../util/react/component/LocalModal";
 import {ArraySelect} from "../../../../util/react/component/ArraySelect";
 import useDerivedState from "../../../../util/react/hooks/useDerivedState";

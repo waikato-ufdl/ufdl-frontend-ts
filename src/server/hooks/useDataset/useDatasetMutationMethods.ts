@@ -1,6 +1,6 @@
 import {Data} from "../../types/data";
 import {NamedFileInstance} from "ufdl-ts-client/types/core/named_file";
-import {OptionalAnnotations} from "../../types/annotations";
+import {OptionalAnnotations} from "../../types/annotations/OptionalAnnotations";
 import {TOGGLE} from "./selection";
 import {DatasetDispatchItemSelector, UseMutateFunctionWithTask} from "./types";
 import useDerivedState from "../../../util/react/hooks/useDerivedState";

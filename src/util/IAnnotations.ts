@@ -1,4 +1,4 @@
-import {DetectedObjects} from "../server/types/annotations";
+import {DetectedObjects} from "../server/types/annotations/DetectedObjects";
 import {Annotation, ImageAnnotation, VideoAnnotation, Point as ClientPoint} from "ufdl-ts-client/json/hand_crafted/AnnotationsFile";
 import {mapGetDefault} from "./map";
 import {hasOwnProperty} from "./typescript/object";

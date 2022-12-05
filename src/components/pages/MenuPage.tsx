@@ -6,7 +6,7 @@ import {isArray} from "../../util/typescript/arrays/isArray";
 import {nodeIsElement} from "../../util/react/node/nodeIsElement";
 import useStateSafe from "../../util/react/hooks/useStateSafe";
 import "./MenuPage.css";
-import {FunctionComponentReturnType} from "../../util/react/types";
+import {FunctionComponentReturnType} from "../../util/react/types/FunctionComponentReturnType";
 
 const MENU_PAGE_TITLE = "Menu Page";
 

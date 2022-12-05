@@ -1,5 +1,5 @@
 import JSZip from "jszip";
-import {startTask, Task} from "../../util/typescript/task/Task";
+import {startTask, Task} from "../typescript/task/Task";
 import enumerate from "../../util/typescript/iterate/enumerate";
 
 /**

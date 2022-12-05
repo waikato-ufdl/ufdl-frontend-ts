@@ -1,6 +1,7 @@
 import {createMapStateReducer, MapStateDispatch} from "../../util/react/hooks/useMapState";
 import {ClassColour, ClassColours, loadColoursFromContext, pickNewRandomColour} from "../util/classification";
-import {Classification, NO_ANNOTATION} from "../types/annotations";
+import {NO_ANNOTATION} from "../NO_ANNOTATION";
+import {Classification} from "../types/annotations/Classification";
 import {copyMap} from "../../util/map";
 import {useContext} from "react";
 import {UFDL_SERVER_REACT_CONTEXT} from "../UFDLServerContextProvider";

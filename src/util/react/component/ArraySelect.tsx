@@ -3,7 +3,7 @@ import {Controllable, useControllableState} from "../hooks/useControllableState"
 import asChangeEventHandler from "../asChangeEventHandler";
 import {constantInitialiser} from "../../typescript/initialisers";
 import {anyToString} from "../../typescript/strings/anyToString";
-import {FunctionComponentReturnType} from "../types";
+import {FunctionComponentReturnType} from "../types/FunctionComponentReturnType";
 
 /**
  * Props passed to an {@link ArraySelect} component.

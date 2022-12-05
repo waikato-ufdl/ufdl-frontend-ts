@@ -1,5 +1,7 @@
 import {ClassColours} from "../../util/classification";
-import {Classification, NO_ANNOTATION, OptionalAnnotations} from "../../types/annotations";
+import {NO_ANNOTATION} from "../../NO_ANNOTATION";
+import {OptionalAnnotations} from "../../types/annotations/OptionalAnnotations";
+import {Classification} from "../../types/annotations/Classification";
 import {AnnotationComponent} from "../dataset/types";
 import {numberWithSuffix} from "../../../util/numberWithSuffix";
 import React, {CSSProperties} from "react";

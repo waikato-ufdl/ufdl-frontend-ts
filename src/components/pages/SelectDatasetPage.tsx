@@ -1,5 +1,5 @@
 import {DatasetPK, ProjectPK, TeamPK} from "../../server/pk";
-import {FunctionComponentReturnType} from "../../util/react/types";
+import {FunctionComponentReturnType} from "../../util/react/types/FunctionComponentReturnType";
 import useStateSafe from "../../util/react/hooks/useStateSafe";
 import {Controllable, UNCONTROLLED_KEEP, useControllableState} from "../../util/react/hooks/useControllableState";
 import Page from "./Page";

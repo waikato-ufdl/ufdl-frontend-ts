@@ -1,4 +1,4 @@
-import {FunctionComponentReturnType} from "../types";
+import {FunctionComponentReturnType} from "../types/FunctionComponentReturnType";
 import {Controllable, useControllableState} from "../hooks/useControllableState";
 import useDerivedState from "../hooks/useDerivedState";
 import iteratorMap from "../../typescript/iterate/map";

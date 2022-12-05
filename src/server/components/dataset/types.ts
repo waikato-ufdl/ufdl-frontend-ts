@@ -1,4 +1,4 @@
-import {FunctionComponent} from "../../../util/react/types";
+import {FunctionComponent} from "../../../util/react/types/FunctionComponent";
 import {Possible} from "../../../util/typescript/types/Possible";
 import {DomainAnnotationType, DomainDataType, DomainName} from "../../domains";
 import {MutableDatasetDispatchItem} from "../../hooks/useDataset/DatasetDispatch";

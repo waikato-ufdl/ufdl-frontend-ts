@@ -25,7 +25,7 @@ import {ListSelect} from "./ListSelect";
 import {ArraySelect} from "../../util/react/component/ArraySelect";
 import {mapOwnProperties} from "../../util/typescript/object";
 import "./AnnotatorTopMenu.css"
-import {FunctionComponentReturnType} from "../../util/react/types";
+import {FunctionComponentReturnType} from "../../util/react/types/FunctionComponentReturnType";
 
 export type ItemSelectFragmentRenderer<D extends Data, A> = (
     select: Dispatch<DatasetDispatchItemSelector<D, A>>

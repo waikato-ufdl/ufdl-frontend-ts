@@ -1,4 +1,4 @@
-import {FunctionComponentReturnType} from "../../../util/react/types";
+import {FunctionComponentReturnType} from "../../../util/react/types/FunctionComponentReturnType";
 import ImageClassificationAnnotatorPage from "../annotation/icap/ImageClassificationAnnotatorPage";
 import * as job_template from "ufdl-ts-client/functional/core/jobs/job_template";
 import ObjectDetectionAnnotatorPage from "../annotation/odap/ObjectDetectionAnnotatorPage";

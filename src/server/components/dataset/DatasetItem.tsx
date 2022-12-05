@@ -1,5 +1,5 @@
 import "./DatasetItem.css";
-import {FunctionComponentReturnType} from "../../../util/react/types";
+import {FunctionComponentReturnType} from "../../../util/react/types/FunctionComponentReturnType";
 import {Absent, Possible} from "../../../util/typescript/types/Possible";
 import React, {useEffect} from "react";
 import {augmentClassName} from "../../../util/react/augmentClass";

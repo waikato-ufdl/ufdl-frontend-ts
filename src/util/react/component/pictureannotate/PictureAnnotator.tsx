@@ -1,4 +1,4 @@
-import {FunctionComponentReturnType} from "../../types";
+import {FunctionComponentReturnType} from "../../types/FunctionComponentReturnType";
 import useLinearTransform, {LinearTransformDispatch, Transform} from "./useLinearTransform";
 import useDerivedState from "../../hooks/useDerivedState";
 import useAnnotatingStateMachine from "./states/useAnnotatingStateMachine";

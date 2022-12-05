@@ -2,7 +2,7 @@ import React, {useContext} from "react";
 import {UFDL_SERVER_REACT_CONTEXT} from "../../../server/UFDLServerContextProvider";
 import useStateSafe from "../../../util/react/hooks/useStateSafe";
 import SelectDatasetPage from "../SelectDatasetPage";
-import {FunctionComponentReturnType} from "../../../util/react/types";
+import {FunctionComponentReturnType} from "../../../util/react/types/FunctionComponentReturnType";
 import Page from "../Page";
 import useTheLoopStateMachine from "./hooks/useTheLoopStateMachine/useTheLoopStateMachine";
 import WorkingPage from "./WorkingPage";

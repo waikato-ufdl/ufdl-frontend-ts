@@ -1,4 +1,4 @@
-import {FunctionComponentReturnType} from "../../util/react/types";
+import {FunctionComponentReturnType} from "../../util/react/types/FunctionComponentReturnType";
 import Page from "./Page";
 import useStateSafe from "../../util/react/hooks/useStateSafe";
 import NewTeamPage from "./NewTeamPage";

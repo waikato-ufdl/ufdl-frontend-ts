@@ -3,7 +3,9 @@ import {mapToArray, spreadJoinMaps} from "../../util/map";
 import {toHexString} from "ufdl-ts-client/util";
 import {pseudoRandomBytes} from "crypto";
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
-import {Classification, NO_ANNOTATION, OptionalAnnotations} from "../types/annotations";
+import {NO_ANNOTATION} from "../NO_ANNOTATION";
+import {OptionalAnnotations} from "../types/annotations/OptionalAnnotations";
+import {Classification} from "../types/annotations/Classification";
 import {Dataset} from "../types/Dataset";
 import {DatasetItem} from "../types/DatasetItem";
 

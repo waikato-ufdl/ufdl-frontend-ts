@@ -1,5 +1,6 @@
 import {CompareFunction} from "../../../util/typescript/sort/CompareFunction";
-import {Classification, NO_ANNOTATION} from "../../types/annotations";
+import {NO_ANNOTATION} from "../../NO_ANNOTATION";
+import {Classification} from "../../types/annotations/Classification";
 import {localeCompareUndefined} from "../../../util/typescript/strings/localeCompareUndefined";
 import {asLabel} from "../../util/classification";
 import {DatasetDispatchItem} from "../../hooks/useDataset/DatasetDispatch";

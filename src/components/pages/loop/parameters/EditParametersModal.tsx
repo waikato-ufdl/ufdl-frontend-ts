@@ -1,4 +1,4 @@
-import {FunctionComponentReturnType} from "../../../../util/react/types";
+import {FunctionComponentReturnType} from "../../../../util/react/types/FunctionComponentReturnType";
 import LocalModal from "../../../../util/react/component/LocalModal";
 import useStateSafe from "../../../../util/react/hooks/useStateSafe";
 import {constantInitialiser} from "../../../../util/typescript/initialisers";

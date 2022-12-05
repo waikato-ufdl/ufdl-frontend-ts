@@ -1,6 +1,6 @@
 import React from "react";
 import DeleteButton from "./DeleteButton";
-import {FunctionComponentReturnType} from "../../types";
+import {FunctionComponentReturnType} from "../../types/FunctionComponentReturnType";
 
 export type AnnotationInputProps = {
     value: string;

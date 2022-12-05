@@ -22,7 +22,7 @@ import {createSimpleStateReducer} from "../../../util/react/hooks/SimpleStateRed
 import {DatasetItem} from "../../types/DatasetItem";
 import {Equivalency, tripleEquals} from "../../../util/equivalency";
 import hasData from "../../../util/react/query/hasData";
-import {OptionalAnnotations} from "../../types/annotations";
+import {OptionalAnnotations} from "../../types/annotations/OptionalAnnotations";
 import randomSubset from "../../../util/typescript/random/randomSubset";
 import pass from "../../../util/typescript/functions/pass";
 import "./MultiItemDatasetOverview.css"
