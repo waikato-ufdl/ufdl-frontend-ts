@@ -16,7 +16,7 @@ import {
     UseQueryOptions,
     UseQueryResult
 } from "@tanstack/react-query";
-import compressFiles from "../../util/compressFiles";
+import compressFiles from "../../../util/files/compressFiles";
 import useDerivedReducer from "../../../util/react/hooks/useDerivedReducer";
 import {
     AnnotationsGetterFunction,

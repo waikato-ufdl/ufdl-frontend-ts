@@ -1,19 +1,18 @@
 import {BehaviorSubject} from "rxjs";
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
-import {handleErrorResponse} from "./error/handleErrorResponse";
-import {ERROR_RESPONSE_HANDLERS} from "./error/ERROR_RESPONSE_HANDLERS";
-import {DEFAULT_HANDLED_ERROR_RESPONSE} from "./error/DEFAULT_HANDLED_ERROR_RESPONSE";
-import observeJobTransitionsViaWebSocket from "./websocket/observeJobTransitionsViaWebSocket";
-import {immediateObservable} from "../util/rx/immediate";
-import behaviourSubjectFromSubscribable from "../util/rx/behaviourSubjectFromSubscribable";
-import behaviourSubjectCompletionPromise from "../util/rx/behaviourSubjectCompletionPromise";
-import {getJobLog} from "./util/getJobLog";
+import {handleErrorResponse} from "../error/handleErrorResponse";
+import {DEFAULT_HANDLED_ERROR_RESPONSE} from "../error/DEFAULT_HANDLED_ERROR_RESPONSE";
+import observeJobTransitionsViaWebSocket from "./observeJobTransitionsViaWebSocket";
+import {immediateObservable} from "../../util/rx/immediate";
+import behaviourSubjectFromSubscribable from "../../util/rx/behaviourSubjectFromSubscribable";
+import behaviourSubjectCompletionPromise from "../../util/rx/behaviourSubjectCompletionPromise";
+import {getJobLog} from "./getJobLog";
 import {JobTransitionMessage} from "ufdl-ts-client/types/core/jobs/job";
-import {EMPTY, Empty} from "../util/typescript/types/Empty";
-import onPromiseCompletion from "../util/typescript/async/onPromiseCompletion";
-import {ERROR_RESPONSE_HANDLERS} from "./error/ERROR_RESPONSE_HANDLERS";
-import {forEachOwnProperty} from "../util/typescript/object";
-import {JobLog} from "./types/JobLog";
+import {EMPTY, Empty} from "../../util/typescript/types/Empty";
+import onPromiseCompletion from "../../util/typescript/async/onPromiseCompletion";
+import {ERROR_RESPONSE_HANDLERS} from "../error/ERROR_RESPONSE_HANDLERS";
+import {forEachOwnProperty} from "../../util/typescript/object";
+import {JobLog} from "../types/JobLog";
 
 /**
  * Attaches to a job on the server to receive state-transitions via web-socket.

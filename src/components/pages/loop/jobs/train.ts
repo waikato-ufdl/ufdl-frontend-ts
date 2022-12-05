@@ -3,8 +3,8 @@ import {CreateJobSpec, ParameterValue} from "ufdl-ts-client/json/generated/Creat
 import {BehaviorSubject} from "rxjs";
 import {DatasetPK} from "../../../../server/pk";
 import webSocketNotificationOverride from "../webSocketNotificationOverride";
-import createJob from "../../../../server/createJob";
-import jobProgressSubject from "../../../../server/util/jobProgressSubject";
+import createJob from "../../../../server/jobs/createJob";
+import jobProgressSubject from "../../../../server/jobs/jobProgressSubject";
 import {DomainName} from "../../../../server/domains";
 
 export default function train(

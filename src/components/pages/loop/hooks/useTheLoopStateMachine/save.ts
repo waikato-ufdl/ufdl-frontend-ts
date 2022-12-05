@@ -3,8 +3,8 @@ import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import {AnyPK, DatasetPK, fromJSON, ProjectPK, TeamPK} from "../../../../../server/pk";
 import {LoopStates} from "./LoopStates";
 import {DomainName, isDomainName} from "../../../../../server/domains";
-import {monitorJob} from "../../../../../server/monitorJob";
-import jobProgressSubject from "../../../../../server/util/jobProgressSubject";
+import {monitorJob} from "../../../../../server/jobs/monitorJob";
+import jobProgressSubject from "../../../../../server/jobs/jobProgressSubject";
 import {isAllowedState, isAllowedStateAndData} from "../../../../../util/react/hooks/useStateMachine/isAllowedState";
 
 export class DecodeError extends Error {

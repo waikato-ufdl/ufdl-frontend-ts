@@ -9,7 +9,7 @@ import {AUTOMATIC} from "../../../../../util/react/hooks/useStateMachine/AUTOMAT
 import {createErrorState} from "./error/createErrorState";
 import {anyToString} from "../../../../../util/typescript/strings/anyToString";
 import {formatResponseError} from "../../../../../server/error/formatResponseError";
-import {CANCELLED} from "../../../../../server/websocket/observeJobTransitionsViaWebSocket";
+import {CANCELLED} from "../../../../../server/jobs/observeJobTransitionsViaWebSocket";
 import {silentlyCancelJob} from "./silentlyCancelJob";
 
 export default function useTheLoopStateMachine(
