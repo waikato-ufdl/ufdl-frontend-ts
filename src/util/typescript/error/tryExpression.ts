@@ -1,5 +1,5 @@
 /**
- * Equivlane to a try/catch construct, but can be used as an expression.
+ * Equivalent to a try/catch construct, but can be used as an expression.
  *
  * @param tryBlock
  *          The code to try.
