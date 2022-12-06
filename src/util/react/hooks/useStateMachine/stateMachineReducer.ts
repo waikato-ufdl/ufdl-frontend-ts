@@ -51,7 +51,7 @@ export default function stateMachineReducer<
         // If no error-handler is defined, record the error to the console, and don't change state
         if (prevState.errorTransitionHandler === undefined) {
             console.error(
-                `Error occurred in state-machine transition '${anyToString(transitionName)}' ` +
+                `Error occurred in state-machine transition '${transitionName === AUTOMATIC ? "[AUTOMATIC]" : transitionName}' ` +
                 `of state '${anyToString(prevState.stateMachineStateAndData.state)}'`,
                 transitionAttemptError
             )
@@ -77,7 +77,7 @@ export default function stateMachineReducer<
         } catch (errorTransitionAttemptError) {
             // If the error-handler also threw an error, record to console and don't change state
             console.error(
-                `Error occurred in state-machine transition '${anyToString(transitionName)}' ` +
+                `Error occurred in state-machine transition '${transitionName === AUTOMATIC ? "[AUTOMATIC]" : transitionName}' ` +
                 `of state '${anyToString(prevState.stateMachineStateAndData.state)}'`,
                 transitionAttemptError,
                 `While attempting to handle the error, the provided error-handler also experienced ` +
