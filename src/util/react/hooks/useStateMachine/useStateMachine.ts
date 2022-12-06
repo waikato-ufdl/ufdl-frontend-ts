@@ -61,8 +61,8 @@ export default function useStateMachine<
                 stateMachineStateAndData: init(),
                 [AUTOMATIC]: extractAutomaticTransitions<States, Transitions>(transitions),
                 reducerDispatch: transition => reducerDispatch(transition),
-                errorTransition: errorTransitionHandler
-            }
+                errorTransitionHandler: errorTransitionHandler
+            } satisfies StateMachineReducerState<States, Transitions>
         }
     );
 
