@@ -21,6 +21,9 @@ import {
     CheckForStateChangeFunction
 } from "../../../../../util/react/hooks/useStateMachine/types/CheckForStateChangeFunction";
 import {ERROR_TRANSITION} from "./error/ERROR_TRANSITION";
+import isPromise from "../../../../../util/typescript/async/isPromise";
+import {identity} from "../../../../../util/identity";
+import asyncTryExpression from "../../../../../util/typescript/error/asyncTryExpression";
 
 export const LOOP_TRANSITIONS = {
     "Initial": {
@@ -502,6 +505,23 @@ export const LOOP_TRANSITIONS = {
         }
     },
     "Error": {
+        async [AUTOMATIC](
+            this: LoopStateAndData<"Error">
+        ) {
+            if (!isPromise(this.data.reason)) return
+
+            const reason = await asyncTryExpression(
+                () => this.data.reason,
+                identity
+            )
+
+            return createNewLoopState("Error")(
+                {
+                    ...this.data,
+                    reason
+                }
+            )
+        },
         reset(
             this: LoopStateAndData<"Error">
         ) {

@@ -23,6 +23,8 @@ import useDerivedState from "../../../util/react/hooks/useDerivedState";
 import {APP_SETTINGS_REACT_CONTEXT} from "../../../useAppSettings";
 import {DEFAULT} from "../../../util/typescript/default";
 import TrainPredictTemplateSelectModal from "./TrainPredictTemplateSelectModal";
+import isPromise from "../../../util/typescript/async/isPromise";
+import {anyToString} from "../../../util/typescript/strings/anyToString";
 
 export type TheLoopPageProps = {
     onBack?: () => void
@@ -285,8 +287,14 @@ export default function TheLoopPage(
 
         case "Error":
             return <Page>
-                {"Error"}
-                {String(stateMachine.data.reason)}
+                <div>Error</div>
+                <div>
+                    {
+                        isPromise(stateMachine.data.reason)
+                            ? "Resolving..."
+                            : anyToString(stateMachine.data.reason)
+                    }
+                </div>
                 <button onClick={stateMachine.transitions.reset}>Back</button>
             </Page>
 

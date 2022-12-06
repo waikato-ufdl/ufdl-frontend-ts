@@ -34,10 +34,17 @@ export default function useTheLoopStateMachine(
                 silentlyCancelJob(stateAndData.data.context, stateAndData.data.jobPK)
             }
 
+            function formatReason(reason: string): string {
+                return `Error occurred in transition '${anyToString(transition)}' of state '${stateAndData.state}':\n${reason}`
+            }
+
+            const formattedReason = reason instanceof Response
+                ? formatResponseError(reason).then(formatReason)
+                : formatReason(anyToString(reason))
+
             return createErrorState(
                 stateAndData.data.context,
-                `Error occurred in transition '${anyToString(transition)}' of state '${stateAndData.state}':\n` +
-                ((reason instanceof Response) ? formatResponseError(reason) : anyToString(reason))
+                formattedReason
             )
         }
     );
