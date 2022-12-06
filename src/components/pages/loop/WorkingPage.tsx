@@ -4,6 +4,8 @@ import Page from "../Page";
 import {useObservable} from "../../../util/react/hooks/useObservable";
 import useArrayState from "../../../util/react/hooks/useArrayState";
 import {useEffect} from "react";
+import tryExpression from "../../../util/typescript/error/tryExpression";
+import {anyToString} from "../../../util/typescript/strings/anyToString";
 
 export type WorkingPageProps = {
     title: string,
@@ -19,9 +21,12 @@ export default function WorkingPage(
     useObservable(props.progress instanceof BehaviorSubject ? props.progress : undefined)
 
     // Extract the progress value
-    const progress: [number, string | undefined] = props.progress instanceof BehaviorSubject ?
-        props.progress.value :
-        [props.progress, undefined];
+    const progress: [number, string | undefined] = tryExpression(
+        () => props.progress instanceof BehaviorSubject ?
+            props.progress.value :
+            [props.progress, undefined],
+        error => [1.0, anyToString(error)]
+    )
 
     const message = progress[1]
 
