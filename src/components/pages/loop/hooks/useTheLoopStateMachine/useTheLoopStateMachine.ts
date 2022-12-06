@@ -37,7 +37,7 @@ export default function useTheLoopStateMachine(
             return createErrorState(
                 stateAndData.data.context,
                 `Error occurred in transition '${anyToString(transition)}' of state '${stateAndData.state}':\n` +
-                (reason instanceof Response) ? formatResponseError(reason) : anyToString(reason)
+                ((reason instanceof Response) ? formatResponseError(reason) : anyToString(reason))
             )
         }
     );
