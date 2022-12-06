@@ -35,7 +35,8 @@ export default function useTheLoopStateMachine(
             }
 
             function formatReason(reason: string): string {
-                return `Error occurred in transition '${anyToString(transition)}' of state '${stateAndData.state}':\n${reason}`
+                return `Error occurred in transition '${transition === AUTOMATIC ? "[AUTOMATIC]" : transition}' of` +
+                    `state '${stateAndData.state}':\n${reason}`
             }
 
             const formattedReason = reason instanceof Response
