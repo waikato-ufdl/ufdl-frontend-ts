@@ -13,6 +13,7 @@ import onPromiseCompletion from "../../util/typescript/async/onPromiseCompletion
 import {ERROR_RESPONSE_HANDLERS} from "../error/ERROR_RESPONSE_HANDLERS";
 import {forEachOwnProperty} from "../../util/typescript/object";
 import {JobLog} from "../types/JobLog";
+import tryExpression from "../../util/typescript/error/tryExpression";
 
 /**
  * Attaches to a job on the server to receive state-transitions via web-socket.
@@ -42,21 +43,13 @@ export function monitorJob(
     // Always print the log on job completion
     onPromiseCompletion(
         behaviourSubjectCompletionPromise(jobMonitor),
-        async result => {
+        async () => {
             // Check whether job-creation failed
-            let pk: number
-            try {
-                pk = await jobPK;
-            } catch (e) {
-                console.error(`Error creating job '${description}'`, e)
-                return
-            }
-
-            if (!result.success) {
-                console.error(`Error monitoring job #${pk} (${description})`, result)
-            }
-
-            console.group(`Job log for job #${pk} (${description})`)
+            const pk: number | undefined = await tryExpression(
+                () => jobPK,
+                () => undefined
+            )
+            if (pk === undefined) return
 
             let log: JobLog | typeof DEFAULT_HANDLED_ERROR_RESPONSE = DEFAULT_HANDLED_ERROR_RESPONSE
             try {
@@ -69,15 +62,15 @@ export function monitorJob(
             }
 
             if (log !== DEFAULT_HANDLED_ERROR_RESPONSE) {
+                console.group(`Job log for job #${pk} (${description})`)
                 forEachOwnProperty(
                     log,
                     (timestamp, obj) => {
                         console.log(timestamp, obj)
                     }
                 )
+                console.groupEnd()
             }
-
-            console.groupEnd()
         }
     );
 
