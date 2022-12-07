@@ -37,6 +37,9 @@ export function AudioRenderer<D extends DatasetDispatchItemDataType<Audio>>(
         className={"AudioRenderer"}
         title={error === undefined ? props.filename : `${props.filename}: ${error}`}
     >
-        {props.filename}{props.selected ? " ✓" : ""}
+        <audio controls>
+            <source src={audio.url}/>
+            {props.filename}
+        </audio>
     </div>
 }
