@@ -17,14 +17,14 @@ export function ImageOrVideoRenderer<D extends DatasetDispatchItemDataType<Image
         className?: string
     }
 ) {
-    const inTransitImageOrVideo = hasData(props.data)
+    const loadingImageOrVideo = hasData(props.data)
         ? props.data.data
         : undefined
 
     // Need to update when the data loads more
-    useObservable(inTransitImageOrVideo?.getObservable())
+    useObservable(loadingImageOrVideo?.observable)
 
-    const imageOrVideo = inTransitImageOrVideo?.getValue()
+    const imageOrVideo = loadingImageOrVideo?.value
 
     const error = hasError(props.data)
         ? anyToString(props.data.error)

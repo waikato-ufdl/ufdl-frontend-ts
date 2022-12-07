@@ -1,0 +1,7 @@
+.SpeechAnnotatorPage .AudioRenderer {
+    width: 100%;
+}
+
+.SpeechAnnotatorPage .AudioRenderer audio {
+    width: 100%;
+}

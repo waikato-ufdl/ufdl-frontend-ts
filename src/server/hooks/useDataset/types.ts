@@ -1,6 +1,6 @@
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import {DatasetInstance} from "ufdl-ts-client/types/core/dataset";
-import {InTransit} from "../../InTransit";
+import {Loading} from "../../Loading";
 import {BlobSubject} from "../../../util/rx/data/BlobSubject";
 import {Data} from "../../types/data";
 import {NO_ANNOTATION} from "../../NO_ANNOTATION";
@@ -28,7 +28,7 @@ export type DataGetterFunction<D extends Data> = (
     dataset: DatasetInstance,
     filename: string,
     rawData: BlobSubject
-) => InTransit<D> | Promise<InTransit<D>>
+) => Loading<D> | Promise<Loading<D>>
 
 /**
  * The type of function that sets the data for a file in a dataset.
@@ -131,7 +131,7 @@ export type DatasetDispatchItemConstructor<D extends Data, A, I extends DatasetD
 
 
 export type DatasetDispatchItemDataType<D extends Data>
-    = ReadonlyQueryResult<InTransit<D>>
+    = ReadonlyQueryResult<Loading<D>>
 
 export type DatasetDispatchItemAnnotationType<A>
     = ReadonlyQueryResult<OptionalAnnotations<A>>

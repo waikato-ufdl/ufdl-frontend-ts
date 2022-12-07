@@ -13,14 +13,14 @@ export function AudioRenderer<D extends DatasetDispatchItemDataType<Audio>>(
         data: D
     }
 ) {
-    const inTransitAudio = hasData(props.data)
+    const loadingAudio = hasData(props.data)
         ? props.data.data
         : undefined
 
     // Need to update when the data loads more
-    useObservable(inTransitAudio?.getObservable())
+    useObservable(loadingAudio?.observable)
 
-    const audio = inTransitAudio?.getValue()
+    const audio = loadingAudio?.value
 
     const error = hasError(props.data)
         ? anyToString(props.data.error)
@@ -29,7 +29,10 @@ export function AudioRenderer<D extends DatasetDispatchItemDataType<Audio>>(
             : undefined
 
     if (audio === undefined)
-        return <div>
+        return <div
+            className={"AudioRenderer"}
+            title={error === undefined ? props.filename : `${props.filename}: ${error}`}
+        >
             {error}
         </div>
 
@@ -37,9 +40,9 @@ export function AudioRenderer<D extends DatasetDispatchItemDataType<Audio>>(
         className={"AudioRenderer"}
         title={error === undefined ? props.filename : `${props.filename}: ${error}`}
     >
-        <video controls>
-            <source src={audio.url} type={"audio/wav"}/>
+        <audio controls>
+            {loadingAudio!.isFinished && <source src={audio.url} type={"audio/wav"}/>}
             {props.filename}
-        </video>
+        </audio>
     </div>
 }

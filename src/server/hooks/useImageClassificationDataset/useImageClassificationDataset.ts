@@ -8,7 +8,7 @@ import ImageClassificationDatasetDispatch from "./ImageClassificationDatasetDisp
 import {DatasetInstance} from "ufdl-ts-client/types/core/dataset";
 import {BlobSubject} from "../../../util/rx/data/BlobSubject";
 import {Image} from "../../types/data";
-import {InTransit} from "../../InTransit";
+import {Loading} from "../../Loading";
 import {MutableDatasetDispatchItem} from "../useDataset/DatasetDispatch";
 import {mapTask, ParallelSubTasks, subTasksAsTask, taskFromPromise} from "../../../util/typescript/task/Task";
 import {forEachOwnProperty} from "../../../util/typescript/object";
@@ -23,8 +23,8 @@ function getData(
     _dataset: DatasetInstance,
     _filename: string,
     rawData: BlobSubject
-): InTransit<Image> {
-    return InTransit.fromBehaviourSubject(rawData).map(
+): Loading<Image> {
+    return Loading.fromBehaviourSubject(rawData).map(
         value => {
             return new Image(
                 value,

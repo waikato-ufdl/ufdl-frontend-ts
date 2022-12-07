@@ -2,14 +2,14 @@ import {isShallowEqual} from "./equivalency";
 import {GenericFunctionWithThisArg} from "./typescript/types/GenericFunction";
 import {MultiKeyMap} from "./typescript/datastructures/MultiKeyMap";
 
-export function memo<P extends any[], R>(
+export function memo<P extends readonly unknown[], R>(
     f: (...args: P) => R
 ): (...args: P) => R {
     let lastArgs: P | undefined = undefined;
-    let lastResult: R | undefined = undefined;
+    let lastResult: R;
 
     return (...args: P) => {
-        if (lastResult === undefined || lastArgs === undefined || !isShallowEqual(args, lastArgs)) {
+        if (lastArgs === undefined || !isShallowEqual(args, lastArgs)) {
             lastArgs = args;
             lastResult = f(...args);
         }

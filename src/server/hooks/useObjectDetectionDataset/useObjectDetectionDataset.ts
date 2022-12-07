@@ -1,6 +1,6 @@
 import useDataset from "../useDataset/useDataset";
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
-import {InTransit} from "../../InTransit";
+import {Loading} from "../../Loading";
 import {DatasetPK} from "../../pk";
 import {ImageOrVideo} from "../../types/data";
 import * as ODDataset from "ufdl-ts-client/functional/object_detection/dataset";
@@ -22,14 +22,14 @@ async function getData(
     dataset: DatasetInstance,
     filename: string,
     rawData: BlobSubject
-): Promise<InTransit<ImageOrVideo>> {
+): Promise<Loading<ImageOrVideo>> {
     const fileType = await ODDataset.get_file_type(
         context,
         dataset.pk,
         filename
     )
 
-    return InTransit.fromBehaviourSubject(rawData).map(
+    return Loading.fromBehaviourSubject(rawData).map(
         value => {
             return new ImageOrVideo(
                 value,

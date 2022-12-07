@@ -1,6 +1,6 @@
 import useDataset from "../useDataset/useDataset";
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
-import {InTransit} from "../../InTransit";
+import {Loading} from "../../Loading";
 import {DatasetPK} from "../../pk";
 import {Audio} from "../../types/data";
 import * as SPDataset from "ufdl-ts-client/functional/speech/dataset";
@@ -22,9 +22,9 @@ async function getData(
     _dataset: DatasetInstance,
     _filename: string,
     rawData: BlobSubject
-): Promise<InTransit<Audio>> {
+): Promise<Loading<Audio>> {
 
-    return InTransit.fromBehaviourSubject(rawData).map(
+    return Loading.fromBehaviourSubject(rawData).map(
         value => new Audio(value)
     )
 }

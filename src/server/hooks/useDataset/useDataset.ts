@@ -39,7 +39,7 @@ import {NO_ANNOTATION} from "../../NO_ANNOTATION";
 import {OptionalAnnotations} from "../../types/annotations/OptionalAnnotations";
 import {NamedFileInstance} from "ufdl-ts-client/types/core/named_file";
 import {MutableDatasetDispatch, MutableDatasetDispatchItem} from "./DatasetDispatch";
-import {InTransit} from "../../InTransit";
+import {Loading} from "../../Loading";
 import ifDefined from "../../../util/typescript/ifDefined";
 import useDerivedStates from "../../../util/react/hooks/useDerivedStates";
 import zip from "../../../util/typescript/iterate/zip";
@@ -386,7 +386,7 @@ export default function useDataset<
                             (fileData, filename) => {
                                 queryClient.setQueryData(
                                     fileQueryKey(datasetPK, filename),
-                                    [filename, InTransit.fromPlain(fileData)] as const
+                                    [filename, Loading.fromLoaded(fileData)] as const
                                 )
                                 if (updatedAnnotations !== undefined) updatedAnnotations[filename] = NO_ANNOTATION
                             }
@@ -563,7 +563,7 @@ export default function useDataset<
         ([itemConstructor]) => (
             filename: string,
             handle: string,
-            fileDataResult: QueryObserverResult<readonly [string, InTransit<D>]>,
+            fileDataResult: QueryObserverResult<readonly [string, Loading<D>]>,
             fileAnnotationResult:  QueryObserverResult<readonly [string, OptionalAnnotations<A>]>,
             selected: boolean,
             setSelected: React.Dispatch<[string, (boolean | typeof TOGGLE)]>,
@@ -709,7 +709,7 @@ async function cancelOutgoingQueries(
 
 type DatasetState<D extends Data, A> = [
     DatasetInstance | undefined,
-    [string, InTransit<D>][],
+    [string, Loading<D>][],
     { [filename: string]: OptionalAnnotations<A> | undefined } | null | undefined
 ]
 
@@ -722,7 +722,7 @@ function getCurrentState<D extends Data, A>(
     const previousFiles = queryClient
         .getQueriesData(["dataset", datasetPK, "files"])
         .map(
-            ([_, value]) => value as [string, InTransit<D>]
+            ([_, value]) => value as [string, Loading<D>]
         )
 
     const previousAnnotations = queryClient

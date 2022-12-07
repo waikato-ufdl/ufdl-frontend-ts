@@ -31,7 +31,7 @@ export function SubmitCancelPictureOrVideoAnnotation(
         | [false, string, UncontrolledResetOverride<readonly Annotated<Shape>[]>]
         = useDerivedState(
         ([item]) => {
-            const imageOrVideo = item.data.data?.getValue()
+            const imageOrVideo = item.data.data?.value
 
             if (!isDefined(imageOrVideo)) return undefined
 
