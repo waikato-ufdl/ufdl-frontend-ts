@@ -1,12 +1,19 @@
-import {FunctionComponentReturnType} from "../../../../util/react/types/FunctionComponentReturnType";
-import useDerivedState from "../../../../util/react/hooks/useDerivedState";
-import UNREACHABLE from "../../../../util/typescript/UNREACHABLE";
+import {FunctionComponentReturnType} from "../../../util/react/types/FunctionComponentReturnType";
+import useDerivedState from "../../../util/react/hooks/useDerivedState";
+import UNREACHABLE from "../../../util/typescript/UNREACHABLE";
 import "./MinimumEditDistance.css"
-import {MultiKeyMap} from "../../../../util/typescript/datastructures/MultiKeyMap";
+import {MultiKeyMap} from "../../../util/typescript/datastructures/MultiKeyMap";
+import {MouseEvent, MouseEventHandler} from "react";
+import {augmentClassName} from "../../../util/react/augmentClass";
 
 export type MinimumEditDistanceProps = {
+    className?: string
     targetString: string,
-    startingString: string
+    startingString: string,
+    onClick?: (
+        edit: Edit,
+        event: MouseEvent<HTMLSpanElement>
+    ) => void
 }
 
 export default function MinimumEditDistance(
@@ -34,26 +41,36 @@ export default function MinimumEditDistance(
         [props.targetString, props.startingString] as const
     )
 
+    const onClick: ((edit: Edit) => MouseEventHandler<HTMLSpanElement>) | undefined = useDerivedState(
+        ([onClick]) => onClick === undefined
+            ? undefined
+            : edit => event => onClick(edit, event),
+        [props.onClick] as const
+    )
+
     const spans = edit_list.map(
         edit => {
             switch (edit.type) {
                 case "pass":
-                    return <span>{edit.char}</span>
+                    return <span onClick={onClick?.(edit)}>{edit.char}</span>
                 case "insert":
-                    return <span className={"med-insert"}>{edit.char}</span>
+                    return <span onClick={onClick?.(edit)} className={"med-insert"}>{edit.char}</span>
                 case "delete":
-                    return <span className={"med-delete"}>{edit.char}</span>
+                    return <span onClick={onClick?.(edit)} className={"med-delete"}>{edit.char}</span>
                 case "replace":
-                    return <><span className={"med-replace-delete"}>{edit.orig}</span><span className={"med-replace-insert"}>{edit.char}</span></>
+                    return <>
+                        <span onClick={onClick?.(edit)} className={"med-replace-delete"}>{edit.orig}</span>
+                        <span onClick={onClick?.(edit)} className={"med-replace-insert"}>{edit.char}</span>
+                    </>
                 default:
                     return UNREACHABLE("All switch cases handled")
             }
         }
     )
 
-    return <>
+    return <div className={augmentClassName(props.className, "MinimumEditDistance")}>
         {spans}
-    </>
+    </div>
 
 
 }

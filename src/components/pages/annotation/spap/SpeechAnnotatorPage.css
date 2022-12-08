@@ -5,3 +5,7 @@
 .SpeechAnnotatorPage .AudioRenderer audio {
     width: 100%;
 }
+
+.SpeechAnnotatorPage .Transcription {
+    position: relative;
+}

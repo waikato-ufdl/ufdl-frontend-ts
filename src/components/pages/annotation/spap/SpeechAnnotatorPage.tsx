@@ -18,15 +18,13 @@ import passOnUndefined from "../../../../util/typescript/functions/passOnUndefin
 import "./SpeechAnnotatorPage.css"
 import {AnnotationComponent} from "../../../../server/components/dataset/types";
 import {DatasetDispatchItemAnnotationType} from "../../../../server/hooks/useDataset/types";
-import {Absent} from "../../../../util/typescript/types/Possible";
 import SpeechDatasetDispatch from "../../../../server/hooks/useSpeechDataset/SpeechDatasetDispatch";
 import useSpeechDataset from "../../../../server/hooks/useSpeechDataset/useSpeechDataset";
 import {AudioRenderer} from "../../../../server/components/audio/AudioRenderer";
-import hasData from "../../../../util/react/query/hasData";
-import MinimumEditDistance from "./MinimumEditDistance";
 import {Controllable, useControllableState} from "../../../../util/react/hooks/useControllableState";
 import {DatasetSelect} from "../../../../server/components/DatasetSelect";
 import {FunctionComponentReturnType} from "../../../../util/react/types/FunctionComponentReturnType";
+import createTranscriptionComponent from "../../../../server/components/transcription/Transcription";
 
 export type SPAPProps = {
     lockedPK?: AnyPK,
@@ -112,32 +110,13 @@ export default function SpeechAnnotatorPage(
         )
     )
 
-    // TODO: Extract to static component, as no dependencies
     const TranscriptionComponent: AnnotationComponent<DatasetDispatchItemAnnotationType<Transcription>> = useDerivedState(
-        () => {
-            return (
-                {
-                    annotation,
-                    comparisonAnnotation
-                }
-            ) => {
-                if (hasData(annotation)) {
-                    if (comparisonAnnotation !== Absent && hasData(comparisonAnnotation)) {
-                        const targetString = comparisonAnnotation.data === NO_ANNOTATION?
-                            ""
-                            : comparisonAnnotation.data
-                        const startingString = annotation.data === NO_ANNOTATION?
-                            ""
-                            : annotation.data
-                        return <MinimumEditDistance targetString={targetString} startingString={startingString}/>
-                    }
-
-                    return <>{annotation.data}</>
-                }
-                return <>...</>
-            }
-        },
-        []
+        ([setTranscriptionForFile]) => createTranscriptionComponent(
+            setTranscriptionForFile === undefined
+                ? undefined
+                : (filename, transcription) => setTranscriptionForFile?.(filename, transcription)
+        ),
+        [dataset?.setAnnotationsForFile] as const
     )
 
     return <AnnotatorPage
