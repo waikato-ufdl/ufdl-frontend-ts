@@ -9,3 +9,18 @@
 .SpeechAnnotatorPage .Transcription {
     position: relative;
 }
+
+.SpeechAnnotatorPage span.med-replace-delete,
+.SpeechAnnotatorPage span.med-delete {
+    background-color: red;
+    text-decoration: line-through;
+}
+
+.SpeechAnnotatorPage span.med-replace-insert,
+.SpeechAnnotatorPage span.med-insert {
+    background-color: red;
+}
+
+.SpeechAnnotatorPage span.med-pass {
+    background-color: lawngreen;
+}

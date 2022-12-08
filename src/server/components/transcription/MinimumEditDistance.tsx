@@ -20,24 +20,12 @@ export default function MinimumEditDistance(
     props: MinimumEditDistanceProps
 ): FunctionComponentReturnType {
 
-    const edit_list = useDerivedState(
-        ([targetString, startingString]) => {
-            const expanded = minimum_edit_list(startingString, targetString)
-
-            return expanded.reduce(
-                (compact, edit) => {
-                    if (compact.length === 0) return [{...edit}]
-                    const last = compact.slice(-1)[0]
-                    if (last.type === edit.type) {
-                        last.char += edit.char
-                        if (last.type === "replace") last.orig += (edit as Replace).orig
-                        return compact
-                    }
-                    return [...compact, {...edit}]
-                },
-                [] as Edit[]
-            )
-        },
+    const edits = useDerivedState(
+        ([targetString, startingString]) =>
+            calculateMinimumEdits(
+                startingString,
+                targetString
+            ),
         [props.targetString, props.startingString] as const
     )
 
@@ -48,19 +36,19 @@ export default function MinimumEditDistance(
         [props.onClick] as const
     )
 
-    const spans = edit_list.map(
+    const spans = edits.map(
         edit => {
             switch (edit.type) {
                 case "pass":
-                    return <span onClick={onClick?.(edit)}>{edit.char}</span>
+                    return <span onClick={onClick?.(edit)} className={"med-pass"}>{edit.string}</span>
                 case "insert":
-                    return <span onClick={onClick?.(edit)} className={"med-insert"}>{edit.char}</span>
+                    return <span onClick={onClick?.(edit)} className={"med-insert"}>{edit.string}</span>
                 case "delete":
-                    return <span onClick={onClick?.(edit)} className={"med-delete"}>{edit.char}</span>
+                    return <span onClick={onClick?.(edit)} className={"med-delete"}>{edit.string}</span>
                 case "replace":
                     return <>
-                        <span onClick={onClick?.(edit)} className={"med-replace-delete"}>{edit.orig}</span>
-                        <span onClick={onClick?.(edit)} className={"med-replace-insert"}>{edit.char}</span>
+                        <span onClick={onClick?.(edit)} className={"med-replace-delete"}>{edit.original}</span>
+                        <span onClick={onClick?.(edit)} className={"med-replace-insert"}>{edit.string}</span>
                     </>
                 default:
                     return UNREACHABLE("All switch cases handled")
@@ -76,82 +64,185 @@ export default function MinimumEditDistance(
 }
 
 type Insert = {
-    type: "insert"
-    char: string
+    readonly type: "insert"
+    readonly string: string
 }
 
 type Delete = {
-    type: "delete"
-    char: string
+    readonly type: "delete"
+    readonly string: string
 }
 
 type Replace = {
-    type: "replace"
-    orig: string
-    char: string
+    readonly type: "replace"
+    readonly original: string
+    readonly string: string
 }
 
 type Pass = {
-    type: "pass"
-    char: string
+    readonly type: "pass"
+    readonly string: string
 }
 
 type Edit = Insert | Delete | Replace | Pass
 
-function minimum_edit_list(
+function calculateMinimumEdits(
     startingString: string,
     targetString: string,
+    insertWeight: ((string: string) => number) | number = string => string.length,
+    deleteWeight: ((string: string) => number) | number = string => string.length,
+    replaceWeight: ((original: string, string: string) => number) | number = (original, string) => Math.max(original.length, string.length),
     memo: MultiKeyMap<readonly [number, number], readonly Edit[]> = new MultiKeyMap()
 ): readonly Edit[] {
-    const string_pair = [startingString.length, targetString.length] as const
-    const memoed = memo.get(string_pair)
+    // Check if we have already memo-ed this pair of strings
+    const memoKey = [startingString.length, targetString.length] as const
+    const memoed = memo.get(memoKey)
     if (memoed !== undefined) return memoed
 
-    let result: readonly Edit[]
-    if (startingString.length === 0)
-        result = targetString.split("").map(char => { return { type: "insert", char }})
-    else if (targetString.length === 0)
-        result = startingString.split("").map(char => { return { type: "delete", char }})
-    else {
-        const starting_string_less_one = startingString.slice(0, -1)
-        const starting_string_last = startingString.slice(-1)
-        const target_string_less_one = targetString.slice(0, -1)
-        const target_string_last = targetString.slice(-1)
-
-        const insert_list = minimum_edit_list(startingString, target_string_less_one, memo).concat({type: "insert", char: target_string_last})
-        const delete_list = minimum_edit_list(starting_string_less_one, targetString, memo).concat({type: "delete", char: starting_string_last})
-        const replace_or_pass_list = minimum_edit_list(starting_string_less_one, target_string_less_one, memo).concat(
-            starting_string_last === target_string_last?
-                {type: "pass", char: starting_string_last}
-                :{type: "replace", char: target_string_last, orig: starting_string_last}
+    // Create a function which handles forwarding arguments to recursive calls
+    function recurse(newStartingString: string, newTargetString: string): readonly Edit[] {
+        return calculateMinimumEdits(
+            newStartingString,
+            newTargetString,
+            insertWeight, deleteWeight, replaceWeight,
+            memo
         )
-
-        result = [insert_list, delete_list, replace_or_pass_list].map(
-            list => [list, minimum_edit_distance(list)] as const
-        ).reduce(
-            (min_list, next_list) => next_list[1] < min_list[1] ? next_list : min_list
-        )[0]
     }
 
-    memo.set(string_pair, result)
+    // Create a function which uses the reducer to produce a reduced version of a given edit-list
+    function reduceToMinimumWeight(edits: Edit[]): Edit[] {
+        while (edits.length >= 2) {
+            const lastTwoEdits = edits.slice(-2) as [Edit, Edit]
+            const reducedLastTwoEdits = [reduce(...lastTwoEdits)]
+            const minWeightTail = listWithMinimumWeight(
+                [lastTwoEdits, reducedLastTwoEdits],
+                insertWeight, deleteWeight, replaceWeight
+            )[0]
+            if (minWeightTail === lastTwoEdits) return edits
+            edits = [...edits.slice(0, -2), ...reducedLastTwoEdits]
+        }
+        return edits
+    }
+
+    const candidateEditLists: (readonly Edit[])[] = []
+
+    const starting_string_less_one = startingString.slice(0, -1)
+    const starting_string_last = startingString.slice(-1)
+    const target_string_less_one = targetString.slice(0, -1)
+    const target_string_last = targetString.slice(-1)
+
+    if (target_string_last !== "") {
+        candidateEditLists.push(
+            recurse(startingString, target_string_less_one).concat({type: "insert", string: target_string_last})
+        )
+    }
+
+    if (starting_string_last !== "") {
+        candidateEditLists.push(
+            recurse(starting_string_less_one, targetString).concat({type: "delete", string: starting_string_last})
+        )
+    }
+
+    if (target_string_last !== "" && starting_string_last !== "") {
+        candidateEditLists.push(
+            recurse(starting_string_less_one, target_string_less_one).concat(
+                starting_string_last === target_string_last
+                    ? {type: "pass", string: starting_string_last}
+                    : {type: "replace", string: target_string_last, original: starting_string_last}
+            )
+        )
+    }
+
+    if (candidateEditLists.length === 0) return []
+
+    // Push the reduced variations of the candidate
+    const result = listWithMinimumWeight(
+        candidateEditLists.map(edits => reduceToMinimumWeight([...edits])),
+        insertWeight, deleteWeight, replaceWeight
+    )[0]
+
+    memo.set(memoKey, result)
 
     return result
 }
 
-function minimum_edit_distance(
-    list: Edit[]
+function listWithMinimumWeight(
+    lists: readonly (readonly Edit[])[],
+    insertWeight: ((string: string) => number) | number = string => string.length,
+    deleteWeight: ((string: string) => number) | number = string => string.length,
+    replaceWeight: ((original: string, string: string) => number) | number = (original, string) => Math.max(original.length, string.length)
+): [readonly Edit[], number] {
+    return lists.map(
+        list => [
+            list,
+            minimumEditDistance(list, insertWeight, deleteWeight, replaceWeight)
+        ] as [readonly Edit[], number]
+    ).reduce(
+        (min_list, next_list) => {
+            if (next_list[1] < min_list[1]) return next_list
+            if (next_list[1] === min_list[1] && next_list[0].length < min_list[0].length) return next_list
+            return min_list
+        }
+    )
+}
+
+function minimumEditDistance(
+    list: readonly Edit[],
+    insertWeight: ((string: string) => number) | number = string => string.length,
+    deleteWeight: ((string: string) => number) | number = string => string.length,
+    replaceWeight: ((original: string, string: string) => number) | number = (original, string) => Math.max(original.length, string.length)
 ): number {
     let sum = 0
     for (const edit of list) {
         switch (edit.type) {
             case "insert":
+                sum += typeof insertWeight === "number" ? insertWeight : insertWeight(edit.string)
+                break
             case "delete":
+                sum += typeof deleteWeight === "number" ? deleteWeight : deleteWeight(edit.string)
+                break
             case "replace":
-                sum += 1
+                sum += typeof replaceWeight === "number" ? replaceWeight : replaceWeight(edit.original, edit.string)
                 break;
             case "pass":
                 break
         }
     }
     return sum
+}
+
+const EDIT_REDUCTIONS = {
+    "pass": {
+        "pass": (last, next) => { return { type: "pass", string: last.string + next.string} },
+        "insert": (last, next) => { return { type: "replace", string: last.string + next.string, original: last.string } },
+        "delete": (last, next) => { return { type: "replace", string: last.string, original: last.string + next.string } },
+        "replace": (last, next) => { return { type: "replace", string: last.string + next.string, original: last.string + next.original } }
+    },
+    "insert": {
+        "pass": (last, next) => { return { type: "replace", string: last.string + next.string, original: next.string } },
+        "insert": (last, next) => { return { type: "insert", string: last.string + next.string} },
+        "delete": (last, next) => { return { type: "replace", string: last.string, original: next.string} },
+        "replace": (last, next) => { return { type: "replace", string: last.string + next.string, original: next.original } }
+    },
+    "delete": {
+        "pass": (last, next) => { return { type: "replace", string: next.string, original: last.string + next.string } },
+        "insert": (last, next) => { return { type: "replace", string: next.string, original: last.string } },
+        "delete": (last, next) => { return { type: "delete", string: last.string + next.string} },
+        "replace": (last, next) => { return { type: "replace", string: last.string, original: last.string + next.original } }
+    },
+    "replace": {
+        "pass": (last, next) => { return { type: "replace", string: last.string + next.string, original: last.original + next.string } },
+        "insert": (last, next) => { return { type: "replace", string: last.string + next.string, original: last.original } },
+        "delete": (last, next) => { return { type: "replace", string: last.string, original: last.original + next.string } },
+        "replace": (last, next) => { return { type: "replace", string: last.string + next.string, original: last.original + next.original } }
+    }
+} as const satisfies {
+    [LastType in Edit["type"]]: {
+        [NextType in Edit["type"]]:
+        ((last: Edit & { type: LastType }, next: Edit & { type: NextType }) => Edit)
+    }
+}
+
+function reduce(last: Edit, next: Edit): Edit {
+    return EDIT_REDUCTIONS[last.type][next.type](last as any, next as any)
 }

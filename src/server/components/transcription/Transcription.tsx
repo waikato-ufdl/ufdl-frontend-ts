@@ -26,25 +26,24 @@ export default function createTranscriptionComponent(
 
         if (!hasData(annotation)) return <span className={"Transcription"}>...</span>
 
-        const annotationData = annotation.data
-        const annotationString = annotationData === NO_ANNOTATION
-            ? ""
-            : annotationData
-
         if (editing === undefined || onTranscriptionChanged === undefined) {
+
+            const transcriptionString = annotation.data === NO_ANNOTATION
+                ? ""
+                : annotation.data
 
             const onClick = disabled
                 ? undefined
-                : () => setEditing(annotationString)
+                : () => setEditing(transcriptionString)
 
             if (comparisonAnnotation !== Absent && hasData(comparisonAnnotation)) {
-                const targetString = comparisonAnnotation.data === NO_ANNOTATION ?
+                const comparisonTranscriptionString = comparisonAnnotation.data === NO_ANNOTATION ?
                     ""
                     : comparisonAnnotation.data
                 return <MinimumEditDistance
                     className={"Transcription"}
-                    targetString={targetString}
-                    startingString={annotationString}
+                    targetString={comparisonTranscriptionString}
+                    startingString={transcriptionString}
                     onClick={onClick}
                 />
             }
@@ -53,7 +52,7 @@ export default function createTranscriptionComponent(
                 className={"Transcription"}
                 onClick={onClick}
             >
-                {annotationString}
+                {transcriptionString}
             </span>
         }
 
