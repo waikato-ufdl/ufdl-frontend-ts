@@ -295,9 +295,15 @@ export default function TheLoopPage(
                             : anyToString(stateMachine.data.reason)
                     }
                 </div>
-                <button onClick={stateMachine.transitions.reset}>Back</button>
+                <button
+                    disabled={stateMachine.data.lastGoodState === undefined}
+                    onClick={stateMachine.transitions.back}>
+                    Back
+                </button>
+                <button
+                    onClick={stateMachine.transitions.reset}>
+                    Reset
+                </button>
             </Page>
-
-
     }
 }

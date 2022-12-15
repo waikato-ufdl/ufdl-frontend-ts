@@ -1,4 +1,3 @@
-import {LoopStateAndData} from "./types";
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import {AnyPK, DatasetPK, fromJSON, ProjectPK, TeamPK} from "../../../../../server/pk";
 import {LoopStates} from "./LoopStates";
@@ -6,6 +5,7 @@ import {DomainName, isDomainName} from "../../../../../server/domains";
 import {monitorJob} from "../../../../../server/jobs/monitorJob";
 import jobProgressSubject from "../../../../../server/jobs/jobProgressSubject";
 import {isAllowedState, isAllowedStateAndData} from "../../../../../util/react/hooks/useStateMachine/isAllowedState";
+import {LoopStateAndData} from "./types/LoopStateAndData";
 
 export class DecodeError extends Error {
     constructor(
@@ -63,7 +63,13 @@ export function saveLoopState(
             {
                 ...state.data,
                 progress: undefined,
-                context: undefined
+                context: undefined,
+                lastGoodState: "lastGoodState" in state.data
+                    ? {
+                        state: state.data.lastGoodState.state,
+                        data: { ...state.data.lastGoodState.data, context: undefined }
+                    }
+                    : undefined
             }
         ),
         false
@@ -101,6 +107,9 @@ export function restoreLoopState(
     }
 
     deserialisedStateAndData.data.context = context
+    if ("lastGoodState" in deserialisedStateAndData.data) {
+        deserialisedStateAndData.data.lastGoodState.data.context = context
+    }
 
     return deserialisedStateAndData
 }

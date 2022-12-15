@@ -45,7 +45,10 @@ export default function useTheLoopStateMachine(
 
             return createErrorState(
                 stateAndData.data.context,
-                formattedReason
+                formattedReason,
+                "lastGoodState" in stateAndData.data
+                    ? stateAndData.data.lastGoodState
+                    : undefined
             )
         }
     );

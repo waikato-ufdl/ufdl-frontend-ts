@@ -1,6 +1,6 @@
 import {LoopStates} from "./LoopStates";
 import {trySaveLoopState} from "./save";
-import {LoopStateAndData} from "./types";
+import {LoopStateAndData} from "./types/LoopStateAndData";
 import {StateDataConstructor} from "../../../../../util/react/hooks/useStateMachine/types/StateDataConstructor";
 import {stateDataConstructor} from "../../../../../util/react/hooks/useStateMachine/stateDataConstructor";
 

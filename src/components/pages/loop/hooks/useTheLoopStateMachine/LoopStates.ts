@@ -3,6 +3,8 @@ import {DatasetPK, ProjectPK, TeamPK} from "../../../../../server/pk";
 import {BehaviorSubject} from "rxjs";
 import {DomainName} from "../../../../../server/domains";
 import {ParameterValue} from "ufdl-ts-client/json/generated/CreateJobSpec";
+import {GoodState} from "./error/goodStates/GoodState";
+import {LoopStateAndData} from "./types/LoopStateAndData";
 
 export type LoopStates = {
     "Initial": {
@@ -22,20 +24,6 @@ export type LoopStates = {
         evalTemplatePK: number | undefined
         evalParameters: { [name: string]: ParameterValue } | undefined
     }
-    "Selecting Prelabel Images": {
-        context: UFDLServerContext
-        primaryDataset: DatasetPK
-        evaluationDataset: DatasetPK
-        modelOutputPK: number
-        targetDataset: DatasetPK
-        domain: DomainName
-        framework: [string, string]
-        modelType: string
-        trainTemplatePK: number
-        trainParameters: { [name: string]: ParameterValue }
-        evalTemplatePK: number
-        evalParameters: { [name: string]: ParameterValue }
-    }
     "Creating Train Job": {
         context: UFDLServerContext
         primaryDataset: DatasetPK
@@ -48,6 +36,7 @@ export type LoopStates = {
         trainParameters: { [name: string]: ParameterValue }
         evalTemplatePK: number
         evalParameters: { [name: string]: ParameterValue }
+        lastGoodState: LoopStateAndData<"Selecting Initial Images" | "User Fixing Categories">
     }
     "Training": {
         context: UFDLServerContext
@@ -61,6 +50,7 @@ export type LoopStates = {
         trainParameters: { [name: string]: ParameterValue }
         evalTemplatePK: number
         evalParameters: { [name: string]: ParameterValue }
+        lastGoodState: LoopStateAndData<"Selecting Initial Images" | "User Fixing Categories">
     }
     "Creating Evaluate Job": {
         context: UFDLServerContext
@@ -76,6 +66,7 @@ export type LoopStates = {
         trainParameters: { [name: string]: ParameterValue }
         evalTemplatePK: number
         evalParameters: { [name: string]: ParameterValue }
+        lastGoodState: LoopStateAndData<"Selecting Initial Images" | "User Fixing Categories" | "Checking">
     }
     "Evaluating": {
         context: UFDLServerContext
@@ -91,6 +82,7 @@ export type LoopStates = {
         trainParameters: { [name: string]: ParameterValue }
         evalTemplatePK: number
         evalParameters: { [name: string]: ParameterValue }
+        lastGoodState: LoopStateAndData<"Selecting Initial Images" | "User Fixing Categories" | "Checking">
     }
     "Checking": {
         context: UFDLServerContext
@@ -118,6 +110,21 @@ export type LoopStates = {
         trainParameters: { [name: string]: ParameterValue }
         evalTemplatePK: number
         evalParameters: { [name: string]: ParameterValue }
+        lastGoodState: LoopStateAndData<"Checking">
+    }
+    "Selecting Prelabel Images": {
+        context: UFDLServerContext
+        primaryDataset: DatasetPK
+        evaluationDataset: DatasetPK
+        modelOutputPK: number
+        targetDataset: DatasetPK
+        domain: DomainName
+        framework: [string, string]
+        modelType: string
+        trainTemplatePK: number
+        trainParameters: { [name: string]: ParameterValue }
+        evalTemplatePK: number
+        evalParameters: { [name: string]: ParameterValue }
     }
     "Creating Prelabel Job": {
         context: UFDLServerContext
@@ -134,6 +141,7 @@ export type LoopStates = {
         trainParameters: { [name: string]: ParameterValue }
         evalTemplatePK: number
         evalParameters: { [name: string]: ParameterValue }
+        lastGoodState: LoopStateAndData<"Selecting Prelabel Images">
     }
     "Prelabel": {
         context: UFDLServerContext
@@ -150,6 +158,7 @@ export type LoopStates = {
         trainParameters: { [name: string]: ParameterValue }
         evalTemplatePK: number
         evalParameters: { [name: string]: ParameterValue }
+        lastGoodState: LoopStateAndData<"Selecting Prelabel Images">
     }
     "User Fixing Categories": {
         context: UFDLServerContext
@@ -177,6 +186,7 @@ export type LoopStates = {
         trainParameters: { [name: string]: ParameterValue }
         evalTemplatePK: number
         evalParameters: { [name: string]: ParameterValue }
+        lastGoodState: LoopStateAndData<"User Fixing Categories">
     }
     "Finished": {
         context: UFDLServerContext
@@ -184,6 +194,7 @@ export type LoopStates = {
     }
     "Error": {
         context: UFDLServerContext
-        reason: any
+        reason: any,
+        lastGoodState?: LoopStateAndData<GoodState>
     }
 }

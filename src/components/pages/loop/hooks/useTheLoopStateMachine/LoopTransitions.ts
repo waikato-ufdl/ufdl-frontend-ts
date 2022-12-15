@@ -7,7 +7,7 @@ import copyDataset from "../../jobs/copyDataset";
 import merge from "../../jobs/merge";
 import getModelOutputPK from "../../jobs/getModelOutputPK";
 import downloadModel from "../../jobs/downloadModel";
-import {LoopStateAndData} from "./types";
+import {LoopStateAndData} from "./types/LoopStateAndData";
 import {silentlyCancelJobOnTransitionFailure} from "./silentlyCancelJob";
 import {CANCEL_JOB_TRANSITION} from "./CANCEL_JOB_TRANSITION";
 import behaviourSubjectCompletionPromise from "../../../../../util/rx/behaviourSubjectCompletionPromise";
@@ -115,7 +115,16 @@ export const LOOP_TRANSITIONS = {
                     trainTemplatePK: trainTemplatePK,
                     trainParameters: trainParameters,
                     evalTemplatePK: evalTemplatePK,
-                    evalParameters: evalParameters
+                    evalParameters: evalParameters,
+                    lastGoodState: createNewLoopState(this.state)(
+                        {
+                            ...this.data,
+                            trainTemplatePK,
+                            trainParameters,
+                            evalTemplatePK,
+                            evalParameters
+                        }
+                    )
                 }
             )
         },
@@ -193,7 +202,8 @@ export const LOOP_TRANSITIONS = {
                     trainTemplatePK,
                     trainParameters,
                     evalTemplatePK,
-                    evalParameters
+                    evalParameters,
+                    lastGoodState: this
                 }
             )
         },
@@ -343,7 +353,8 @@ export const LOOP_TRANSITIONS = {
                                 this.data.primaryDataset,
                                 true,
                                 this.data.domain
-                            )
+                            ),
+                            lastGoodState: this
                         }
                     )
             }
@@ -367,7 +378,8 @@ export const LOOP_TRANSITIONS = {
                 {
                     ...this.data,
                     jobPK,
-                    progress
+                    progress,
+                    lastGoodState: this
                 }
             )
         },
@@ -438,7 +450,8 @@ export const LOOP_TRANSITIONS = {
                         this.data.primaryDataset,
                         this.data.additionDataset,
                         this.data.domain
-                    )
+                    ),
+                    lastGoodState: this
                 }
             )
         },
@@ -521,6 +534,11 @@ export const LOOP_TRANSITIONS = {
                     reason
                 }
             )
+        },
+        back(
+            this: LoopStateAndData<"Error">
+        ) {
+            return this.data.lastGoodState
         },
         reset(
             this: LoopStateAndData<"Error">
