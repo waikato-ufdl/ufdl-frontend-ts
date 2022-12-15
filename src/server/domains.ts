@@ -2,7 +2,8 @@ import * as ICDataset from "ufdl-ts-client/functional/image_classification/datas
 import * as ODDataset from "ufdl-ts-client/functional/object_detection/dataset";
 import * as ISDataset from "ufdl-ts-client/functional/image_segmentation/dataset";
 import * as SPDataset from "ufdl-ts-client/functional/speech/dataset";
-import {Data, Image, ImageOrVideo, Audio} from "./types/data";
+import * as SCDataset from "ufdl-ts-client/functional/spectrum_classification/dataset";
+import {Data, Image, ImageOrVideo, Audio, Spectrum} from "./types/data";
 import {Classification} from "./types/annotations/Classification";
 import {DetectedObjects} from "./types/annotations/DetectedObjects";
 import {Transcription} from "./types/annotations/Transcription";
@@ -19,14 +20,16 @@ type DomainItemTypes = {
     'Image Classification': Domain<Image, Classification>
     'Object Detection': Domain<ImageOrVideo, DetectedObjects>
     'Image Segmentation': Domain<Image, never>
-    'Speech': Domain<Audio, Transcription>
+    'Speech': Domain<Audio, Transcription>,
+    'Spectrum Classification': Domain<Spectrum, Classification>
 }
 
 export const DOMAIN_DATASET_METHODS = {
     'Image Classification': ICDataset,
     'Object Detection': ODDataset,
     'Image Segmentation': ISDataset,
-    'Speech': SPDataset
+    'Speech': SPDataset,
+    'Spectrum Classification': SCDataset
 } as const;
 
 /** The type of the names of the defined domains. */

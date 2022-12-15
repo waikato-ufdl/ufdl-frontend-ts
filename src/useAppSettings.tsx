@@ -46,7 +46,8 @@ const DEFAULT_APP_SETTINGS: AppSettings = {
         'Image Classification': {},
         'Object Detection': {},
         'Image Segmentation': {},
-        'Speech': {}
+        'Speech': {},
+        'Spectrum Classification': {}
     }
 } as const
 

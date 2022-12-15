@@ -14,6 +14,7 @@ import {DEFAULT} from "../../util/typescript/default";
 import ObjectDetectionAnnotatorPage from "./annotation/odap/ObjectDetectionAnnotatorPage";
 import SpeechAnnotatorPage from "./annotation/spap/SpeechAnnotatorPage";
 import SettingsPage from "./SettingsPage";
+import SpectrumClassificationAnnotatorPage from "./annotation/scap/SpectrumClassificationAnnotatorPage";
 
 export function MainMenuPage() {
 
@@ -27,7 +28,7 @@ export function MainMenuPage() {
         />
     }
 
-    return <MenuPage titleGenerator={["Dummy Page", "New User", "New Team", "New Project", "New Dataset", "ICAP", "ODAP", "SPAP", "The Loop", "Settings"]}>
+    return <MenuPage titleGenerator={["Dummy Page", "New User", "New Team", "New Project", "New Dataset", "ICAP", "ODAP", "SPAP", "SCAP", "The Loop", "Settings"]}>
         <DummyPage pings={42} />
         <NewUserPage />
         <NewTeamPage />
@@ -36,6 +37,7 @@ export function MainMenuPage() {
         <ImageClassificationAnnotatorPage nextLabel={DEFAULT} evalPK={UNCONTROLLED_KEEP} selectedSortOrder={UNCONTROLLED_KEEP} />
         <ObjectDetectionAnnotatorPage nextLabel={DEFAULT} selectedSortOrder={UNCONTROLLED_KEEP} />
         <SpeechAnnotatorPage nextLabel={DEFAULT}  evalPK={UNCONTROLLED_KEEP} selectedSortOrder={UNCONTROLLED_KEEP} />
+        <SpectrumClassificationAnnotatorPage evalPK={UNCONTROLLED_KEEP} nextLabel={DEFAULT} selectedSortOrder={UNCONTROLLED_KEEP} />
         <TheLoopPage />
         <SettingsPage />
     </MenuPage>

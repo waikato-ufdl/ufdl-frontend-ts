@@ -13,6 +13,7 @@ import {DEFAULT, WithDefault} from "../../../util/typescript/default";
 import {Controllable} from "../../../util/react/hooks/useControllableState";
 import {AnnotatorTopMenuExtraControlsComponent} from "../../../server/components/AnnotatorTopMenu";
 import getContractTemplates from "./jobs/getContractTemplates";
+import SpectrumClassificationAnnotatorPage from "../annotation/scap/SpectrumClassificationAnnotatorPage";
 
 export type LoopAnnotatorPageProps = {
     domain: DomainName
@@ -117,6 +118,26 @@ export default function LoopAnnotatorPage(
                 onBack={props.onBack}
                 queryDependencies={props.queryDependencies}
                 evalQueryDependencies={props.evalQueryDependencies}
+                selectedSortOrder={props.selectedSortOrder}
+                sortOrderLocked={props.sortOrderLocked}
+                heading={props.heading}
+                ExtraControls={props.ExtraControls}
+            />
+        case "Spectrum Classification":
+            return <SpectrumClassificationAnnotatorPage
+                lockedPK={props.targetDataset}
+                evalPK={props.evalDatasetPK}
+                initialColours={props.classColours}
+                nextLabel={props.nextLabel}
+                onNext={(_, __, labelColours, position) => {
+                    props.setClassColours(labelColours);
+                    updateMatchingTemplates()
+                    props.onNext(...position);
+                }}
+                onBack={props.onBack}
+                queryDependencies={props.queryDependencies}
+                evalQueryDependencies={props.evalQueryDependencies}
+                mode={props.mode}
                 selectedSortOrder={props.selectedSortOrder}
                 sortOrderLocked={props.sortOrderLocked}
                 heading={props.heading}
