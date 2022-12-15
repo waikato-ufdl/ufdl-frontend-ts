@@ -1,6 +1,7 @@
 import {StateMachineStates} from "./StateMachineStates";
 import {StateMachineTransitions} from "./StateMachineTransitions";
 import {StateTransitionsDispatch} from "./StateTransitionsDispatch";
+import {StateAndData} from "./StateAndData";
 
 /**
  * The type returned by {@link useStateMachine}, allowing interaction via reading
@@ -18,9 +19,7 @@ export type StateMachineDispatch<
     StatesTransitions extends StateMachineTransitions<States>,
     SelectedStates extends keyof States = keyof States
 > = {
-    readonly [StateName in SelectedStates]: {
-        readonly state: StateName,
-        readonly data: States[StateName],
+    readonly [StateName in SelectedStates]: StateAndData<States, StateName> & {
         readonly transitions: StateTransitionsDispatch<States, StatesTransitions>[StateName]
     }
 }[SelectedStates]
