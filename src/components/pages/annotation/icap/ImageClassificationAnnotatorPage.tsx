@@ -78,6 +78,11 @@ export type ICAPProps = {
     sortOrderLocked?: boolean
     heading?: string
     ExtraControls?: AnnotatorTopMenuExtraControlsComponent
+    onClassChanged: (
+        filename: string,
+        oldLabel: OptionalAnnotations<Classification> | undefined,
+        newLabel: OptionalAnnotations<Classification>
+    ) => void
 }
 
 export default function ImageClassificationAnnotatorPage(
@@ -110,14 +115,15 @@ export default function ImageClassificationAnnotatorPage(
     const [showLabelColourPickerPage, setShowLabelColourPickerPage] = useStateSafe<boolean>(() => false);
 
     const datasetOverviewOnReclassify = useDerivedState(
-        ([setAnnotationsForFile]) => (
+        ([setAnnotationsForFile, onClassChanged]) => (
             filename: string,
-            _: OptionalAnnotations<Classification> | undefined,
+            oldLabel: OptionalAnnotations<Classification> | undefined,
             newLabel: OptionalAnnotations<Classification>
         ) => {
-            if (isDefined(setAnnotationsForFile)) setAnnotationsForFile(filename, newLabel);
+            if (isDefined(setAnnotationsForFile)) setAnnotationsForFile(filename, newLabel)
+            onClassChanged(filename, oldLabel, newLabel)
         },
-        [dataset?.setAnnotationsForFile]
+        [dataset?.setAnnotationsForFile, props.onClassChanged] as const
     )
 
     const classColourPickerPageOnColourChanged = useDerivedState(

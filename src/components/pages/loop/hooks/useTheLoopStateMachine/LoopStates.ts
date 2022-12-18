@@ -187,6 +187,13 @@ export type LoopStates = ValidStates<{
         evalTemplatePK: number
         evalParameters: { [name: string]: ParameterValue }
         iteration: number
+        timingInfo: {
+            [timestamp: number]: {
+                filename: string
+                oldLabel: string | null | undefined
+                newLabel: string | null
+            }
+        }
     }
     "Merging Additional Images": {
         context: UFDLServerContext
@@ -202,6 +209,13 @@ export type LoopStates = ValidStates<{
         evalTemplatePK: number
         evalParameters: { [name: string]: ParameterValue }
         iteration: number
+        timingInfo: {
+            [timestamp: number]: {
+                filename: string
+                oldLabel: string | null | undefined
+                newLabel: string | null
+            }
+        }
     }
     "Finished": {
         context: UFDLServerContext

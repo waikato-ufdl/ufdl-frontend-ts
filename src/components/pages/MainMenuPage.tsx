@@ -14,6 +14,7 @@ import {DEFAULT} from "../../util/typescript/default";
 import ObjectDetectionAnnotatorPage from "./annotation/odap/ObjectDetectionAnnotatorPage";
 import SpeechAnnotatorPage from "./annotation/spap/SpeechAnnotatorPage";
 import SettingsPage from "./SettingsPage";
+import pass from "../../util/typescript/functions/pass";
 
 export function MainMenuPage() {
 
@@ -33,7 +34,7 @@ export function MainMenuPage() {
         <NewTeamPage />
         <NewProjectPage teamPK={UNCONTROLLED_KEEP} />
         <NewDatasetPage domain={UNCONTROLLED_KEEP} licencePK={UNCONTROLLED_KEEP} isPublic={UNCONTROLLED_KEEP}/>
-        <ImageClassificationAnnotatorPage nextLabel={DEFAULT} evalPK={UNCONTROLLED_KEEP} selectedSortOrder={UNCONTROLLED_KEEP} />
+        <ImageClassificationAnnotatorPage nextLabel={DEFAULT} evalPK={UNCONTROLLED_KEEP} selectedSortOrder={UNCONTROLLED_KEEP} onClassChanged={pass}/>
         <ObjectDetectionAnnotatorPage nextLabel={DEFAULT} selectedSortOrder={UNCONTROLLED_KEEP} />
         <SpeechAnnotatorPage nextLabel={DEFAULT}  evalPK={UNCONTROLLED_KEEP} selectedSortOrder={UNCONTROLLED_KEEP} />
         <TheLoopPage />

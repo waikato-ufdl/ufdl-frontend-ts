@@ -12,6 +12,7 @@ import {DEFAULT, WithDefault} from "../../../util/typescript/default";
 import {Controllable} from "../../../util/react/hooks/useControllableState";
 import {AnnotatorTopMenuExtraControlsComponent} from "../../../server/components/AnnotatorTopMenu";
 import getContractTemplates from "./jobs/getContractTemplates";
+import {Classification, OptionalAnnotations} from "../../../server/types/annotations";
 
 export type LoopAnnotatorPageProps = {
     domain: DomainName
@@ -44,6 +45,11 @@ export type LoopAnnotatorPageProps = {
     sortOrderLocked?: boolean
     heading?: string
     ExtraControls?: AnnotatorTopMenuExtraControlsComponent
+    onClassChanged: (
+        filename: string,
+        oldLabel: OptionalAnnotations<Classification> | undefined,
+        newLabel: OptionalAnnotations<Classification>
+    ) => void
 }
 
 export default function LoopAnnotatorPage(
@@ -86,6 +92,7 @@ export default function LoopAnnotatorPage(
                 sortOrderLocked={props.sortOrderLocked}
                 heading={props.heading}
                 ExtraControls={props.ExtraControls}
+                onClassChanged={props.onClassChanged}
             />
         case "Object Detection":
             // TODO: Add eval dataset capability

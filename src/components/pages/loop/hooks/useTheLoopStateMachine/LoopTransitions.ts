@@ -31,6 +31,7 @@ import * as project from "ufdl-ts-client/functional/core/project"
 import {exactFilter} from "../../../../../server/util/exactFilter";
 import * as ICDataset from "ufdl-ts-client/functional/image_classification/dataset"
 import {addIterationFilesToDataset} from "./dogs";
+import {NO_ANNOTATION, OptionalAnnotations} from "../../../../../server/types/annotations";
 
 export const LOOP_TRANSITIONS = {
     "Initial": {
@@ -100,6 +101,8 @@ export const LOOP_TRANSITIONS = {
                     false
                 )
 
+                const date = new Date()
+
                 const [jobPK, progress] = train(
                     context,
                     primaryDataset,
@@ -110,7 +113,8 @@ export const LOOP_TRANSITIONS = {
                             type: "JSON",
                             value: {
                                 loop_state: "Initial",
-                                time: (new Date()).toString(),
+                                time: date.toString(),
+                                timeMS: date.getTime(),
                                 iteration: 1,
                                 prelabelMode,
                                 user: context.username,
@@ -346,7 +350,8 @@ export const LOOP_TRANSITIONS = {
                     {
                         ...current.data,
                         additionDataset: current.data.targetDataset,
-                        iteration: -1
+                        iteration: -1,
+                        timingInfo: {}
                     }
                 )
             }
@@ -610,9 +615,11 @@ export const LOOP_TRANSITIONS = {
                             {
                                 ...current.data,
                                 additionDataset: targetDataset,
+                                timingInfo: {}
                             }
                         )
                     } else {
+                        const date = new Date()
                         const [jobPK, progress] = evaluate(
                             current.data.context,
                             current.data.evalTemplatePK,
@@ -624,7 +631,8 @@ export const LOOP_TRANSITIONS = {
                                     type: "JSON",
                                     value: {
                                         loop_state: "Creating Addition Dataset",
-                                        time: (new Date()).toString(),
+                                        time: date.toString(),
+                                        timeMS: date.getTime(),
                                         iteration: current.data.iteration,
                                         prelabelMode: current.data.prelabelMode,
                                         user: current.data.context.username,
@@ -696,7 +704,10 @@ export const LOOP_TRANSITIONS = {
                     if (newCurrent !== current) return;
 
                     return createNewLoopState("User Fixing Categories")(
-                        current.data
+                        {
+                            ...current.data,
+                            timingInfo: {}
+                        }
                     );
                 }
             );
@@ -704,6 +715,30 @@ export const LOOP_TRANSITIONS = {
         cancel: cancelJobTransition
     },
     "User Fixing Categories": {
+        addLabelChangedEvent(
+            filename: string,
+            oldLabel: OptionalAnnotations<string> | undefined,
+            newLabel: OptionalAnnotations<string>
+        ) {
+            return (current: LoopStateAndData) => {
+                if (current.state !== "User Fixing Categories") return;
+
+                return createNewLoopState("User Fixing Categories")(
+                    {
+                        ...current.data,
+                        timingInfo: {
+                            ...current.data.timingInfo,
+                            [(new Date()).getTime()]: {
+                                filename,
+                                oldLabel: oldLabel === NO_ANNOTATION ? null : oldLabel,
+                                newLabel: newLabel === NO_ANNOTATION ? null : newLabel
+                            }
+                        }
+
+                    }
+                )
+            };
+        },
         finishedFixing() {
             return (current: LoopStateAndData) => {
                 if (current.state !== "User Fixing Categories") return;
@@ -744,6 +779,8 @@ export const LOOP_TRANSITIONS = {
 
             if (await hasStateChanged(current, changeState)) return;
 
+            const date = new Date()
+
             const [pk, progress] = train(
                 current.data.context,
                 current.data.primaryDataset,
@@ -754,7 +791,8 @@ export const LOOP_TRANSITIONS = {
                         type: "JSON",
                         value: {
                             loop_state: "Merging Additional Images",
-                            time: (new Date()).toString(),
+                            time: date.toString(),
+                            timeMS: date.getTime(),
                             iteration: current.data.iteration,
                             prelabelMode: current.data.prelabelMode,
                             user: current.data.context.username,
@@ -762,6 +800,7 @@ export const LOOP_TRANSITIONS = {
                             teamPK: current.data.primaryDataset.team.asNumber,
                             projectPK: current.data.primaryDataset.project.asNumber,
                             datasetPK: current.data.primaryDataset.asNumber,
+                            timingInfo: current.data.timingInfo
                         }
                     }
                 },

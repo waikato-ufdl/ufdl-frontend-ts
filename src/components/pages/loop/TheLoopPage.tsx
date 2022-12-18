@@ -105,6 +105,7 @@ export default function TheLoopPage(
                     modelType={undefined}
                     selectedSortOrder={UNCONTROLLED_KEEP}
                     heading={"Please select the initial set of images to train against"}
+                    onClassChanged={pass}
                 />
                 <TrainPredictTemplateSelectModal
                     ufdlServerContext={ufdlServerContext}
@@ -143,6 +144,7 @@ export default function TheLoopPage(
                     modelType={stateMachine.data.modelType}
                     selectedSortOrder={UNCONTROLLED_KEEP}
                     heading={"Please select additional images to add to the dataset"}
+                    onClassChanged={pass}
                 />
                 <JobTemplateSelectModal
                     onDone={(template_pk, parameter_values) => {
@@ -209,6 +211,7 @@ export default function TheLoopPage(
                     evalQueryDependencies={{annotations: ["Checking"], onlyFetched: false}}
                     selectedSortOrder={UNCONTROLLED_KEEP}
                     heading={"Please check if the model's accuracy is sufficient"}
+                    onClassChanged={pass}
                 />
                 <RefineOrDoneModal
                     onRefine={() => {refineOrDoneModal.hide(); stateMachine.transitions.finishChecking("Prelabel")}}
@@ -263,6 +266,7 @@ export default function TheLoopPage(
                         ? `[${stateMachine.data.iteration - 1}/19] Please annotate the items and then click -> `
                         : `[${stateMachine.data.iteration - 1}/19] Please check and correct the pre-annotated items and then click -> `
                 }
+                onClassChanged={stateMachine.transitions.addLabelChangedEvent}
             />
 
         case "Finished":
