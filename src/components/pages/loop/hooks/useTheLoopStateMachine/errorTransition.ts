@@ -5,6 +5,7 @@ import {LoopStates} from "./LoopStates";
 import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import {LoopStateAndData, LoopStateTransition} from "./types";
 import {Dispatch} from "react";
+import {PrelabelMode} from "../../../../../EXPERIMENT";
 
 export type ErrorStateAndData = StateAndData<LoopStates, "Error">
 
@@ -13,7 +14,7 @@ export const HANDLED_ERROR_RESPONSE = Symbol("The expected value cannot be retur
 export function createErrorState(
     context: UFDLServerContext,
     reason: any,
-    prelabelMode: "None" | "Single" | "Multi" | "Default"
+    prelabelMode: PrelabelMode
 ): ErrorStateAndData {
     return createNewLoopState("Error")(
         {

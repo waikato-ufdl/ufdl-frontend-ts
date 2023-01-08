@@ -30,8 +30,14 @@ import * as team from "ufdl-ts-client/functional/core/team"
 import * as project from "ufdl-ts-client/functional/core/project"
 import {exactFilter} from "../../../../../server/util/exactFilter";
 import * as ICDataset from "ufdl-ts-client/functional/image_classification/dataset"
-import {addIterationFilesToDataset} from "./dogs";
 import {NO_ANNOTATION, OptionalAnnotations} from "../../../../../server/types/annotations";
+import {
+    addIterationFilesToDataset,
+    EXPERIMENT_DATASET_NAME,
+    EXPERIMENT_PROJECT_NAME,
+    EXPERIMENT_TEAM_NAME,
+    isPrelabelMode
+} from "../../../../../EXPERIMENT";
 
 export const LOOP_TRANSITIONS = {
     "Initial": {
@@ -52,28 +58,23 @@ export const LOOP_TRANSITIONS = {
                     }
                 )
             } else {
-
-                const handleErrorResponse = createErrorResponseTransitionHandler(current, changeState);
-
                 const teams = await team.list(context)
-                const teamPK = teams.length === 0
-                    ? (await team.create(context, "ui-ex-team")).pk
-                    : teams[0].pk
+                const teamIndex = teams.findIndex(team => team.name === EXPERIMENT_TEAM_NAME)
+                const teamPK = teamIndex === -1
+                    ? (await team.create(context, EXPERIMENT_TEAM_NAME)).pk
+                    : teams[teamIndex].pk
 
                 const projects = await project.list(context, exactFilter("team", teamPK))
-                const projectPK = projects.length === 0
-                    ? (await project.create(context, "ui-ex-proj", teamPK)).pk
-                    : projects[0].pk
+                const projectIndex = projects.findIndex(project => project.name === EXPERIMENT_PROJECT_NAME)
+                const projectPK = projectIndex === -1
+                    ? (await project.create(context, EXPERIMENT_PROJECT_NAME, teamPK)).pk
+                    : projects[projectIndex].pk
 
                 const datasets = await ICDataset.list(context, exactFilter("project", projectPK))
-                let datasetPK
-                if (datasets.length === 0) {
-                    const datasetInstance = await handleErrorResponse(ICDataset.create(context, "ui-ex-dogs", projectPK, 1))
-                    if (datasetInstance === HANDLED_ERROR_RESPONSE) return
-                    datasetPK = datasetInstance.pk
-                } else {
-                    datasetPK = datasets[0].pk
-                }
+                const datasetIndex = projects.findIndex(dataset => dataset.name === EXPERIMENT_DATASET_NAME)
+                const datasetPK = datasetIndex === -1
+                    ? (await ICDataset.create(context, EXPERIMENT_DATASET_NAME, projectPK, 1)).pk
+                    : datasets[datasetIndex].pk
 
                 const primaryDataset = (new TeamPK(teamPK)).project(projectPK).dataset(datasetPK)
                 const domain = "Image Classification"
@@ -85,12 +86,7 @@ export const LOOP_TRANSITIONS = {
 
                 const prelabelMode = (await (await context.get(`v1/html/extra/prelabelMode`, false)).text()).trim()
 
-                if (
-                    prelabelMode !== "Default" &&
-                    prelabelMode !== "None" &&
-                    prelabelMode !== "Single" &&
-                    prelabelMode !== "Multi"
-                ) {
+                if (!isPrelabelMode(prelabelMode)) {
                     throw new Error(`Unknown prelabel mode: '${prelabelMode}'`)
                 }
 

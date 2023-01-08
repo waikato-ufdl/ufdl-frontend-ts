@@ -4,20 +4,21 @@ import {BehaviorSubject} from "rxjs";
 import {DomainName} from "../../../../../server/domains";
 import {ParameterValue} from "../../../../../../../ufdl-ts-client/dist/json/generated/CreateJobSpec";
 import {ValidStates} from "../../../../../util/react/hooks/useStateMachine/types";
+import {PrelabelMode} from "../../../../../EXPERIMENT";
 
 export type LoopStates = ValidStates<{
     "Initial": {
         context: UFDLServerContext
-        prelabelMode: "None" | "Single" | "Multi" | "Default"
+        prelabelMode: PrelabelMode
     }
     "Selecting Primary Dataset": {
         context: UFDLServerContext
-        prelabelMode: "None" | "Single" | "Multi" | "Default"
+        prelabelMode: PrelabelMode
         from: TeamPK | ProjectPK | undefined
     }
     "Selecting Initial Images": {
         context: UFDLServerContext
-        prelabelMode: "None" | "Single" | "Multi" | "Default"
+        prelabelMode: PrelabelMode
         primaryDataset: DatasetPK
         targetDataset: DatasetPK
         domain: DomainName
@@ -28,7 +29,7 @@ export type LoopStates = ValidStates<{
     }
     "Selecting Prelabel Images": {
         context: UFDLServerContext
-        prelabelMode: "None" | "Single" | "Multi" | "Default"
+        prelabelMode: PrelabelMode
         primaryDataset: DatasetPK
         evaluationDataset: DatasetPK
         modelOutputPK: number
@@ -43,7 +44,7 @@ export type LoopStates = ValidStates<{
     }
     "Creating Train Job": {
         context: UFDLServerContext
-        prelabelMode: "None" | "Single" | "Multi" | "Default"
+        prelabelMode: PrelabelMode
         primaryDataset: DatasetPK
         jobPK: Promise<number>
         progress: BehaviorSubject<[number, string | undefined]>
@@ -58,7 +59,7 @@ export type LoopStates = ValidStates<{
     }
     "Training": {
         context: UFDLServerContext
-        prelabelMode: "None" | "Single" | "Multi" | "Default"
+        prelabelMode: PrelabelMode
         primaryDataset: DatasetPK
         jobPK: number
         progress: BehaviorSubject<[number, string | undefined]>
@@ -73,7 +74,7 @@ export type LoopStates = ValidStates<{
     }
     "Creating Evaluate Job": {
         context: UFDLServerContext
-        prelabelMode: "None" | "Single" | "Multi" | "Default"
+        prelabelMode: PrelabelMode
         primaryDataset: DatasetPK
         jobPK: Promise<number>
         progress: BehaviorSubject<[number, string | undefined]>
@@ -90,7 +91,7 @@ export type LoopStates = ValidStates<{
     }
     "Evaluating": {
         context: UFDLServerContext
-        prelabelMode: "None" | "Single" | "Multi" | "Default"
+        prelabelMode: PrelabelMode
         primaryDataset: DatasetPK
         jobPK: number
         progress: BehaviorSubject<[number, string | undefined]>
@@ -107,7 +108,7 @@ export type LoopStates = ValidStates<{
     }
     "Checking": {
         context: UFDLServerContext
-        prelabelMode: "None" | "Single" | "Multi" | "Default"
+        prelabelMode: PrelabelMode
         primaryDataset: DatasetPK
         evaluationDataset: DatasetPK
         modelOutputPK: number
@@ -122,7 +123,7 @@ export type LoopStates = ValidStates<{
     }
     "Creating Addition Dataset": {
         context: UFDLServerContext
-        prelabelMode: "None" | "Single" | "Multi" | "Default"
+        prelabelMode: PrelabelMode
         primaryDataset: DatasetPK
         evaluationDataset: DatasetPK
         additionDataset: Promise<DatasetPK>
@@ -138,7 +139,7 @@ export type LoopStates = ValidStates<{
     }
     "Creating Prelabel Job": {
         context: UFDLServerContext
-        prelabelMode: "None" | "Single" | "Multi" | "Default"
+        prelabelMode: PrelabelMode
         primaryDataset: DatasetPK
         evaluationDataset: DatasetPK
         modelOutputPK: number
@@ -156,7 +157,7 @@ export type LoopStates = ValidStates<{
     }
     "Prelabel": {
         context: UFDLServerContext
-        prelabelMode: "None" | "Single" | "Multi" | "Default"
+        prelabelMode: PrelabelMode
         primaryDataset: DatasetPK
         evaluationDataset: DatasetPK
         modelOutputPK: number
@@ -174,7 +175,7 @@ export type LoopStates = ValidStates<{
     }
     "User Fixing Categories": {
         context: UFDLServerContext
-        prelabelMode: "None" | "Single" | "Multi" | "Default"
+        prelabelMode: PrelabelMode
         primaryDataset: DatasetPK
         evaluationDataset: DatasetPK
         modelOutputPK: number
@@ -197,7 +198,7 @@ export type LoopStates = ValidStates<{
     }
     "Merging Additional Images": {
         context: UFDLServerContext
-        prelabelMode: "None" | "Single" | "Multi" | "Default"
+        prelabelMode: PrelabelMode
         primaryDataset: DatasetPK
         modelOutputPK: number
         mergeJobPK: Promise<void>
@@ -219,12 +220,12 @@ export type LoopStates = ValidStates<{
     }
     "Finished": {
         context: UFDLServerContext
-        prelabelMode: "None" | "Single" | "Multi" | "Default"
+        prelabelMode: PrelabelMode
         modelOutputPK: number
     }
     "Error": {
         context: UFDLServerContext
-        prelabelMode: "None" | "Single" | "Multi" | "Default"
+        prelabelMode: PrelabelMode
         reason: any
     }
 }>

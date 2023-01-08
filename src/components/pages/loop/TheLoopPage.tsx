@@ -24,7 +24,7 @@ import {APP_SETTINGS_REACT_CONTEXT} from "../../../useAppSettings";
 import {DEFAULT} from "../../../util/typescript/default";
 import TrainPredictTemplateSelectModal from "./TrainPredictTemplateSelectModal";
 import pass from "../../../util/typescript/functions/pass";
-import {CLASS_COLOURS} from "./hooks/useTheLoopStateMachine/dogs";
+import {CLASS_COLOURS, EXPERIMENT_MAX_ITERATION} from "../../../EXPERIMENT";
 
 export type TheLoopPageProps = {
     onBack?: () => void
@@ -263,8 +263,8 @@ export default function TheLoopPage(
                 sortOrderLocked
                 heading={
                     stateMachine.data.prelabelMode === "None"
-                        ? `[${stateMachine.data.iteration - 1}/19] Please annotate the items and then click -> `
-                        : `[${stateMachine.data.iteration - 1}/19] Please check and correct the pre-annotated items and then click -> `
+                        ? `[${stateMachine.data.iteration - 1}/${EXPERIMENT_MAX_ITERATION - 1}] Please annotate the items and then click -> `
+                        : `[${stateMachine.data.iteration - 1}/${EXPERIMENT_MAX_ITERATION - 1}] Please check and correct the pre-annotated items and then click -> `
                 }
                 onClassChanged={stateMachine.transitions.addLabelChangedEvent}
             />
