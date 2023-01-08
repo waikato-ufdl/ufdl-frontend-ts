@@ -73,7 +73,7 @@ export type ICAPProps = {
         annotations?: readonly unknown[]
         onlyFetched?: boolean
     }
-    mode?: typeof DEFAULT | "Single" | "Multi"
+    mode?: typeof DEFAULT | "Single" | "Multi" | "Example"
     selectedSortOrder: Controllable<WithDefault<string>>
     sortOrderLocked?: boolean
     heading?: string

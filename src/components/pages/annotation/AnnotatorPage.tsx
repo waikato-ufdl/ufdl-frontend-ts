@@ -54,7 +54,7 @@ export type AnnotatorPageProps<
     itemSelectFragmentRenderer: ItemSelectFragmentRenderer<DomainDataType<Domain>, DomainAnnotationType<Domain>>
     className: string | undefined
     onSelectedPKChanged: ((selectedPK: AnyPK) => void) | undefined
-    mode?: typeof DEFAULT | "Single" | "Multi"
+    mode?: typeof DEFAULT | "Single" | "Multi" | "Example"
     heading?: string
 }
 

@@ -14,6 +14,7 @@ import DefaultDatasetOverview from "./DefaultDatasetOverview";
 import {augmentClassName} from "../../../util/react/augmentClass";
 import SingleItemDatasetOverview from "./SingleItemDatasetOverview";
 import MultiItemDatasetOverview from "./MultiItemDatasetOverview";
+import ExampleDatasetOverview from "./ExampleDatasetOverview";
 
 /**
  * Props to the {@link DatasetOverview} component.
@@ -48,7 +49,7 @@ export type DatasetOverviewProps<
     sortFunction?: WithDefault<DomainSortOrderFunction<Domain>>
     addFilesSubMenus: SubMenus<DomainDataType<Domain>, DomainAnnotationType<Domain>>
     className?: string
-    mode?: typeof DEFAULT | "Single" | "Multi"
+    mode?: typeof DEFAULT | "Single" | "Multi" | "Example"
 }
 
 export default function DatasetOverview<
@@ -109,5 +110,15 @@ export default function DatasetOverview<
                 className={augmentClassName(className, "DatasetOverview")}
             />
 
+        case "Example":
+            return <ExampleDatasetOverview
+                dataset={dataset}
+                comparisonDataset={comparisonDataset}
+                DataComponent={DataComponent}
+                AnnotationComponent={AnnotationComponent}
+                ExpandedComponent={ExpandedComponent}
+                sortFunction={sortFunction}
+                className={augmentClassName(className, "DatasetOverview")}
+            />
     }
 }

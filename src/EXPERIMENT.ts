@@ -21,7 +21,7 @@ export const EXPERIMENT_PROJECT_NAME = "ui-ex-proj"
 export const EXPERIMENT_DATASET_NAME = "ui-ex-dogs"
 
 /** The prelabel modes being tested. */
-export const EXPERIMENT_PRELABEL_MODES = ["Default", "None", "Single", "Multi"] as const
+export const EXPERIMENT_PRELABEL_MODES = ["Default", "None", "Single", "Multi", "Example"] as const
 
 /** The number of iterations being performed. */
 export const EXPERIMENT_MAX_ITERATION = 20
