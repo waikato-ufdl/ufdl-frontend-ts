@@ -8,29 +8,17 @@
 }
 
 .ExampleDatasetOverview .DatasetItem {
-    height: 50%;
-    width: 50%;
+    height: 34%;
+    width: 33.33%;
     display: inline-block;
 }
 
 .ExampleDatasetOverview .ToChange {
     top: 0;
-    left: 0;
-}
-
-.ExampleDatasetOverview .Example0 {
-    top: 0;
-    right: 0;
-}
-
-.ExampleDatasetOverview .Example1 {
-    bottom: 0;
-    left: 0;
-}
-
-.ExampleDatasetOverview .Example2 {
-    bottom: 0;
-    right: 0;
+    left: 17%;
+    height: 66%;
+    width: 66%;
+    display: block;
 }
 
 .ExampleDatasetOverview > button {
