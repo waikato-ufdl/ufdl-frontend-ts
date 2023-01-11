@@ -228,6 +228,8 @@ export default function ExampleDatasetOverview<
             renderItem(items[selected])
         }
 
+        <span className={"ExampleHeader"}>Examples</span>
+
         {/* The example items. */}
         {
             selected !== undefined

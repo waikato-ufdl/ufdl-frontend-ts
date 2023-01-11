@@ -2,13 +2,19 @@
     font-size: 0;
 }
 
+.ExampleDatasetOverview .ExampleHeader {
+    display: block;
+    font-size: large;
+    height: 3%;
+}
+
 .ExampleDatasetOverview .ClassSelect {
     font-weight: bold;
     font-size: x-large;
 }
 
 .ExampleDatasetOverview .DatasetItem {
-    height: 34%;
+    height: 31%;
     width: 33.33%;
     display: inline-block;
 }
