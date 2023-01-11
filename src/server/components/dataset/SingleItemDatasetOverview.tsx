@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useEffect} from "react";
 import {DEFAULT, WithDefault} from "../../../util/typescript/default";
 import {undefinedAsAbsent} from "../../../util/typescript/types/Possible";
 import {DatasetItem as DatasetItemComponent} from "./DatasetItem";
@@ -50,6 +50,7 @@ export type SingleItemDatasetOverviewProps<
     ExpandedComponent?: ExpandedComponent<Domain, Item>
     sortFunction?: WithDefault<DomainSortOrderFunction<Domain>>
     className?: string
+    onIndexChanged?: (index: number) => void
 }
 
 export default function SingleItemDatasetOverview<
@@ -70,7 +71,8 @@ export default function SingleItemDatasetOverview<
                 onClick={props.collapse}
             />,
         sortFunction = DEFAULT,
-        className
+        className,
+        onIndexChanged
     }: SingleItemDatasetOverviewProps<Domain, Item>
 ) {
     // Extract the dataset items, if any
@@ -131,6 +133,13 @@ export default function SingleItemDatasetOverview<
             return [0, items]
         },
         items
+    )
+
+    useEffect(
+        () => {
+            if (onIndexChanged !== undefined && expanded !== undefined) onIndexChanged(expanded)
+        },
+        [expanded, onIndexChanged]
     )
 
     return <div className={augmentClassName(className, "SingleItemDatasetOverview")}>

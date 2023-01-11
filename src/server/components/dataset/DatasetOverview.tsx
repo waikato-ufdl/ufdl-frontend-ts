@@ -50,6 +50,7 @@ export type DatasetOverviewProps<
     addFilesSubMenus: SubMenus<DomainDataType<Domain>, DomainAnnotationType<Domain>>
     className?: string
     mode?: typeof DEFAULT | "Single" | "Multi" | "Example"
+    onIndexChanged?: (index: number) => void
 }
 
 export default function DatasetOverview<
@@ -72,7 +73,8 @@ export default function DatasetOverview<
         sortFunction = DEFAULT,
         addFilesSubMenus,
         className,
-        mode = DEFAULT
+        mode = DEFAULT,
+        onIndexChanged
     }: DatasetOverviewProps<Domain, Item>
 ) {
     switch (mode) {
@@ -97,6 +99,7 @@ export default function DatasetOverview<
                 ExpandedComponent={ExpandedComponent}
                 sortFunction={sortFunction}
                 className={augmentClassName(className, "DatasetOverview")}
+                onIndexChanged={onIndexChanged}
             />
 
         case "Multi":
@@ -119,6 +122,7 @@ export default function DatasetOverview<
                 ExpandedComponent={ExpandedComponent}
                 sortFunction={sortFunction}
                 className={augmentClassName(className, "DatasetOverview")}
+                onIndexChanged={onIndexChanged}
             />
     }
 }

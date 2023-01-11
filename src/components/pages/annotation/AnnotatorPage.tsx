@@ -166,6 +166,8 @@ export default function AnnotatorPage<
         [props.dataset, props.domain, props.onSelectedPKChanged] as const
     )
 
+    const [imageIndex, setImageIndex] = useStateSafe(constantInitialiser(0))
+
     if (showNewDatasetPage) {
         return <NewDatasetPage
             domain={props.domain} lockDomain
@@ -201,7 +203,11 @@ export default function AnnotatorPage<
         ExtraControls={props.ExtraControls}
         numSelected={topMenuNumSelected}
         onExtractSelected={onExtractSelected}
-        heading={props.heading}
+        heading={
+        props.mode === "Single" || props.mode === "Example"
+            ? `[Image ${imageIndex + 1}/${props.dataset?.size}] ${props.heading}`
+            : props.heading
+        }
     />
 
     const overview = <DatasetOverview<Domain, Item>
@@ -213,6 +219,7 @@ export default function AnnotatorPage<
         sortFunction={sortOrder === DEFAULT || props.sortOrders === DEFAULT ? DEFAULT : props.sortOrders[sortOrder]}
         addFilesSubMenus={props.addFilesSubMenus}
         mode={props.mode}
+        onIndexChanged={setImageIndex}
     />
 
     return <Page className={augmentClassName(props.className, "AnnotatorPage")}>

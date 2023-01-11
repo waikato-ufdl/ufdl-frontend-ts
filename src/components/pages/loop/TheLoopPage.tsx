@@ -263,8 +263,8 @@ export default function TheLoopPage(
                 sortOrderLocked
                 heading={
                     stateMachine.data.prelabelMode === "None"
-                        ? `[${stateMachine.data.iteration - 1}/${EXPERIMENT_MAX_ITERATION - 1}] Please annotate the items and then click -> `
-                        : `[${stateMachine.data.iteration - 1}/${EXPERIMENT_MAX_ITERATION - 1}] Please check and correct the pre-annotated items and then click -> `
+                        ? `[Iteration ${stateMachine.data.iteration - 1}/${EXPERIMENT_MAX_ITERATION - 1}] Please annotate the items and then click -> `
+                        : `[Iteration ${stateMachine.data.iteration - 1}/${EXPERIMENT_MAX_ITERATION - 1}] Please check and correct the pre-annotated items and then click -> `
                 }
                 onClassChanged={stateMachine.transitions.addLabelChangedEvent}
             />

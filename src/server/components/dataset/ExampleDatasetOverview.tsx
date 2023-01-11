@@ -64,6 +64,7 @@ export type ExampleDatasetOverviewProps<
     sortFunction?: WithDefault<DomainSortOrderFunction<Domain>>
     className?: string
     comparison?: Equivalency<OptionalAnnotations<DomainAnnotationType<Domain>>>
+    onIndexChanged?: (index: number) => void
 }
 
 // TODO: Move to CSS
@@ -77,21 +78,6 @@ const SAMPLE_STYLE: FlexItemProps["style"] = {
     flexGrow: 0,
     width: "30%"
 };
-
-// TODO: Move to CSS
-const SAMPLE_PROPS = {style: SAMPLE_STYLE};
-
-// TODO: Move to CSS
-const GET_SAMPLE_PROPS = constantInitialiser(SAMPLE_PROPS);
-
-// TODO: Move to CSS
-const FLEX_CONTAINER_STYLE = {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    alignItems: "flex-start",
-    justifyContent: "initial",
-    alignContent: "flex-start"
-} as const
 
 export default function ExampleDatasetOverview<
     Domain extends DomainName,
@@ -112,7 +98,8 @@ export default function ExampleDatasetOverview<
             />,
         sortFunction = DEFAULT,
         className,
-        comparison
+        comparison,
+        onIndexChanged
     }: ExampleDatasetOverviewProps<Domain, Item>
 ) {
     // Extract the dataset items, if any
@@ -179,6 +166,13 @@ export default function ExampleDatasetOverview<
             return [0, items]
         },
         items
+    )
+
+    useEffect(
+        () => {
+            if (onIndexChanged !== undefined && selected !== undefined) onIndexChanged(selected)
+        },
+        [selected, onIndexChanged]
     )
 
     const onItemClicked = useDerivedState(
