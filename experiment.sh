@@ -222,12 +222,11 @@ fi
 google-chrome --user-data-dir="./chrome-data" "http://localhost:8000/v1/html" || error "Failed to launch Chrome" $CHROME_ERROR_STATUS
 
 # Download results
-# TODO
 ./venv/bin/python ../test-download-all-dog-job-metadata.py
 
 # Bring down the backend
 cd "ufdl-backend/docker/ufdl" || error "Couldn't cd into ufdl-backend/docker/ufdl" $CD_ERROR_STATUS
-docker-compose --profile with-job-launcher down || error "Failed to start job-launcher" $DOCKER_ERROR_STATUS
+docker-compose --profile with-job-launcher down || error "Failed to stop Docker services" $DOCKER_ERROR_STATUS
 cd "../../.." || error "Couldn't cd back to original directory" $CD_ERROR_STATUS
 
 # Farewell message
