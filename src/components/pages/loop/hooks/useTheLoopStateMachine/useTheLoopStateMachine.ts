@@ -7,15 +7,14 @@ import {constantInitialiser} from "../../../../../util/typescript/initialisers";
 import {PrelabelMode} from "../../../../../EXPERIMENT";
 
 export default function useTheLoopStateMachine(
-    context: UFDLServerContext,
-    prelabelMode: PrelabelMode
+    context: UFDLServerContext
 ): StateMachineDispatch<LoopStates, LoopTransitions> {
     return useStateMachine<LoopStates, LoopTransitions>(
         constantInitialiser(LOOP_TRANSITIONS),
         () => {
             return {
                 state: "Initial",
-                data: {context, prelabelMode}
+                data: {context}
             }
         }
     );

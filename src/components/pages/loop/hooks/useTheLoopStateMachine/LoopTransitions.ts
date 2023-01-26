@@ -32,11 +32,11 @@ import {exactFilter} from "../../../../../server/util/exactFilter";
 import * as ICDataset from "ufdl-ts-client/functional/image_classification/dataset"
 import {NO_ANNOTATION, OptionalAnnotations} from "../../../../../server/types/annotations";
 import {
-    addIterationFilesToDataset,
-    EXPERIMENT_DATASET_NAME,
+    addIterationFilesToDataset, correctIterationLabels,
+    EXPERIMENT_DATASET_NAME, EXPERIMENT_MAX_ITERATION,
     EXPERIMENT_PROJECT_NAME,
     EXPERIMENT_TEAM_NAME,
-    isPrelabelMode
+    getPrelabelMode
 } from "../../../../../EXPERIMENT";
 
 export const LOOP_TRANSITIONS = {
@@ -84,16 +84,21 @@ export const LOOP_TRANSITIONS = {
                 const evalTemplatePK = DEFAULT_APP_SETTINGS.loopJobTemplateDefaults["Image Classification"].predict.templatePK
                 const evalParameters = DEFAULT_APP_SETTINGS.loopJobTemplateDefaults["Image Classification"].predict.parameters
 
-                const prelabelMode = (await (await context.get(`v1/html/extra/prelabelMode`, false)).text()).trim()
-
-                if (!isPrelabelMode(prelabelMode)) {
-                    throw new Error(`Unknown prelabel mode: '${prelabelMode}'`)
-                }
+                const participantNumber = Number.parseInt(
+                    (
+                        await (
+                            await context.get(
+                                `v1/html/extra/participantNumber`,
+                                false
+                            )
+                        ).text()
+                    ).trim()
+                )
 
                 await addIterationFilesToDataset(
                     context,
                     datasetPK,
-                    1,
+                    0,
                     false
                 )
 
@@ -111,8 +116,8 @@ export const LOOP_TRANSITIONS = {
                                 loop_state: "Initial",
                                 time: date.toString(),
                                 timeMS: date.getTime(),
-                                iteration: 1,
-                                prelabelMode,
+                                iteration: 0,
+                                participantNumber,
                                 user: context.username,
                                 host: context.host,
                                 teamPK,
@@ -131,7 +136,7 @@ export const LOOP_TRANSITIONS = {
                         const newState = loopStateDataConstructor("Creating Train Job")(
                             {
                                 context,
-                                prelabelMode,
+                                participantNumber,
                                 primaryDataset,
                                 domain,
                                 trainTemplatePK,
@@ -142,7 +147,7 @@ export const LOOP_TRANSITIONS = {
                                 progress,
                                 framework: ["dogs_dummy", "1"],
                                 modelType: "Model<Domain<'Image Classification'>, Framework<'dogs_dummy', '1'>>",
-                                iteration: 1
+                                iteration: 0
                             }
                         )
                         trySaveLoopState(newState)
@@ -218,7 +223,7 @@ export const LOOP_TRANSITIONS = {
                 return createNewLoopState("Creating Train Job")(
                     {
                         context: current.data.context,
-                        prelabelMode: current.data.prelabelMode,
+                        participantNumber: current.data.participantNumber,
                         primaryDataset: current.data.primaryDataset,
                         jobPK: pk,
                         progress: progress,
@@ -243,14 +248,14 @@ export const LOOP_TRANSITIONS = {
                         return createErrorState(
                             current.data.context,
                             formatted,
-                            current.data.prelabelMode
+                            current.data.participantNumber
                         )
                     })
 
                 return createErrorState(
                     current.data.context,
                     reason,
-                    current.data.prelabelMode
+                    current.data.participantNumber
                 );
             }
         },
@@ -261,7 +266,7 @@ export const LOOP_TRANSITIONS = {
                 return createNewLoopState("Selecting Primary Dataset")(
                     {
                         context: current.data.context,
-                        prelabelMode: current.data.prelabelMode,
+                        participantNumber: current.data.participantNumber,
                         from: current.data.primaryDataset.project
                     }
                 )
@@ -359,7 +364,7 @@ export const LOOP_TRANSITIONS = {
                 return createErrorState(
                     current.data.context,
                     reason,
-                    current.data.prelabelMode
+                    current.data.participantNumber
                 );
             }
         }
@@ -428,20 +433,32 @@ export const LOOP_TRANSITIONS = {
                 (newCurrent) => {
                     if (newCurrent !== current) return;
 
-                    return createNewLoopState("Creating Addition Dataset")(
-                        {
-                            ...current.data,
-                            additionDataset: copyDataset(
-                                current.data.context,
-                                current.data.primaryDataset,
-                                true,
-                                current.data.domain
-                            ),
-                            iteration: current.data.iteration + 1,
-                            modelOutputPK,
-                            evaluationDataset: current.data.primaryDataset // Isn't used, so doesn't matter what it is
-                        }
-                    )
+                    const nextIteration = current.data.iteration + 1
+
+                    if (nextIteration <= EXPERIMENT_MAX_ITERATION) {
+
+                        return createNewLoopState("Creating Addition Dataset")(
+                            {
+                                ...current.data,
+                                additionDataset: copyDataset(
+                                    current.data.context,
+                                    current.data.primaryDataset,
+                                    true,
+                                    current.data.domain
+                                ),
+                                iteration: current.data.iteration + 1,
+                                modelOutputPK,
+                                evaluationDataset: current.data.primaryDataset // Isn't used, so doesn't matter what it is
+                            }
+                        )
+                    } else {
+                        return createNewLoopState("Finished")(
+                            {
+                                ...current.data,
+                                modelOutputPK
+                            }
+                        )
+                    }
                 }
             );
         },
@@ -516,7 +533,7 @@ export const LOOP_TRANSITIONS = {
                         return createNewLoopState("Finished")(
                             {
                                 context: current.data.context,
-                                prelabelMode: current.data.prelabelMode,
+                                participantNumber: current.data.participantNumber,
                                 modelOutputPK: current.data.modelOutputPK
                             }
                         )
@@ -543,7 +560,7 @@ export const LOOP_TRANSITIONS = {
                 return createErrorState(
                     current.data.context,
                     reason,
-                    current.data.prelabelMode
+                    current.data.participantNumber
                 );
             }
         },
@@ -595,7 +612,7 @@ export const LOOP_TRANSITIONS = {
 
             if (targetDataset === HANDLED_ERROR_RESPONSE) return;
 
-            // TODO: Automatically add images to dataset
+            // Automatically add images to dataset
             await addIterationFilesToDataset(
                 current.data.context,
                 targetDataset.asNumber,
@@ -606,7 +623,7 @@ export const LOOP_TRANSITIONS = {
                 (newCurrent) => {
                     if (newCurrent !== current) return;
 
-                    if (current.data.prelabelMode === "None") {
+                    if (getPrelabelMode(current.data.iteration, current.data.participantNumber % 6) === "None") {
                         return createNewLoopState("User Fixing Categories")(
                             {
                                 ...current.data,
@@ -630,7 +647,8 @@ export const LOOP_TRANSITIONS = {
                                         time: date.toString(),
                                         timeMS: date.getTime(),
                                         iteration: current.data.iteration,
-                                        prelabelMode: current.data.prelabelMode,
+                                        participantNumber: current.data.participantNumber,
+                                        prelabelMode: getPrelabelMode(current.data.iteration, current.data.participantNumber % 6),
                                         user: current.data.context.username,
                                         host: current.data.context.host,
                                         teamPK: targetDataset.team.asNumber,
@@ -742,11 +760,18 @@ export const LOOP_TRANSITIONS = {
                 return createNewLoopState("Merging Additional Images")(
                     {
                         ...current.data,
-                        mergeJobPK: merge(
+                        mergeJobPK: correctIterationLabels(
                             current.data.context,
-                            current.data.primaryDataset,
-                            current.data.additionDataset,
-                            current.data.domain
+                            current.data.additionDataset.asNumber,
+                            current.data.iteration
+                        ).then(
+                            () =>
+                                merge(
+                                current.data.context,
+                                current.data.primaryDataset,
+                                current.data.additionDataset,
+                                current.data.domain
+                            )
                         )
                     }
                 )
@@ -759,7 +784,7 @@ export const LOOP_TRANSITIONS = {
                 return createErrorState(
                     current.data.context,
                     reason,
-                    current.data.prelabelMode
+                    current.data.participantNumber
                 );
             }
         },
@@ -777,9 +802,33 @@ export const LOOP_TRANSITIONS = {
 
             const date = new Date()
 
+            // If we've reached the end of an interface, reset the primary dataset
+            let nextPrimaryDataset: DatasetPK;
+            if (current.data.iteration % 3 === 0) {
+                const datasetPK = (
+                    await ICDataset.create(
+                        current.data.context,
+                        `${EXPERIMENT_DATASET_NAME}-${current.data.iteration}`,
+                        current.data.primaryDataset.project.asNumber,
+                        1
+                    )
+                ).pk
+
+                await addIterationFilesToDataset(
+                    current.data.context,
+                    datasetPK,
+                    0,
+                    false
+                )
+
+                nextPrimaryDataset = current.data.primaryDataset.project.dataset(datasetPK)
+            } else {
+                nextPrimaryDataset = current.data.primaryDataset;
+            }
+
             const [pk, progress] = train(
                 current.data.context,
-                current.data.primaryDataset,
+                nextPrimaryDataset,
                 current.data.trainTemplatePK,
                 {
                     ...current.data.trainParameters,
@@ -790,12 +839,13 @@ export const LOOP_TRANSITIONS = {
                             time: date.toString(),
                             timeMS: date.getTime(),
                             iteration: current.data.iteration,
-                            prelabelMode: current.data.prelabelMode,
+                            participantNumber: current.data.participantNumber,
+                            prelabelMode: getPrelabelMode(current.data.iteration, current.data.participantNumber % 6),
                             user: current.data.context.username,
                             host: current.data.context.host,
-                            teamPK: current.data.primaryDataset.team.asNumber,
-                            projectPK: current.data.primaryDataset.project.asNumber,
-                            datasetPK: current.data.primaryDataset.asNumber,
+                            teamPK: nextPrimaryDataset.team.asNumber,
+                            projectPK: nextPrimaryDataset.project.asNumber,
+                            datasetPK: nextPrimaryDataset.asNumber,
                             timingInfo: current.data.timingInfo
                         }
                     }
@@ -813,6 +863,7 @@ export const LOOP_TRANSITIONS = {
                     return createNewLoopState("Creating Train Job")(
                         {
                             ...current.data,
+                            primaryDataset: nextPrimaryDataset,
                             jobPK: pk,
                             progress: progress
                         }
@@ -837,8 +888,7 @@ export const LOOP_TRANSITIONS = {
             return (current: LoopStateAndData) => {
                 return createNewLoopState("Initial")(
                     {
-                        context: current.data.context,
-                        prelabelMode: current.data.prelabelMode
+                        context: current.data.context
                     }
                 );
             };
@@ -849,8 +899,7 @@ export const LOOP_TRANSITIONS = {
             return (current: LoopStateAndData) => {
                 return createNewLoopState("Initial")(
                     {
-                        context: current.data.context,
-                        prelabelMode: current.data.prelabelMode
+                        context: current.data.context
                     }
                 );
             };

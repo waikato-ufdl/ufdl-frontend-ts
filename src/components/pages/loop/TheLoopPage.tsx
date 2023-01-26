@@ -24,7 +24,7 @@ import {APP_SETTINGS_REACT_CONTEXT} from "../../../useAppSettings";
 import {DEFAULT} from "../../../util/typescript/default";
 import TrainPredictTemplateSelectModal from "./TrainPredictTemplateSelectModal";
 import pass from "../../../util/typescript/functions/pass";
-import {CLASS_COLOURS, EXPERIMENT_MAX_ITERATION} from "../../../EXPERIMENT";
+import {CLASS_COLOURS, EXPERIMENT_MAX_ITERATION, getPrelabelMode} from "../../../EXPERIMENT";
 
 export type TheLoopPageProps = {
     onBack?: () => void
@@ -38,7 +38,7 @@ export default function TheLoopPage(
 
     const [appSettings] = useContext(APP_SETTINGS_REACT_CONTEXT);
 
-    const stateMachine = useTheLoopStateMachine(ufdlServerContext, appSettings.prelabelMode);
+    const stateMachine = useTheLoopStateMachine(ufdlServerContext);
 
     const [classColours, setClassColours] = useStateSafe<ClassColours | undefined>(constantInitialiser(CLASS_COLOURS));
 
@@ -132,13 +132,13 @@ export default function TheLoopPage(
                     domain={stateMachine.data.domain}
                     targetDataset={stateMachine.data.targetDataset}
                     evalDatasetPK={undefined}
-                    nextLabel={stateMachine.data.prelabelMode === "None" ? "Label" : "Prelabel"}
+                    nextLabel={""}
                     contract={"Predict"}
                     classColours={classColours}
                     setClassColours={setClassColours}
                     context={ufdlServerContext}
                     setSelectableTemplates={setSelectableTemplates}
-                    onNext={stateMachine.data.prelabelMode === "None" ? stateMachine.transitions.label : templateConfigurationModal.show}
+                    onNext={pass}
                     onBack={pass}
                     onError={stateMachine.transitions.error}
                     modelType={stateMachine.data.modelType}
@@ -227,6 +227,7 @@ export default function TheLoopPage(
             </Page>;
 
         case "User Fixing Categories":
+            const prelabelMode = getPrelabelMode(stateMachine.data.iteration, stateMachine.data.participantNumber % 6)
             return <LoopAnnotatorPage
                 key={stateMachine.state}
                 domain={stateMachine.data.domain}
@@ -243,44 +244,40 @@ export default function TheLoopPage(
                 onError={stateMachine.transitions.error}
                 modelType={stateMachine.data.modelType}
                 queryDependencies={
-                    stateMachine.data.prelabelMode === "None"
+                    prelabelMode === "None"
                         ? undefined
                         : {annotations: ["User Fixing Categories"], onlyFetched: false}
                 }
                 evalQueryDependencies={
-                    stateMachine.data.prelabelMode !== "Multi"
-                        ? undefined
-                        : {dataset: ["User Fixing Categories"], annotations: ["User Fixing Categories"], onlyFetched: false}
+                    prelabelMode === "Multi" || prelabelMode === "Example"
+                        ? {
+                            dataset: ["User Fixing Categories"],
+                            fileData: ["User Fixing Categories"],
+                            annotations: ["User Fixing Categories"],
+                            onlyFetched: false
+                        }
+                        : undefined
                 }
                 mode={
-                    stateMachine.data.prelabelMode === "Default"
+                    prelabelMode === "Default"
                         ? DEFAULT
-                        : stateMachine.data.prelabelMode === "None"
+                        : prelabelMode === "None"
                             ? "Single"
-                            : stateMachine.data.prelabelMode
+                            : prelabelMode
                 }
                 selectedSortOrder={"random"}
                 sortOrderLocked
                 heading={
-                    stateMachine.data.prelabelMode === "None"
-                        ? `[Iteration ${stateMachine.data.iteration - 1}/${EXPERIMENT_MAX_ITERATION - 1}] Please annotate the items and then click -> `
-                        : `[Iteration ${stateMachine.data.iteration - 1}/${EXPERIMENT_MAX_ITERATION - 1}] Please check and correct the pre-annotated items and then click -> `
+                    prelabelMode === "None"
+                        ? `[Iteration ${stateMachine.data.iteration}/${EXPERIMENT_MAX_ITERATION}] Please annotate the items and then click -> `
+                        : `[Iteration ${stateMachine.data.iteration}/${EXPERIMENT_MAX_ITERATION}] Please check and correct the pre-annotated items and then click -> `
                 }
                 onClassChanged={stateMachine.transitions.addLabelChangedEvent}
             />
 
         case "Finished":
             return <Page>
-                {"Finished!"}
-                <button onClick={stateMachine.transitions.download}>Download</button>
-                <button
-                    onClick={() => {
-                        stateMachine.transitions.reset();
-                        if (props.onBack !== undefined) props.onBack();
-                    }}
-                >
-                    Back
-                </button>
+                {"Finished! Please close the browser."}
             </Page>;
 
         case "Error":

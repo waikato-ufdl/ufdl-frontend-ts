@@ -52,7 +52,7 @@ export const DEFAULT_APP_SETTINGS = {
                         type: "float"
                     },
                     factor: {
-                        value: 1000,
+                        value: 100,
                         type: "int"
                     }
                 }
@@ -61,7 +61,7 @@ export const DEFAULT_APP_SETTINGS = {
                 templatePK: 11,
                 parameters: {
                     per_class: {
-                        value: true,
+                        value: false,
                         type: "bool"
                     },
                     store_predictions: {

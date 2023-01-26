@@ -3,6 +3,13 @@
     font-size: xx-large;
 }
 
+.SingleItemDatasetOverview .DatasetItem {
+    height: 66%;
+    width: 66%;
+    top: 17%;
+    left: 17%
+}
+
 .SingleItemDatasetOverview .ClassSelect {
     font-weight: inherit;
     font-size: inherit;
