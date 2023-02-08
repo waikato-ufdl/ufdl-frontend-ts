@@ -189,10 +189,13 @@ then
   echo "$PARTICIPANT_NUMBER" > "./ufdl-backend/docker/ufdl/extra/participantNumber"
 fi
 
-# Build the backend
-cd "ufdl-backend/docker/ufdl" || error "Couldn't cd into ufdl-backend/docker/ufdl" $CD_ERROR_STATUS
-docker-compose build $FORCE_DOCKER_BUILD --build-arg UFDL_FRONTEND_BRANCH=ui-experiment || error "docker-compose build failed" $DOCKER_ERROR_STATUS
-cd "../../.." || error "Couldn't cd back to original directory" $CD_ERROR_STATUS
+if [ "$RESUME" = "no" ] || [ "$FORCE_DOCKER_BUILD" = "--no-cache" ]
+then
+  # Build the backend
+  cd "ufdl-backend/docker/ufdl" || error "Couldn't cd into ufdl-backend/docker/ufdl" $CD_ERROR_STATUS
+  docker-compose build $FORCE_DOCKER_BUILD --build-arg UFDL_FRONTEND_BRANCH=ui-experiment || error "docker-compose build failed" $DOCKER_ERROR_STATUS
+  cd "../../.." || error "Couldn't cd back to original directory" $CD_ERROR_STATUS
+fi
 
 #############
 # EXECUTION #
