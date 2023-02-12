@@ -203,7 +203,7 @@ fi
 
 # Start the backend without the job-launcher (in case we need to reset)
 cd "ufdl-backend/docker/ufdl" || error "Couldn't cd into ufdl-backend/docker/ufdl" $CD_ERROR_STATUS
-docker-compose up -d || error "Couldn't bring up backend" $DOCKER_ERROR_STATUS
+docker-compose --project-name "ufdl-experiment-user-$PARTICIPANT_NUMBER" up -d || error "Couldn't bring up backend" $DOCKER_ERROR_STATUS
 
 # Reset the database if we're not resuming
 if [ "$RESUME" = "no" ]
@@ -212,7 +212,7 @@ then
 fi
 
 # Now start the job-launcher
-docker-compose --profile with-job-launcher up -d || error "Failed to start job-launcher" $DOCKER_ERROR_STATUS
+docker-compose --project-name "ufdl-experiment-user-$PARTICIPANT_NUMBER" --profile with-job-launcher up -d || error "Failed to start job-launcher" $DOCKER_ERROR_STATUS
 cd "../../.." || error "Couldn't cd back to original directory" $CD_ERROR_STATUS
 
 # Remove the Chrome directory if we are resetting
