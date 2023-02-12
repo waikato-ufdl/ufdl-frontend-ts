@@ -221,8 +221,12 @@ then
   rm -rf "./chrome-data" || error "Failed to remove previous Chrome data directory" $RM_ERROR_STATUS
 fi
 
+# For running the browser locally
 # Open chrome
-google-chrome --user-data-dir="./chrome-data" "http://localhost:8000/v1/html" || error "Failed to launch Chrome" $CHROME_ERROR_STATUS
+# google-chrome --user-data-dir="./chrome-data" "http://localhost:8000/v1/html" || error "Failed to launch Chrome" $CHROME_ERROR_STATUS
+
+# Tail the server's log
+docker logs -f "ufdl-experiment-user-$PARTICIPANT_NUMBER-ufdl-backend"
 
 # Download results
 ./venv/bin/python ../test-download-all-dog-job-metadata.py
