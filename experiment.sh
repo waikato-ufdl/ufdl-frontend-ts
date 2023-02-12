@@ -189,7 +189,7 @@ then
   echo "$PARTICIPANT_NUMBER" > "./ufdl-backend/docker/ufdl/extra/participantNumber"
 fi
 
-if [ "$RESUME" = "no" ] || [ "$FORCE_DOCKER_BUILD" = "--no-cache" ]
+if [ "$FORCE_DOCKER_BUILD" = "--no-cache" ]
 then
   # Build the backend
   cd "ufdl-backend/docker/ufdl" || error "Couldn't cd into ufdl-backend/docker/ufdl" $CD_ERROR_STATUS
