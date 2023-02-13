@@ -202,6 +202,7 @@ fi
 #############
 
 # Start the backend without the job-launcher (in case we need to reset)
+export UFDL_SERVER_PORT=$((PARTICIPANT_NUMBER + 8000))
 cd "ufdl-backend/docker/ufdl" || error "Couldn't cd into ufdl-backend/docker/ufdl" $CD_ERROR_STATUS
 docker-compose --project-name "ufdl-experiment-user-$PARTICIPANT_NUMBER" up -d || error "Couldn't bring up backend" $DOCKER_ERROR_STATUS
 
