@@ -96,6 +96,23 @@ function check_repository()
   fi
 }
 
+function clean_up()
+{
+  # Download results
+  ./venv/bin/python ../test-download-all-dog-job-metadata.py
+
+  # Bring down the backend
+  cd "ufdl-backend/docker/ufdl" || error "Couldn't cd into ufdl-backend/docker/ufdl" $CD_ERROR_STATUS
+  docker-compose --project-name "ufdl-experiment-user-$PARTICIPANT_NUMBER" --profile with-job-launcher stop || error "Failed to stop Docker services" $DOCKER_ERROR_STATUS
+  cd "../../.." || error "Couldn't cd back to original directory" $CD_ERROR_STATUS
+
+  # Farewell message
+  echo "Thank you for your participation. Press any key to exit."
+  read -s -r -n 1
+
+  exit 0
+}
+
 ##############
 # PARAMETERS #
 ##############
@@ -226,17 +243,9 @@ fi
 # Open chrome
 # google-chrome --user-data-dir="./chrome-data" "http://localhost:8000/v1/html" || error "Failed to launch Chrome" $CHROME_ERROR_STATUS
 
+trap clean_up SIGINT
+
 # Tail the server's log
 docker logs -f "ufdl-experiment-user-${PARTICIPANT_NUMBER}_ufdl_1"
 
-# Download results
-./venv/bin/python ../test-download-all-dog-job-metadata.py
-
-# Bring down the backend
-cd "ufdl-backend/docker/ufdl" || error "Couldn't cd into ufdl-backend/docker/ufdl" $CD_ERROR_STATUS
-docker-compose --project-name "ufdl-experiment-user-$PARTICIPANT_NUMBER" --profile with-job-launcher stop || error "Failed to stop Docker services" $DOCKER_ERROR_STATUS
-cd "../../.." || error "Couldn't cd back to original directory" $CD_ERROR_STATUS
-
-# Farewell message
-echo "Thank you for your participation. Press any key to exit."
-read -s -r -n 1
+clean_up
