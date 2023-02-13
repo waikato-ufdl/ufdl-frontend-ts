@@ -208,7 +208,7 @@ docker-compose --project-name "ufdl-experiment-user-$PARTICIPANT_NUMBER" up -d |
 # Reset the database if we're not resuming
 if [ "$RESUME" = "no" ]
 then
-  docker exec ufdl-backend ./dev_reset.sh || error "Failed to reset database" $DOCKER_ERROR_STATUS
+  docker exec "ufdl-experiment-user-${PARTICIPANT_NUMBER}_ufdl_1" ./dev_reset.sh || error "Failed to reset database" $DOCKER_ERROR_STATUS
 fi
 
 # Now start the job-launcher
@@ -226,7 +226,7 @@ fi
 # google-chrome --user-data-dir="./chrome-data" "http://localhost:8000/v1/html" || error "Failed to launch Chrome" $CHROME_ERROR_STATUS
 
 # Tail the server's log
-docker logs -f "ufdl-experiment-user-$PARTICIPANT_NUMBER-ufdl-backend"
+docker logs -f "ufdl-experiment-user-${PARTICIPANT_NUMBER}_ufdl_1"
 
 # Download results
 ./venv/bin/python ../test-download-all-dog-job-metadata.py
