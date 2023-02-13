@@ -16,8 +16,8 @@ MISSING_REQUIRED_EXEC_ERROR_STATUS=5
 readonly MISSING_REQUIRED_EXEC_ERROR_STATUS
 DOCKER_ERROR_STATUS=6
 readonly DOCKER_ERROR_STATUS
-CHROME_ERROR_STATUS=7
-readonly CHROME_ERROR_STATUS
+#CHROME_ERROR_STATUS=7
+#readonly CHROME_ERROR_STATUS
 RM_ERROR_STATUS=8
 readonly RM_ERROR_STATUS
 PARTICIPANT_NUMBER_ERROR_STATUS=9
@@ -128,7 +128,7 @@ done
 echo "Performing checks"
 
 check_executable virtualenv required
-check_executable google-chrome required
+#check_executable google-chrome required
 check_executable python3.8 required
 check_executable docker required
 check_executable docker-compose required
