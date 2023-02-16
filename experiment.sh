@@ -241,7 +241,7 @@ fi
 
 # For running the browser locally
 # Open chrome
-# google-chrome --user-data-dir="./chrome-data" "http://localhost:8000/v1/html" || error "Failed to launch Chrome" $CHROME_ERROR_STATUS
+# google-chrome --user-data-dir="./chrome-data" "http://localhost:${UFDL_SERVER_PORT}/v1/html" || error "Failed to launch Chrome" $CHROME_ERROR_STATUS
 
 trap clean_up SIGINT
 
