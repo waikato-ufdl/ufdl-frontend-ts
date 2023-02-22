@@ -25,17 +25,17 @@ import {DEFAULT} from "../../../util/typescript/default";
 import TrainPredictTemplateSelectModal from "./TrainPredictTemplateSelectModal";
 import pass from "../../../util/typescript/functions/pass";
 import {
-    CLASS_COLOURS, EASES_OF_USE,
+    CLASS_COLOURS,
     EXPERIMENT_MAX_ITERATION,
     getPrelabelMode,
-    QUESTION_1_OPTIONS, QUESTION_2_MODES,
-    Questionnaire, questionnaire_is_complete
+    QUESTION_1_OPTIONS,
+    questionnaire_is_complete
 } from "../../../EXPERIMENT";
 import InterlatchedCheckboxes from "../../../util/react/component/InterlatchedCheckboxes";
 import {identity} from "../../../util/identity";
-import {RecursivePartial} from "../../../util/typescript/types/RecursivePartial";
 import {InterfaceSection} from "./InterfaceSection";
 import {Section3To8TextArea} from "./Section3To8TextArea";
+import "./TheLoopPage.css"
 
 export type TheLoopPageProps = {
     onBack?: () => void
@@ -89,14 +89,16 @@ export default function TheLoopPage(
             />
 
         case "Agreement Page":
-            return <div>
-                <div>UFDL</div>
-                <span>
-                    Thank you for taking part in this user study.<br/>
-                    Please click 'I Agree' below to indicate that you have read and<br/>
-                    understood the participant information for this study (sent to you by<br/>
-                    email) and you agree to take part under the conditions described.
-                </span>
+            return <div className={"Agreement"}>
+                <div className={"Logo"}>UFDL</div>
+                <div className={"Info"}>
+                    <span>
+                        Thank you for taking part in this user study.<br/>
+                        Please click 'I Agree' below to indicate that you have read and<br/>
+                        understood the participant information for this study (sent to you by<br/>
+                        email) and you agree to take part under the conditions described.
+                    </span>
+                </div>
                 <button onClick={stateMachine.transitions.agree}>
                     I Agree
                 </button>
