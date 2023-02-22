@@ -5,7 +5,7 @@ export type WindowProps = {
 }
 
 export default function Window(props: PropsWithChildren<WindowProps>) {
-    return <div className={"Window"} style={{width: "100%", height: "100%" }}>
+    return <div className={"Window"} style={{width: "100%", height: "100%", overflow: "hidden" }}>
         {props.children}
     </div>
 }

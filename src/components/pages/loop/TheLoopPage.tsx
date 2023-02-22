@@ -36,6 +36,7 @@ import {identity} from "../../../util/identity";
 import {InterfaceSection} from "./InterfaceSection";
 import {Section3To8TextArea} from "./Section3To8TextArea";
 import "./TheLoopPage.css"
+import {Form} from "../../../util/react/component/Form";
 
 export type TheLoopPageProps = {
     onBack?: () => void
@@ -305,13 +306,16 @@ export default function TheLoopPage(
 
         case "Questionnaire":
 
-            return <div>
+            return <Form className={"Questionnaire"}>
+                <span>Questionnaire</span>
                 <section>
                     <label>1.</label>
-                    <span>
-                        How would you rate your knowledge of dog breeds, and ability to identify them, with<br/>
-                        particular reference to the breeds you’ve been exposed to today?
-                    </span>
+                    <div className={"Question"}>
+                        <span>
+                            How would you rate your knowledge of dog breeds, and ability to identify them, with<br/>
+                            particular reference to the breeds you’ve been exposed to today?
+                        </span>
+                    </div>
                     <InterlatchedCheckboxes
                         options={QUESTION_1_OPTIONS}
                         labelExtractor={identity}
@@ -329,11 +333,11 @@ export default function TheLoopPage(
                 </section>
                 <section>
                     <label>2.</label>
-                    <span>
+                    <div className={"Question"}>
                         Of the three interfaces you used, can you rank them 1 to 3, with 1 the interface you<br/>
                         found easiest or most helpful, and 3 the interface you found most difficult and<br/>
                         unhelpful, and then also answer the other questions relating to each interface:<br/>
-                    </span>
+                    </div>
                     <InterfaceSection
                         index={0}
                         participantNumber={stateMachine.data.participantNumber}
@@ -355,10 +359,10 @@ export default function TheLoopPage(
                 </section>
                 <section>
                     <label>3.</label>
-                    <span>
+                    <div className={"Question"}>
                         What are your thoughts on the general design of the website? You could comment on<br/>
                         issues such as colours, styles, fonts, layouts, and responsiveness.<br/>
-                    </span>
+                    </div>
                     <Section3To8TextArea
                         section={3}
                         questionnaire={stateMachine.data.questionnaire}
@@ -367,10 +371,10 @@ export default function TheLoopPage(
                 </section>
                 <section>
                     <label>4.</label>
-                    <span>
+                    <div className={"Question"}>
                         How did the general design of the user interface affect your ability to label the dogs, and<br/>
                         did that overall design have a different impact for the different interfaces?<br/>
-                    </span>
+                    </div>
                     <Section3To8TextArea
                         section={4}
                         questionnaire={stateMachine.data.questionnaire}
@@ -379,9 +383,9 @@ export default function TheLoopPage(
                 </section>
                 <section>
                     <label>5.</label>
-                    <span>
+                    <div className={"Question"}>
                         Did the supporting example images make it easier or harder in the case of interface C?.<br/>
-                    </span>
+                    </div>
                     <Section3To8TextArea
                         section={5}
                         questionnaire={stateMachine.data.questionnaire}
@@ -390,9 +394,9 @@ export default function TheLoopPage(
                 </section>
                 <section>
                     <label>6.</label>
-                    <span>
+                    <div className={"Question"}>
                         How clear did you find the instructions you received?<br/>
-                    </span>
+                    </div>
                     <Section3To8TextArea
                         section={6}
                         questionnaire={stateMachine.data.questionnaire}
@@ -401,10 +405,10 @@ export default function TheLoopPage(
                 </section>
                 <section>
                     <label>7.</label>
-                    <span>
+                    <div className={"Question"}>
                         Which interface do you think you were most successful with for correctly labelling the<br/>
                         dogs? Why?<br/>
-                    </span>
+                    </div>
                     <Section3To8TextArea
                         section={7}
                         questionnaire={stateMachine.data.questionnaire}
@@ -413,27 +417,38 @@ export default function TheLoopPage(
                 </section>
                 <section>
                     <label>8.</label>
-                    <span>
+                    <div className={"Question"}>
                         Which interface do you think you were least successful with for correctly labelling the<br/>
                         dogs? Why?<br/>
-                    </span>
+                    </div>
                     <Section3To8TextArea
                         section={8}
                         questionnaire={stateMachine.data.questionnaire}
                         update={stateMachine.transitions.update}
                     />
                 </section>
-                <button
-                    onClick={() => {
-                        const questionnaire = stateMachine.data.questionnaire
-                        if (!questionnaire_is_complete(questionnaire)) return
-                        stateMachine.transitions.submit(questionnaire)
-                    }}
-                    disabled={!questionnaire_is_complete(stateMachine.data.questionnaire)}
-                >
-                    Submit
-                </button>
-            </div>
+                <section>
+                    <div className={"Thanks"}>
+                        Thank you for taking part in this study.<br/>
+                        {`Your participant number is #${stateMachine.data.participantNumber}.`}<br/>
+                        If you wish to withdraw from this study at a later date, please<br/>
+                        send an email to jbowen@waikato.ac.nz and quote this ID<br/>
+                        number.<br/>
+                        The final date you may withdraw your data from the study is<br/>
+                        April 30th 2023.
+                    </div>
+                    <button
+                        onClick={() => {
+                            const questionnaire = stateMachine.data.questionnaire
+                            if (!questionnaire_is_complete(questionnaire)) return
+                            stateMachine.transitions.submit(questionnaire)
+                        }}
+                        disabled={!questionnaire_is_complete(stateMachine.data.questionnaire)}
+                    >
+                        Submit
+                    </button>
+                </section>
+            </Form>
 
         case "Finished":
             return <Page>

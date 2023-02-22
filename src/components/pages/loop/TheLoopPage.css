@@ -7,3 +7,50 @@
 .Agreement .Info {
     margin-bottom: 0.5em;
 }
+
+.Questionnaire {
+    height: 100%;
+    overflow: scroll;
+}
+
+.Questionnaire section {
+    border-style: ridge;
+    border-color: lightslategray;
+    border-width: 4px;
+    margin: 5px 2px 5px 2px;
+    padding: 2px;
+    position: relative;
+}
+
+.Questionnaire .Question {
+    margin-bottom: 0.5em;
+}
+
+.Questionnaire .InterlatchedCheckboxes {
+    margin-bottom: 0.5em;
+}
+
+.Questionnaire .Thanks {
+    text-align: left;
+    width: fit-content;
+}
+
+.Questionnaire button {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 50%;
+    font-size: xxx-large;
+}
+
+.Questionnaire textarea {
+    display: block;
+    margin: auto;
+}
+
+.Questionnaire section > label {
+    left: 0;
+    position: absolute;
+    margin-left: 0.25em;
+}

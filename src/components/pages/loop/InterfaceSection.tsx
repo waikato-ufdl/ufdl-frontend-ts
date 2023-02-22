@@ -31,97 +31,104 @@ export function InterfaceSection(
 
     return <section>
         <label>{`${letter}. ${title}`}</label>
-        <span>Ranking:</span>
-        <InterlatchedCheckboxes
-            options={[1, 2, 3] as const}
-            labelExtractor={n => n.toString()}
-            canSelectNone
-            selected={ranking - 1}
-            onChanged={(newRanking) => {
-                console.log(`Mode '${mode}' ranking set to ${newRanking}`)
+        <div>
+            <span>Ranking:</span>
+            <InterlatchedCheckboxes
+                options={[1, 2, 3] as const}
+                labelExtractor={n => n.toString()}
+                canSelectNone
+                selected={ranking - 1}
+                onChanged={(newRanking) => {
+                    console.log(`Mode '${mode}' ranking set to ${newRanking}`)
 
-                const modeWithNewRanking = QUESTION_2_MODES.find((mode) => {
-                    if (newRanking === undefined) return undefined
-                    return props.questionnaire["2"]?.[mode]?.ranking === newRanking
-                })
+                    const modeWithNewRanking = QUESTION_2_MODES.find((mode) => {
+                        if (newRanking === undefined) return undefined
+                        return props.questionnaire["2"]?.[mode]?.ranking === newRanking
+                    })
 
-                let newQuestionnaire: RecursivePartial<Questionnaire> = {
-                    ...props.questionnaire,
-                    2: {
-                        ...props.questionnaire[2],
-                        [mode]: {
-                            ...props.questionnaire[2]?.[mode],
-                            ranking: newRanking
+                    let newQuestionnaire: RecursivePartial<Questionnaire> = {
+                        ...props.questionnaire,
+                        2: {
+                            ...props.questionnaire[2],
+                            [mode]: {
+                                ...props.questionnaire[2]?.[mode],
+                                ranking: newRanking
+                            }
                         }
                     }
-                }
 
-                if (modeWithNewRanking !== undefined) {
-                    console.log(`Mode '${modeWithNewRanking}' already has this ranking`)
-                    if (modeWithNewRanking === mode) return;
-                    let newRankingForModeWithNewRanking: 1 | 2 | 3;
-                    if (props.questionnaire[2]![mode]?.ranking !== undefined) {
-                        console.log(`Swapping for ${mode}'s ranking of ${props.questionnaire[2]![mode]?.ranking}`)
-                        newRankingForModeWithNewRanking = props.questionnaire[2]![mode]!.ranking!
+                    if (modeWithNewRanking !== undefined) {
+                        console.log(`Mode '${modeWithNewRanking}' already has this ranking`)
+                        if (modeWithNewRanking === mode) return;
+                        let newRankingForModeWithNewRanking: 1 | 2 | 3;
+                        if (props.questionnaire[2]![mode]?.ranking !== undefined) {
+                            console.log(`Swapping for ${mode}'s ranking of ${props.questionnaire[2]![mode]?.ranking}`)
+                            newRankingForModeWithNewRanking = props.questionnaire[2]![mode]!.ranking!
+                        } else {
+                            const thirdMode = QUESTION_2_MODES.find(m => m !== mode && m !== modeWithNewRanking)!
+                            const thirdModeRanking = newQuestionnaire[2]![thirdMode]?.ranking
+                            newRankingForModeWithNewRanking = ([1, 2, 3] as const).find(value => {
+                                return value !== newRanking && value !== thirdModeRanking
+                            })!
+                            console.log(`Remaining mode '${thirdMode}' has ranking ${thirdModeRanking}, so giving ranking ${newRankingForModeWithNewRanking}`)
+                        }
+                        newQuestionnaire[2]![modeWithNewRanking] = {
+                            ...newQuestionnaire[2]![modeWithNewRanking]!,
+                            ranking: newRankingForModeWithNewRanking
+                        }
                     } else {
-                        const thirdMode = QUESTION_2_MODES.find(m => m !== mode && m !== modeWithNewRanking)!
-                        const thirdModeRanking = newQuestionnaire[2]![thirdMode]?.ranking
-                        newRankingForModeWithNewRanking = ([1, 2, 3] as const).find(value => {
-                            return value !== newRanking && value !== thirdModeRanking
-                        })!
-                        console.log(`Remaining mode '${thirdMode}' has ranking ${thirdModeRanking}, so giving ranking ${newRankingForModeWithNewRanking}`)
+                        console.log("No other mode has this ranking")
                     }
-                    newQuestionnaire[2]![modeWithNewRanking] = {
-                        ...newQuestionnaire[2]![modeWithNewRanking]!,
-                        ranking: newRankingForModeWithNewRanking
-                    }
-                } else {
-                    console.log("No other mode has this ranking")
-                }
 
-                props.update(newQuestionnaire)
-            }}
-        />
-        <span>Ease of use:</span>
-        <InterlatchedCheckboxes
-            options={EASES_OF_USE}
-            labelExtractor={identity}
-            canSelectNone
-            selected={easeOfUseIndex}
-            onChanged={newEaseOfUse => {
-                let newQuestionnaire: RecursivePartial<Questionnaire> = {
-                    ...props.questionnaire,
-                    2: {
-                        ...props.questionnaire[2],
-                        [mode]: {
-                            ...props.questionnaire[2]?.[mode],
-                            easeOfUse: newEaseOfUse
+                    props.update(newQuestionnaire)
+                }}
+            />
+        </div>
+        <div>
+            <span>Ease of use:</span>
+            <InterlatchedCheckboxes
+                options={EASES_OF_USE}
+                labelExtractor={identity}
+                canSelectNone
+                selected={easeOfUseIndex}
+                onChanged={newEaseOfUse => {
+                    let newQuestionnaire: RecursivePartial<Questionnaire> = {
+                        ...props.questionnaire,
+                        2: {
+                            ...props.questionnaire[2],
+                            [mode]: {
+                                ...props.questionnaire[2]?.[mode],
+                                easeOfUse: newEaseOfUse
+                            }
                         }
                     }
-                }
 
-                props.update(newQuestionnaire)
-            }}
-        />
-        <span>General comments:</span>
-        <textarea
-            value={props.questionnaire["2"]?.[mode]?.comments}
-            placeholder={"Comments"}
-            onChange={value => {
-                let newQuestionnaire: RecursivePartial<Questionnaire> = {
-                    ...props.questionnaire,
-                    2: {
-                        ...props.questionnaire[2],
-                        [mode]: {
-                            ...props.questionnaire[2]?.[mode],
-                            comments: value.target.value
+                    props.update(newQuestionnaire)
+                }}
+            />
+        </div>
+        <div>
+            <span>General comments:</span>
+            <textarea
+                value={props.questionnaire["2"]?.[mode]?.comments}
+                placeholder={"Comments"}
+                onChange={value => {
+                    let newQuestionnaire: RecursivePartial<Questionnaire> = {
+                        ...props.questionnaire,
+                        2: {
+                            ...props.questionnaire[2],
+                            [mode]: {
+                                ...props.questionnaire[2]?.[mode],
+                                comments: value.target.value
+                            }
                         }
                     }
-                }
 
-                props.update(newQuestionnaire)
-            }}
-        />
+                    props.update(newQuestionnaire)
+                }}
+                style={{ width: "80vw" }}
+            />
+        </div>
 
     </section>
 

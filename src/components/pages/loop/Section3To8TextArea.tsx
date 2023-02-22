@@ -21,5 +21,6 @@ export function Section3To8TextArea(
 
             props.update(newQuestionnaire)
         }}
+        style={{ width: "80vw" }}
     />
 }
