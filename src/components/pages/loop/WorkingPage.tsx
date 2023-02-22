@@ -7,7 +7,9 @@ import {useEffect} from "react";
 
 export type WorkingPageProps = {
     title: string,
-    progress: BehaviorSubject<[number, string | undefined]> | number
+    progress: BehaviorSubject<[number, string | undefined]> | number,
+
+    suppressMessages: boolean
 }
 
 export default function WorkingPage(
@@ -36,10 +38,10 @@ export default function WorkingPage(
 
     useEffect(
         () => {
-            if (message !== undefined)
+            if (!props.suppressMessages && message !== undefined)
                 messages.push(message)
         },
-        [message]
+        [message, props.suppressMessages]
     )
 
     const messageElements = messages.map(

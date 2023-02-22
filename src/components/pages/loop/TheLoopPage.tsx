@@ -87,6 +87,7 @@ export default function TheLoopPage(
             return <WorkingPage
                 title={"Initialising..."}
                 progress={0.0}
+                suppressMessages={false}
             />
 
         case "Agreement Page":
@@ -216,8 +217,9 @@ export default function TheLoopPage(
 
             return <WorkingPage
                 key={stateMachine.state} // Reset internal state on state-machine transition
-                title={stateMachine.state}
+                title={stateMachine.data.iteration >= EXPERIMENT_MAX_ITERATION ? "Finalising" : stateMachine.state }
                 progress={progress}
+                suppressMessages={stateMachine.data.iteration >= EXPERIMENT_MAX_ITERATION}
             />;
 
         case "Checking":
