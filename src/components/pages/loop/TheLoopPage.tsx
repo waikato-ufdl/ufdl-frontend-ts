@@ -24,7 +24,18 @@ import {APP_SETTINGS_REACT_CONTEXT} from "../../../useAppSettings";
 import {DEFAULT} from "../../../util/typescript/default";
 import TrainPredictTemplateSelectModal from "./TrainPredictTemplateSelectModal";
 import pass from "../../../util/typescript/functions/pass";
-import {CLASS_COLOURS, EXPERIMENT_MAX_ITERATION, getPrelabelMode} from "../../../EXPERIMENT";
+import {
+    CLASS_COLOURS, EASES_OF_USE,
+    EXPERIMENT_MAX_ITERATION,
+    getPrelabelMode,
+    QUESTION_1_OPTIONS, QUESTION_2_MODES,
+    Questionnaire, questionnaire_is_complete
+} from "../../../EXPERIMENT";
+import InterlatchedCheckboxes from "../../../util/react/component/InterlatchedCheckboxes";
+import {identity} from "../../../util/identity";
+import {RecursivePartial} from "../../../util/typescript/types/RecursivePartial";
+import {InterfaceSection} from "./InterfaceSection";
+import {Section3To8TextArea} from "./Section3To8TextArea";
 
 export type TheLoopPageProps = {
     onBack?: () => void
@@ -76,6 +87,21 @@ export default function TheLoopPage(
                 title={"Initialising..."}
                 progress={0.0}
             />
+
+        case "Agreement Page":
+            return <div>
+                <div>UFDL</div>
+                <span>
+                    Thank you for taking part in this user study.<br/>
+                    Please click 'I Agree' below to indicate that you have read and<br/>
+                    understood the participant information for this study (sent to you by<br/>
+                    email) and you agree to take part under the conditions described.
+                </span>
+                <button onClick={stateMachine.transitions.agree}>
+                    I Agree
+                </button>
+            </div>
+
         case "Selecting Primary Dataset":
             return <SelectDatasetPage
                 onDatasetSelected={(pk, domain) => stateMachine.transitions.setSelected(pk, domain, appSettings)}
@@ -274,6 +300,138 @@ export default function TheLoopPage(
                 }
                 onClassChanged={stateMachine.transitions.addLabelChangedEvent}
             />
+
+        case "Questionnaire":
+
+            return <div>
+                <section>
+                    <label>1.</label>
+                    <span>
+                        How would you rate your knowledge of dog breeds, and ability to identify them, with<br/>
+                        particular reference to the breeds you’ve been exposed to today?
+                    </span>
+                    <InterlatchedCheckboxes
+                        options={QUESTION_1_OPTIONS}
+                        labelExtractor={identity}
+                        canSelectNone
+                        selected={stateMachine.data.questionnaire["1"] === undefined ? -1 : QUESTION_1_OPTIONS.indexOf(stateMachine.data.questionnaire["1"])}
+                        onChanged={
+                            (option) => stateMachine.transitions.update(
+                                {
+                                    ...stateMachine.data.questionnaire,
+                                    1: option
+                                }
+                            )
+                        }
+                    />
+                </section>
+                <section>
+                    <label>2.</label>
+                    <span>
+                        Of the three interfaces you used, can you rank them 1 to 3, with 1 the interface you<br/>
+                        found easiest or most helpful, and 3 the interface you found most difficult and<br/>
+                        unhelpful, and then also answer the other questions relating to each interface:<br/>
+                    </span>
+                    <InterfaceSection
+                        index={0}
+                        participantNumber={stateMachine.data.participantNumber}
+                        questionnaire={stateMachine.data.questionnaire}
+                        update={stateMachine.transitions.update}
+                    />
+                    <InterfaceSection
+                        index={1}
+                        participantNumber={stateMachine.data.participantNumber}
+                        questionnaire={stateMachine.data.questionnaire}
+                        update={stateMachine.transitions.update}
+                    />
+                    <InterfaceSection
+                        index={2}
+                        participantNumber={stateMachine.data.participantNumber}
+                        questionnaire={stateMachine.data.questionnaire}
+                        update={stateMachine.transitions.update}
+                    />
+                </section>
+                <section>
+                    <label>3.</label>
+                    <span>
+                        What are your thoughts on the general design of the website? You could comment on<br/>
+                        issues such as colours, styles, fonts, layouts, and responsiveness.<br/>
+                    </span>
+                    <Section3To8TextArea
+                        section={3}
+                        questionnaire={stateMachine.data.questionnaire}
+                        update={stateMachine.transitions.update}
+                    />
+                </section>
+                <section>
+                    <label>4.</label>
+                    <span>
+                        How did the general design of the user interface affect your ability to label the dogs, and<br/>
+                        did that overall design have a different impact for the different interfaces?<br/>
+                    </span>
+                    <Section3To8TextArea
+                        section={4}
+                        questionnaire={stateMachine.data.questionnaire}
+                        update={stateMachine.transitions.update}
+                    />
+                </section>
+                <section>
+                    <label>5.</label>
+                    <span>
+                        Did the supporting example images make it easier or harder in the case of interface C?.<br/>
+                    </span>
+                    <Section3To8TextArea
+                        section={5}
+                        questionnaire={stateMachine.data.questionnaire}
+                        update={stateMachine.transitions.update}
+                    />
+                </section>
+                <section>
+                    <label>6.</label>
+                    <span>
+                        How clear did you find the instructions you received?<br/>
+                    </span>
+                    <Section3To8TextArea
+                        section={6}
+                        questionnaire={stateMachine.data.questionnaire}
+                        update={stateMachine.transitions.update}
+                    />
+                </section>
+                <section>
+                    <label>7.</label>
+                    <span>
+                        Which interface do you think you were most successful with for correctly labelling the<br/>
+                        dogs? Why?<br/>
+                    </span>
+                    <Section3To8TextArea
+                        section={7}
+                        questionnaire={stateMachine.data.questionnaire}
+                        update={stateMachine.transitions.update}
+                    />
+                </section>
+                <section>
+                    <label>8.</label>
+                    <span>
+                        Which interface do you think you were least successful with for correctly labelling the<br/>
+                        dogs? Why?<br/>
+                    </span>
+                    <Section3To8TextArea
+                        section={8}
+                        questionnaire={stateMachine.data.questionnaire}
+                        update={stateMachine.transitions.update}
+                    />
+                </section>
+                <button
+                    onClick={() => {
+                        const questionnaire = stateMachine.data.questionnaire
+                        if (!questionnaire_is_complete(questionnaire)) return
+                        stateMachine.transitions.submit(questionnaire)
+                    }}
+                    disabled={!questionnaire_is_complete(stateMachine.data.questionnaire)}
+                >
+                    Submit
+                </button>
+            </div>
 
         case "Finished":
             return <Page>

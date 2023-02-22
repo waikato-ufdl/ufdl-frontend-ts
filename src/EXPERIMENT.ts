@@ -4,6 +4,8 @@ import UFDLServerContext from "ufdl-ts-client/UFDLServerContext";
 import {responseForDownload} from "./server/forDownload";
 import completionPromise from "./util/rx/completionPromise";
 import * as ICDataset from "ufdl-ts-client/functional/image_classification/dataset";
+import {RecursiveReadonly} from "./util/typescript/types/RecursiveReadonly";
+import {RecursivePartial} from "./util/typescript/types/RecursivePartial";
 
 /** The username the participant will act under. */
 export const EXPERIMENT_LOGIN_USERNAME = "admin"
@@ -28,6 +30,45 @@ export const EXPERIMENT_MAX_ITERATION = 9
 
 /** The type of prelabel modes being tested. */
 export type PrelabelMode = (typeof EXPERIMENT_PRELABEL_MODES)[number]
+
+/* The participants answers to the questionnaire questions. */
+export const QUESTION_1_OPTIONS = ["Almost none", "A little knowledge", "Moderate knowledge", "Quite good knowledge", "Excellent knowledge"] as const
+export const QUESTION_2_MODES = ["None", "Single", "Example"] as const
+export const EASES_OF_USE = ["Very Hard", "Moderately Hard", "OK", "Easy", "Very Easy"] as const
+export type Questionnaire = {
+    1: (typeof QUESTION_1_OPTIONS)[number]
+    2: {
+        [mode in (typeof QUESTION_2_MODES)[number]]: {
+            ranking: 1|2|3,
+            easeOfUse: (typeof EASES_OF_USE)[number],
+            comments: string
+        }
+    }
+    3: string,
+    4: string,
+    5: string,
+    6: string,
+    7: string,
+    8: string,
+}
+
+export function questionnaire_is_complete(
+    questionnaire: RecursivePartial<Questionnaire>
+):  questionnaire is Questionnaire {
+    for (const question of [1, 2, 3, 4, 5, 6, 7, 8] as const) {
+        if (questionnaire[question] === undefined) return false
+    }
+
+    for (const mode of ["None", "Single", "Example"] as const) {
+        const modeAnswer = questionnaire[2]![mode]
+        if (modeAnswer === undefined) return false
+        for (const key of ["ranking", "easeOfUse", "comments"] as const) {
+            if (modeAnswer[key] === undefined) return false
+        }
+    }
+
+    return true
+}
 
 /**
  * Checks if a string is a valid prelabel mode.

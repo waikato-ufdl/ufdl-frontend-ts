@@ -4,9 +4,15 @@ import {BehaviorSubject} from "rxjs";
 import {DomainName} from "../../../../../server/domains";
 import {ParameterValue} from "../../../../../../../ufdl-ts-client/dist/json/generated/CreateJobSpec";
 import {ValidStates} from "../../../../../util/react/hooks/useStateMachine/types";
+import {PrelabelMode, Questionnaire} from "../../../../../EXPERIMENT";
+import {RecursivePartial} from "../../../../../util/typescript/types/RecursivePartial";
 
 export type LoopStates = ValidStates<{
     "Initial": {
+        context: UFDLServerContext,
+        agreed: boolean
+    }
+    "Agreement Page": {
         context: UFDLServerContext
     }
     "Selecting Primary Dataset": {
@@ -214,7 +220,31 @@ export type LoopStates = ValidStates<{
                 oldLabel: string | null | undefined
                 newLabel: string | null
             }
-        }
+        },
+        questionnaire?: Questionnaire
+    }
+    "Questionnaire": {
+        context: UFDLServerContext
+        participantNumber: number
+        primaryDataset: DatasetPK
+        modelOutputPK: number
+        mergeJobPK: Promise<void>
+        domain: DomainName
+        framework: [string, string]
+        modelType: string
+        trainTemplatePK: number
+        trainParameters: { [name: string]: ParameterValue }
+        evalTemplatePK: number
+        evalParameters: { [name: string]: ParameterValue }
+        iteration: number
+        timingInfo: {
+            [timestamp: number]: {
+                filename: string
+                oldLabel: string | null | undefined
+                newLabel: string | null
+            }
+        },
+        questionnaire: RecursivePartial<Questionnaire>
     }
     "Finished": {
         context: UFDLServerContext

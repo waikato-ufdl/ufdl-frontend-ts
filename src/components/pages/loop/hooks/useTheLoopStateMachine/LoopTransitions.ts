@@ -36,8 +36,9 @@ import {
     EXPERIMENT_DATASET_NAME, EXPERIMENT_MAX_ITERATION,
     EXPERIMENT_PROJECT_NAME,
     EXPERIMENT_TEAM_NAME,
-    getPrelabelMode
+    getPrelabelMode, Questionnaire
 } from "../../../../../EXPERIMENT";
+import {RecursivePartial} from "../../../../../util/typescript/types/RecursivePartial";
 
 export const LOOP_TRANSITIONS = {
     "Initial": {
@@ -55,6 +56,21 @@ export const LOOP_TRANSITIONS = {
                         if (newCurrent !== current) return;
 
                         return previousLoopState;
+                    }
+                )
+            } else if (!current.data.agreed) {
+                changeState(
+                    (newCurrent) => {
+                        if (newCurrent !== current) return;
+
+                        const newState = loopStateDataConstructor("Agreement Page")(
+                            {
+                                context
+                            }
+                        )
+                        trySaveLoopState(newState)
+                        return newState
+
                     }
                 )
             } else {
@@ -116,6 +132,7 @@ export const LOOP_TRANSITIONS = {
                                 loop_state: "Initial",
                                 time: date.toString(),
                                 timeMS: date.getTime(),
+                                agreed: current.data.agreed,
                                 iteration: 0,
                                 participantNumber,
                                 user: context.username,
@@ -153,6 +170,20 @@ export const LOOP_TRANSITIONS = {
                         trySaveLoopState(newState)
                         return newState
 
+                    }
+                )
+            }
+        }
+    },
+    "Agreement Page": {
+        agree() {
+            return (current: LoopStateAndData) => {
+                if (current.state !== "Agreement Page") return;
+
+                return createNewLoopState("Initial")(
+                    {
+                        ...current.data,
+                        agreed: true
                     }
                 )
             }
@@ -446,7 +477,7 @@ export const LOOP_TRANSITIONS = {
                                     true,
                                     current.data.domain
                                 ),
-                                iteration: current.data.iteration + 1,
+                                iteration: nextIteration,
                                 modelOutputPK,
                                 evaluationDataset: current.data.primaryDataset // Isn't used, so doesn't matter what it is
                             }
@@ -757,24 +788,34 @@ export const LOOP_TRANSITIONS = {
             return (current: LoopStateAndData) => {
                 if (current.state !== "User Fixing Categories") return;
 
-                return createNewLoopState("Merging Additional Images")(
-                    {
-                        ...current.data,
-                        mergeJobPK: correctIterationLabels(
-                            current.data.context,
-                            current.data.additionDataset.asNumber,
-                            current.data.iteration
-                        ).then(
-                            () =>
-                                merge(
+                if (current.data.iteration < EXPERIMENT_MAX_ITERATION) {
+                    return createNewLoopState("Merging Additional Images")(
+                        {
+                            ...current.data,
+                            mergeJobPK: correctIterationLabels(
                                 current.data.context,
-                                current.data.primaryDataset,
-                                current.data.additionDataset,
-                                current.data.domain
+                                current.data.additionDataset.asNumber,
+                                current.data.iteration
+                            ).then(
+                                () =>
+                                    merge(
+                                        current.data.context,
+                                        current.data.primaryDataset,
+                                        current.data.additionDataset,
+                                        current.data.domain
+                                    )
                             )
-                        )
-                    }
-                )
+                        }
+                    )
+                } else {
+                    return createNewLoopState("Questionnaire")(
+                        {
+                            ...current.data,
+                            mergeJobPK: Promise.resolve(),
+                            questionnaire: {}
+                        }
+                    )
+                }
             };
         },
         error(reason: any) {
@@ -804,7 +845,7 @@ export const LOOP_TRANSITIONS = {
 
             // If we've reached the end of an interface, reset the primary dataset
             let nextPrimaryDataset: DatasetPK;
-            if (current.data.iteration % 3 === 0) {
+            if (current.data.iteration < EXPERIMENT_MAX_ITERATION && current.data.iteration % 3 === 0) {
                 const datasetPK = (
                     await ICDataset.create(
                         current.data.context,
@@ -846,7 +887,8 @@ export const LOOP_TRANSITIONS = {
                             teamPK: nextPrimaryDataset.team.asNumber,
                             projectPK: nextPrimaryDataset.project.asNumber,
                             datasetPK: nextPrimaryDataset.asNumber,
-                            timingInfo: current.data.timingInfo
+                            timingInfo: current.data.timingInfo,
+                            questionnaire: current.data.questionnaire
                         }
                     }
                 },
@@ -873,6 +915,30 @@ export const LOOP_TRANSITIONS = {
         },
         cancel: cancelJobTransition
     },
+    "Questionnaire": {
+        update(answers: RecursivePartial<Questionnaire>) {
+            return (current: LoopStateAndData) => {
+                if (current.state !== "Questionnaire") return;
+                return createNewLoopState("Questionnaire")(
+                    {
+                        ...current.data,
+                        questionnaire: answers
+                    }
+                )
+            };
+        },
+        submit(answers: Questionnaire) {
+            return (current: LoopStateAndData) => {
+                if (current.state !== "Questionnaire") return;
+                return createNewLoopState("Merging Additional Images")(
+                    {
+                        ...current.data,
+                        questionnaire: answers
+                    }
+                )
+            };
+        },
+    },
     "Finished": {
         download() {
             return (current: LoopStateAndData) => {
@@ -888,7 +954,8 @@ export const LOOP_TRANSITIONS = {
             return (current: LoopStateAndData) => {
                 return createNewLoopState("Initial")(
                     {
-                        context: current.data.context
+                        context: current.data.context,
+                        agreed: true
                     }
                 );
             };
@@ -899,7 +966,8 @@ export const LOOP_TRANSITIONS = {
             return (current: LoopStateAndData) => {
                 return createNewLoopState("Initial")(
                     {
-                        context: current.data.context
+                        context: current.data.context,
+                        agreed: true
                     }
                 );
             };

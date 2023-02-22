@@ -27,7 +27,8 @@ export const SAVEABLE_LOOP_STATES = [
     "Evaluating",
     "Checking",
     "Prelabel",
-    "User Fixing Categories"
+    "User Fixing Categories",
+    "Questionnaire"
 ] as const
 
 export type SaveableLoopStates = typeof SAVEABLE_LOOP_STATES[number]
@@ -99,6 +100,8 @@ export function restoreLoopState(
                 context
             )
         )
+    } else if (isAllowedStateAndData(deserialisedStateAndData, "Questionnaire")) {
+        deserialisedStateAndData.data.mergeJobPK = Promise.resolve()
     }
 
     deserialisedStateAndData.data.context = context
