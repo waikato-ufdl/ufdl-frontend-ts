@@ -192,6 +192,8 @@ export type LoopStates = ValidStates<{
         evalTemplatePK: number
         evalParameters: { [name: string]: ParameterValue }
         iteration: number
+        entryTime: string
+        entryTimeMS: number
         timingInfo: {
             [timestamp: number]: {
                 filename: string
@@ -214,6 +216,8 @@ export type LoopStates = ValidStates<{
         evalTemplatePK: number
         evalParameters: { [name: string]: ParameterValue }
         iteration: number
+        entryTime: string
+        entryTimeMS: number
         timingInfo: {
             [timestamp: number]: {
                 filename: string
@@ -237,6 +241,8 @@ export type LoopStates = ValidStates<{
         evalTemplatePK: number
         evalParameters: { [name: string]: ParameterValue }
         iteration: number
+        entryTime: string
+        entryTimeMS: number
         timingInfo: {
             [timestamp: number]: {
                 filename: string

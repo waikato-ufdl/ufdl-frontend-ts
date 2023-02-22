@@ -378,12 +378,16 @@ export const LOOP_TRANSITIONS = {
             return (current: LoopStateAndData) => {
                 if (current.state !== "Selecting Prelabel Images") return;
 
+                const entryTime = new Date();
+
                 return createNewLoopState("User Fixing Categories")(
                     {
                         ...current.data,
                         additionDataset: current.data.targetDataset,
                         iteration: -1,
-                        timingInfo: {}
+                        timingInfo: {},
+                        entryTime: entryTime.toString(),
+                        entryTimeMS: entryTime.getTime()
                     }
                 )
             }
@@ -655,11 +659,14 @@ export const LOOP_TRANSITIONS = {
                     if (newCurrent !== current) return;
 
                     if (getPrelabelMode(current.data.iteration, current.data.participantNumber % 6) === "None") {
+                        const entryTime = new Date()
                         return createNewLoopState("User Fixing Categories")(
                             {
                                 ...current.data,
                                 additionDataset: targetDataset,
-                                timingInfo: {}
+                                timingInfo: {},
+                                entryTime: entryTime.toString(),
+                                entryTimeMS: entryTime.getTime()
                             }
                         )
                     } else {
@@ -748,10 +755,14 @@ export const LOOP_TRANSITIONS = {
                 (newCurrent) => {
                     if (newCurrent !== current) return;
 
+                    const entryTime = new Date()
+
                     return createNewLoopState("User Fixing Categories")(
                         {
                             ...current.data,
-                            timingInfo: {}
+                            timingInfo: {},
+                            entryTime: entryTime.toString(),
+                            entryTimeMS: entryTime.getTime()
                         }
                     );
                 }
@@ -879,6 +890,8 @@ export const LOOP_TRANSITIONS = {
                             loop_state: "Merging Additional Images",
                             time: date.toString(),
                             timeMS: date.getTime(),
+                            entryTime: current.data.entryTime,
+                            entryTimeMS: current.data.entryTimeMS,
                             iteration: current.data.iteration,
                             participantNumber: current.data.participantNumber,
                             prelabelMode: getPrelabelMode(current.data.iteration, current.data.participantNumber % 6),
