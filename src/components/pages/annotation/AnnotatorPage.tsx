@@ -190,7 +190,7 @@ export default function AnnotatorPage<
         onRequestNewDataset={topMenuOnRequestNewDataset}
         nextLabel={props.nextLabel}
         onNext={topMenuOnNext}
-        nextDisabled={!isDefined(props.dataset) || props.dataset.isError || !isDefined(props.onNext)}
+        nextDisabled={!isDefined(props.dataset) || props.dataset.isError || !isDefined(props.onNext) || (imageIndex + 1 !== props.dataset.size)}
         onBack={props.onBack}
         className={"menuBar"}
         sortOrders={props.sortOrders}
