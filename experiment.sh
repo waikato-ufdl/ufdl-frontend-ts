@@ -98,12 +98,35 @@ function check_repository()
 
 function clean_up()
 {
+  # Copy download script
+  cp "../test-download-all-dog-job-metadata.py" "." || error "Error copying extras into ufdl-backend/docker/ufdl/extra" $CP_ERROR_STATUS
+
+  # Create the volumes for mounting (Docker creates them as root)
+  if [ ! -d ./config ]
+  then
+    mkdir ./config || error "Couldn't create config directory ./config" $MKDIR_ERROR_STATUS
+  fi
+  if [ ! -d ./dog_jobs_metadata ]
+  then
+    mkdir ./dog_jobs_metadata || error "Couldn't create dog-job metadata directory ./dog_jobs_metadata" $MKDIR_ERROR_STATUS
+  fi
+
   # Download results
-  ./venv/bin/python ../test-download-all-dog-job-metadata.py
+  docker run \
+   -u "$(id -u):$(id -g)" \
+   -it \
+   --net=host \
+   -e "UFDL_SERVER_PORT=${UFDL_SERVER_PORT}" \
+   -e "USER=$USER" \
+   -v "$(pwd)/dog_jobs_metadata:/usr/src/app/dog_jobs_metadata" \
+   -v "$(pwd)/test-download-all-dog-job-metadata.py:/usr/src/app/test-download-all-dog-job-metadata.py" \
+   -v "$(pwd)/config:/.config/ufdl" \
+   ufdl-experiment-python-3.8
+  #./venv/bin/python ../test-download-all-dog-job-metadata.py
 
   # Bring down the backend
   cd "ufdl-backend/docker/ufdl" || error "Couldn't cd into ufdl-backend/docker/ufdl" $CD_ERROR_STATUS
-  docker-compose --project-name "ufdl-experiment-user-$PARTICIPANT_NUMBER" --profile with-job-launcher stop || error "Failed to stop Docker services" $DOCKER_ERROR_STATUS
+  docker-compose --project-name $PROJECT_NAME --profile with-job-launcher stop || error "Failed to stop Docker services" $DOCKER_ERROR_STATUS
   cd "../../.." || error "Couldn't cd back to original directory" $CD_ERROR_STATUS
 
   # Farewell message
@@ -144,9 +167,9 @@ done
 
 echo "Performing checks"
 
-check_executable virtualenv required
-#check_executable google-chrome required
-check_executable python3.8 required
+#check_executable virtualenv required
+check_executable google-chrome required
+#check_executable python3.8 required
 check_executable docker required
 check_executable docker-compose required
 
@@ -166,7 +189,7 @@ docker ps -q || error "Error running docker command" $DOCKER_ERROR_STATUS
 if [ "$RESUME" = "no" ]
 then
   echo -n "Are you sure you want to reset? [y/N]"
-  ANSWER=$(read -s -r -n 1)
+  read -s -r -n 1 ANSWER
   if [ "$ANSWER" != "y" ] && [ "$ANSWER" != "Y" ]
   then
     exit 0
@@ -185,16 +208,16 @@ if [ "$RESUME" = "no" ]
 then
   # Update all repositories
   check_repository "ufdl-backend"
-  check_repository "ufdl-python-client"
-  check_repository "ufdl-json-messages"
+  #check_repository "ufdl-python-client"
+  #check_repository "ufdl-json-messages"
 
   # Remove the previous virtual environment
-  rm -rf ./venv || error "Error removing Python virtual environment" $RM_ERROR_STATUS
+  #rm -rf ./venv || error "Error removing Python virtual environment" $RM_ERROR_STATUS
 
   # Create the Python environment for downloading the results
-  virtualenv -p "$(which python3.8)" ./venv || error "Failed to create virtual Python environment" $PYTHON_ERROR_STATUS
-  ./venv/bin/pip install ./ufdl-json-messages || error " Failed to install the JSON messages into venv" $PYTHON_ERROR_STATUS
-  ./venv/bin/pip install ./ufdl-python-client || error " Failed to install the UFDL client into venv" $PYTHON_ERROR_STATUS
+  #virtualenv -p "$(which python3.8)" ./venv || error "Failed to create virtual Python environment" $PYTHON_ERROR_STATUS
+  #./venv/bin/pip install ./ufdl-json-messages || error " Failed to install the JSON messages into venv" $PYTHON_ERROR_STATUS
+  #./venv/bin/pip install ./ufdl-python-client || error " Failed to install the UFDL client into venv" $PYTHON_ERROR_STATUS
 
   # Remove the extras from the extra folder
   rm -rf "./ufdl-backend/docker/ufdl/extra/*" || error "Error removing extra folder contents" $RM_ERROR_STATUS
@@ -220,17 +243,19 @@ fi
 
 # Start the backend without the job-launcher (in case we need to reset)
 export UFDL_SERVER_PORT=$((PARTICIPANT_NUMBER + 8000))
+PROJECT_NAME="ufdl-experiment-user-${PARTICIPANT_NUMBER}"
+CONTAINER_NAME="${PROJECT_NAME}_ufdl_1"
 cd "ufdl-backend/docker/ufdl" || error "Couldn't cd into ufdl-backend/docker/ufdl" $CD_ERROR_STATUS
-docker-compose --project-name "ufdl-experiment-user-$PARTICIPANT_NUMBER" up -d || error "Couldn't bring up backend" $DOCKER_ERROR_STATUS
+docker-compose --project-name $PROJECT_NAME up -d || error "Couldn't bring up backend" $DOCKER_ERROR_STATUS
 
 # Reset the database if we're not resuming
 if [ "$RESUME" = "no" ]
 then
-  docker exec "ufdl-experiment-user-${PARTICIPANT_NUMBER}_ufdl_1" ./dev_reset.sh || error "Failed to reset database" $DOCKER_ERROR_STATUS
+  docker exec $CONTAINER_NAME ./dev_reset.sh || error "Failed to reset database" $DOCKER_ERROR_STATUS
 fi
 
 # Now start the job-launcher
-docker-compose --project-name "ufdl-experiment-user-$PARTICIPANT_NUMBER" --profile with-job-launcher up -d || error "Failed to start job-launcher" $DOCKER_ERROR_STATUS
+docker-compose --project-name $PROJECT_NAME --profile with-job-launcher up -d || error "Failed to start job-launcher" $DOCKER_ERROR_STATUS
 cd "../../.." || error "Couldn't cd back to original directory" $CD_ERROR_STATUS
 
 # Remove the Chrome directory if we are resetting
@@ -241,11 +266,11 @@ fi
 
 # For running the browser locally
 # Open chrome
-# google-chrome --user-data-dir="./chrome-data" "http://localhost:${UFDL_SERVER_PORT}/v1/html" || error "Failed to launch Chrome" $CHROME_ERROR_STATUS
+google-chrome --user-data-dir="./chrome-data" "http://localhost:${UFDL_SERVER_PORT}/v1/html" || error "Failed to launch Chrome" $CHROME_ERROR_STATUS
 
-trap clean_up SIGINT
+#trap clean_up SIGINT
 
 # Tail the server's log
-docker logs -f "ufdl-experiment-user-${PARTICIPANT_NUMBER}_ufdl_1"
+#docker logs -f $CONTAINER_NAME
 
 clean_up
