@@ -307,8 +307,8 @@ export default function TheLoopPage(
             />
 
         case "Questionnaire":
-            return <Form className={"Questionnaire"}>
-                <span>Questionnaire</span>
+            return <Form className={"Questionnaire"} style={{fontSize: "larger"}}>
+                <span style={{fontSize: "xx-large"}}>Questionnaire</span>
                 <section>
                     <label>1.</label>
                     <div className={"Question"}>
@@ -385,7 +385,7 @@ export default function TheLoopPage(
                 <section>
                     <label>5.</label>
                     <div className={"Question"}>
-                        Did the supporting example images make it easier or harder in the case of interface {["A", "B", "C"][getIndexOfPrelabelMode("Example", stateMachine.data.participantNumber % 6)]}?.<br/>
+                        Did the supporting example images make it easier or harder in the case of interface {["A", "B", "C"][getIndexOfPrelabelMode("Example", stateMachine.data.participantNumber % 6)]}?<br/>
                     </div>
                     <Section3To8TextArea
                         section={5}

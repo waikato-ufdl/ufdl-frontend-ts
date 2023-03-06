@@ -51,10 +51,11 @@ export default function InterlatchedCheckboxes<
             props.options.entries(),
             ([index, option]) => {
                 const checked = index === normalisedSelected
-                return <label>
-                    {props.labelExtractor(option, index, props.options)}
+                const label = props.labelExtractor(option, index, props.options)
+                return <div style={{display: "inline"}}>
                     <input
                         className={"InterlatchedCheckbox"}
+                        id={label}
                         type={"checkbox"}
                         checked={checked}
                         onChange={() => {
@@ -65,7 +66,8 @@ export default function InterlatchedCheckboxes<
                             }
                         }}
                     />
-                </label>
+                    <label htmlFor={label}>{label}</label>
+                </div>
             }
         )
     ]
