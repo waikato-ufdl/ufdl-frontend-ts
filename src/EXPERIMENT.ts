@@ -41,28 +41,28 @@ export type Questionnaire = {
         [mode in (typeof QUESTION_2_MODES)[number]]: {
             ranking: 1|2|3,
             easeOfUse: (typeof EASES_OF_USE)[number],
-            comments: string
+            comments?: string
         }
     }
-    3: string,
-    4: string,
-    5: string,
-    6: string,
-    7: string,
-    8: string,
+    3?: string,
+    4?: string,
+    5?: string,
+    6?: string,
+    7?: string,
+    8?: string,
 }
 
 export function questionnaire_is_complete(
     questionnaire: RecursivePartial<Questionnaire>
 ):  questionnaire is Questionnaire {
-    for (const question of [1, 2, 3, 4, 5, 6, 7, 8] as const) {
+    for (const question of [1, 2] as const) {
         if (questionnaire[question] === undefined) return false
     }
 
     for (const mode of ["None", "Single", "Example"] as const) {
         const modeAnswer = questionnaire[2]![mode]
         if (modeAnswer === undefined) return false
-        for (const key of ["ranking", "easeOfUse", "comments"] as const) {
+        for (const key of ["ranking", "easeOfUse"] as const) {
             if (modeAnswer[key] === undefined) return false
         }
     }
