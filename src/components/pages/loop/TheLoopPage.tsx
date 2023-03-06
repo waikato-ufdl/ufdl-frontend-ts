@@ -26,7 +26,7 @@ import TrainPredictTemplateSelectModal from "./TrainPredictTemplateSelectModal";
 import pass from "../../../util/typescript/functions/pass";
 import {
     CLASS_COLOURS,
-    EXPERIMENT_MAX_ITERATION,
+    EXPERIMENT_MAX_ITERATION, getIndexOfPrelabelMode,
     getPrelabelMode,
     QUESTION_1_OPTIONS,
     questionnaire_is_complete
@@ -307,7 +307,6 @@ export default function TheLoopPage(
             />
 
         case "Questionnaire":
-
             return <Form className={"Questionnaire"}>
                 <span>Questionnaire</span>
                 <section>
@@ -386,7 +385,7 @@ export default function TheLoopPage(
                 <section>
                     <label>5.</label>
                     <div className={"Question"}>
-                        Did the supporting example images make it easier or harder in the case of interface C?.<br/>
+                        Did the supporting example images make it easier or harder in the case of interface {["A", "B", "C"][getIndexOfPrelabelMode("Example", stateMachine.data.participantNumber % 6)]}?.<br/>
                     </div>
                     <Section3To8TextArea
                         section={5}

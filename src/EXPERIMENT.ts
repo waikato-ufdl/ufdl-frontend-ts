@@ -133,11 +133,7 @@ export function getInterfaceNumber(iteration: number): number {
     return Math.floor(1 + ((iteration - 1) / 3))
 }
 
-export function getPrelabelMode(iteration: number, ordering: number): PrelabelMode {
-    const interface_number = getInterfaceNumber(iteration)
-
-    if (interface_number === 0) return "Default"
-
+function getOrdering(ordering: number): readonly [PrelabelMode, PrelabelMode, PrelabelMode] {
     // Make sure the ordering is a number in [0, 6)
     if (!Number.isInteger(ordering) || ordering < 0 || ordering >= 6) {
         throw new Error(`ordering must be an integer in [1, 6), got ${ordering}`)
@@ -152,7 +148,22 @@ export function getPrelabelMode(iteration: number, ordering: number): PrelabelMo
         5: ["Example", "Single", "None"],
     }
 
-    return orderings[ordering][interface_number - 1]
+    return orderings[ordering]
+}
+
+export function getPrelabelMode(iteration: number, ordering: number): PrelabelMode {
+    const interface_number = getInterfaceNumber(iteration)
+
+    if (interface_number === 0) return "Default"
+
+    return getOrdering(ordering)[interface_number - 1]
+}
+
+export function getIndexOfPrelabelMode(
+    prelabelMode: "None" | "Single" | "Example",
+    ordering: number
+): number {
+    return getOrdering(ordering).indexOf(prelabelMode);
 }
 
 /**
