@@ -176,9 +176,9 @@ export default function ExampleDatasetOverview<
     )
 
     const onItemClicked = useDerivedState(
-        ([setExpanded]) => {
-            return (item: DatasetItem<unknown, unknown>) => {
-                setExpanded(item.filename)
+        ([_setExpanded]) => {
+            return (_item: DatasetItem<unknown, unknown>) => {
+                //setExpanded(item.filename)
             }
         },
         [setExpanded] as const
