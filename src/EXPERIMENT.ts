@@ -136,7 +136,7 @@ export function getInterfaceNumber(iteration: number): number {
 function getOrdering(ordering: number): readonly [PrelabelMode, PrelabelMode, PrelabelMode] {
     // Make sure the ordering is a number in [0, 6)
     if (!Number.isInteger(ordering) || ordering < 0 || ordering >= 6) {
-        throw new Error(`ordering must be an integer in [1, 6), got ${ordering}`)
+        throw new Error(`ordering must be an integer in [0, 6), got ${ordering}`)
     }
 
     const orderings: { [ordering: number]: readonly [PrelabelMode, PrelabelMode, PrelabelMode] } = {
