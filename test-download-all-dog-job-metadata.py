@@ -1580,8 +1580,8 @@ CORRECT_LABELS = {
 def get_ordering(
         participant_number: int
 ) -> Tuple[str, str, str]:
-    if not isinstance(participant_number, int) or participant_number < 1 or participant_number > 30:
-        raise Exception(f"Bad participant number {participant_number}, should be in [1, 30]")
+    if not isinstance(participant_number, int) or participant_number < 1:
+        raise Exception(f"Bad participant number {participant_number}, should be an integer at least 1")
 
     index = participant_number % 6
 
