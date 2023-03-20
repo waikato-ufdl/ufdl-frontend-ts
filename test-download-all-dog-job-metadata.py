@@ -1644,77 +1644,80 @@ if __name__ == '__main__':
 
     import json
 
-    # Load the participant number from the initial train job
-    with open("dog_jobs_metadata/dog_job_1.metadata.json", "r") as result_file:
-        results = json.load(result_file)
-        participant_number = int(results["frontend"]["participantNumber"])
+    try:
+        # Load the participant number from the initial train job
+        with open("dog_jobs_metadata/dog_job_1.metadata.json", "r") as result_file:
+            results = json.load(result_file)
+            participant_number = int(results["frontend"]["participantNumber"])
 
-    ordering = get_ordering(participant_number)
+        ordering = get_ordering(participant_number)
 
-    job_index = 2
-    interface_index = 0
-    output = {
-        "participant_number": participant_number
-    }
-
-    while interface_index < 3:
-        interface = ordering[interface_index]
-        output_interface = {
-            "interface": interface
+        job_index = 2
+        interface_index = 0
+        output = {
+            "participant_number": participant_number
         }
 
-        for interface_iteration_index in (0, 1, 2):
-            if interface != "None":
+        while interface_index < 3:
+            interface = ordering[interface_index]
+            output_interface = {
+                "interface": interface
+            }
+
+            for interface_iteration_index in (0, 1, 2):
+                if interface != "None":
+                    with open(f"dog_jobs_metadata/dog_job_{job_index}.metadata.json", "r") as result_file:
+                        results = json.load(result_file)
+                    correctly_prelabelled = set(
+                        filename
+                        for filename, prelabel in results["job"]["files"].items()
+                        if prelabel["correct"]
+                    )
+                    job_index += 1
+                else:
+                    correctly_prelabelled = set()
+
+                output_interface_iteration = {}
+
                 with open(f"dog_jobs_metadata/dog_job_{job_index}.metadata.json", "r") as result_file:
                     results = json.load(result_file)
-                correctly_prelabelled = set(
-                    filename
-                    for filename, prelabel in results["job"]["files"].items()
-                    if prelabel["correct"]
+
+                final_decisions = {}
+                for timestamp, change in results["frontend"]["timingInfo"].items():
+                    filename = change["filename"]
+                    decision = change["newLabel"]
+                    timestamp = int(timestamp)
+                    if filename not in final_decisions or final_decisions[filename][0] < timestamp:
+                        final_decisions[filename] = (timestamp, decision)
+
+                output_interface_iteration["time"] = (results["frontend"]["timeMS"] - results["frontend"]["entryTimeMS"]) / 1000
+                output_interface_iteration["correct"] = sum(
+                    (
+                        1
+                        for filename, decision in final_decisions.items()
+                        if CORRECT_LABELS[filename] == decision[1]
+                    ),
+                    0
+                ) + sum(
+                    (
+                        1
+                        for filename in correctly_prelabelled
+                        if filename not in final_decisions
+                    ),
+                    0
                 )
+
+                output_interface[f"iteration_{interface_iteration_index + 1}"] = output_interface_iteration
                 job_index += 1
-            else:
-                correctly_prelabelled = set()
-                
-            output_interface_iteration = {}
 
-            with open(f"dog_jobs_metadata/dog_job_{job_index}.metadata.json", "r") as result_file:
-                results = json.load(result_file)
+            interface_index += 1
+            output[f"interface_{interface_index}"] = output_interface
 
-            final_decisions = {}
-            for timestamp, change in results["frontend"]["timingInfo"].items():
-                filename = change["filename"]
-                decision = change["newLabel"]
-                timestamp = int(timestamp)
-                if filename not in final_decisions or final_decisions[filename][0] < timestamp:
-                    final_decisions[filename] = (timestamp, decision)
-
-            output_interface_iteration["time"] = (results["frontend"]["timeMS"] - results["frontend"]["entryTimeMS"]) / 1000
-            output_interface_iteration["correct"] = sum(
-                (
-                    1
-                    for filename, decision in final_decisions.items()
-                    if CORRECT_LABELS[filename] == decision[1]
-                ),
-                0
-            ) + sum(
-                (
-                    1
-                    for filename in correctly_prelabelled
-                    if filename not in final_decisions
-                ),
-                0
-            )
-            
-            output_interface[f"iteration_{interface_iteration_index + 1}"] = output_interface_iteration
-            job_index += 1
-
-        interface_index += 1
-        output[f"interface_{interface_index}"] = output_interface
-
-    with open("dog_jobs_metadata/dog_job_16.metadata.json", "r") as result_file:
-        results = json.load(result_file)
-        output["questionnaire"] = results["frontend"]["questionnaire"]
-    
-    with open("dog_jobs_metadata/results.json", "w") as result_file:
-        json.dump(output, result_file)
+        with open("dog_jobs_metadata/dog_job_16.metadata.json", "r") as result_file:
+            results = json.load(result_file)
+            output["questionnaire"] = results["frontend"]["questionnaire"]
+    except Exception as e:
+        print(f"Couldn't aggregate experiment results: {e}")
+    else:
+        with open("dog_jobs_metadata/results.json", "w") as result_file:
+            json.dump(output, result_file)
