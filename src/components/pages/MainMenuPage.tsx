@@ -22,7 +22,7 @@ export function MainMenuPage() {
         />
     }
 
-    return <MenuPage titleGenerator={["New User", "New Team", "New Project", "The Loop", "Settings"]}>
+    return <MenuPage titleGenerator={["Create User", "Create Team", "Create Project", "Start", "Settings"]}>
         <NewUserPage />
         <NewTeamPage />
         <NewProjectPage teamPK={UNCONTROLLED_KEEP} />
