@@ -107,7 +107,7 @@ export default function NewUserPage(
                     onClick={() => setIsAdmin(!isAdmin)}
                 />
             </label>
-            <input type={"submit"} value={"Submit"} disabled={!canSubmit(ufdlServerContext, username, password, email)}/>
+            <input type={"submit"} value={"Create"} disabled={!canSubmit(ufdlServerContext, username, password, email)}/>
         </Form>
     </Page>
 }

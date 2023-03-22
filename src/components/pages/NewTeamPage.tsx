@@ -46,14 +46,14 @@ export default function NewTeamPage(
         {props.onBack && <BackButton onBack={props.onBack} />}
         <Form onSubmit={() => submitNewTeam(ufdlServerContext, name, onSuccess)}>
             <label>
-                Name:
+                Team name:
                 <input
                     value={name}
                     onChange={asChangeEventHandler(setName)}
                     autoFocus
                 />
             </label>
-            <input type={"submit"} value={"Submit"} disabled={!canSubmit(name)} />
+            <input type={"submit"} value={"Create"} disabled={!canSubmit(name)} />
         </Form>
     </Page>
 }

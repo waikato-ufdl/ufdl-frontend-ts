@@ -110,7 +110,7 @@ export default function NewDatasetPage(props: NewDatasetPageProps) {
                 />
             </label>
             <label>
-                Name:
+                Dataset name:
                 <input
                     value={name}
                     onChange={asChangeEventHandler(setName)}
@@ -140,7 +140,7 @@ export default function NewDatasetPage(props: NewDatasetPageProps) {
                     disabled={isPublicLocked}
                 />
             </label>
-            <input type={"submit"} value={"Submit"} disabled={!canSubmit(projectPK, name, licencePK, domain)}/>
+            <input type={"submit"} value={"Create"} disabled={!canSubmit(projectPK, name, licencePK, domain)}/>
         </Form>
     </Page>
 }
